@@ -230,7 +230,7 @@ public class Drive extends SubsystemBase {
         // Stop moving when disabled
         if (DriverStation.isDisabled()) {
             for(int i=0; i<4; i++){
-                modules[i].idle();
+                modules[i].stop();
             }
         }
 

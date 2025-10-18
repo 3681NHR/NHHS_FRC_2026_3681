@@ -2,6 +2,8 @@
 
 package frc.robot;
 
+import frc.robot.autos.AutoChooser;
+import frc.robot.autos.AutoFactory;
 import frc.robot.constants.Constants;
 import frc.robot.constants.DriveConstants;
 import frc.robot.constants.Constants.OperatorConstants;
@@ -36,6 +38,8 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
 import static frc.utils.ControllerMap.*;
+
+import javax.naming.spi.DirStateFactory;
 
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.COTS;
@@ -81,7 +85,8 @@ public class RobotContainer {
     private final XboxController operatorController = new XboxController(OperatorConstants.OPERATOR_CONTROLLER_PORT);
 
     private LoggedNetworkBoolean resetOdometry = new LoggedNetworkBoolean("resetOdometry", false);
-    private LoggedDashboardChooser<Command> autoChooser;
+    // private LoggedDashboardChooser<Command> autoChooser;
+    private AutoChooser autoChooser = new AutoChooser(new AutoFactory(this));
 
     private RumbleHandler rumbler = new RumbleHandler(driverController);
     private RumbleHandler opRumbler = new RumbleHandler(operatorController);
@@ -183,7 +188,8 @@ public class RobotContainer {
                 // Sim robot, instantiate physics sim IO implementations
                 vision = new Vision(
                         e,
-                        new CameraIOPhotonSim(e, VisionConstants.CAMERA_CONFIGS[0], driveSim::getSimulatedDriveTrainPose));
+                        new CameraIOPhotonSim(e, VisionConstants.CAMERA_CONFIGS[0],
+                                driveSim::getSimulatedDriveTrainPose));
                 if (driveSim != null) {
                     drive = new Drive(
                             new GyroIOSim(driveSim.getGyroSimulation()) {
@@ -238,7 +244,7 @@ public class RobotContainer {
                 ryLim);
 
         // build pathplanner autos and put in dashboard
-        autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
+        // autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
         configureBindings();
 
@@ -262,7 +268,6 @@ public class RobotContainer {
         // ------------------------------------------------------------------------------
         // driver controls
         // ------------------------------------------------------------------------------
-
 
         // move wheels to X, makes robot hard to push
         new Trigger(() -> driverController.getRawButton(LOGO_RIGHT)).whileTrue(new InstantCommand(() -> {
@@ -294,6 +299,8 @@ public class RobotContainer {
         rumbler.update(0.02);
         driverDisconnected.set(!driverController.isConnected());
         operatorDisconnected.set(!operatorController.isConnected());
+    
+        autoChooser.update();
     }
 
     public void SimPeriodic() {
@@ -310,7 +317,8 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        Command auto = autoChooser.get();
+        // Command auto = autoChooser.get();
+        Command auto = autoChooser.getSelected();
         return auto;
     }
 
@@ -323,5 +331,9 @@ public class RobotContainer {
     }
 
     public void enableAuto() {
+    }
+
+    public Drive getDrive() {
+        return drive;
     }
 }
