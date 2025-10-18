@@ -3,7 +3,6 @@
 package frc.robot;
 
 import frc.robot.autos.AutoChooser;
-import frc.robot.autos.AutoFactory;
 import frc.robot.constants.Constants;
 import frc.robot.constants.DriveConstants;
 import frc.robot.constants.Constants.OperatorConstants;
@@ -39,24 +38,20 @@ import static edu.wpi.first.units.Units.Meters;
 
 import static frc.utils.ControllerMap.*;
 
-import javax.naming.spi.DirStateFactory;
-
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.inputs.LoggedPowerDistribution;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
-import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
+import frc.utils.Alert;
+import frc.utils.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -86,7 +81,7 @@ public class RobotContainer {
 
     private LoggedNetworkBoolean resetOdometry = new LoggedNetworkBoolean("resetOdometry", false);
     // private LoggedDashboardChooser<Command> autoChooser;
-    private AutoChooser autoChooser = new AutoChooser(new AutoFactory(this));
+    private AutoChooser autoChooser;
 
     private RumbleHandler rumbler = new RumbleHandler(driverController);
     private RumbleHandler opRumbler = new RumbleHandler(operatorController);
@@ -248,6 +243,8 @@ public class RobotContainer {
 
         configureBindings();
 
+        autoChooser = new AutoChooser(this);
+
         LoggedPowerDistribution.getInstance(pdp.getModule(), ModuleType.kRev);
     }
 
@@ -328,6 +325,7 @@ public class RobotContainer {
 
     public void enableTeleop() {
         CommandScheduler.getInstance().schedule(drive.TeleopDrive());
+        drive.setCallback();
     }
 
     public void enableAuto() {

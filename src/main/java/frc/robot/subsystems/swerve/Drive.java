@@ -26,8 +26,8 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
+import frc.utils.Alert;
+import frc.utils.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -157,11 +157,6 @@ public class Drive extends SubsystemBase {
                             "Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
                     field.getObject("PP/activePath").setPoses(activePath);
                 });
-        PathPlannerLogging.setLogTargetPoseCallback(
-                (targetPose) -> {
-                    Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
-                    field.getObject("PP/targetpose").setPoses(targetPose);
-                });
 
         // Configure SysId
         driveSysId = new SysIdRoutine(
@@ -203,6 +198,13 @@ public class Drive extends SubsystemBase {
             YAGSLWidget.wheelLocations[i * 2] = t.getX();
             YAGSLWidget.wheelLocations[(i * 2) + 1] = t.getY();
         }
+    }
+    public void setCallback(){
+        PathPlannerLogging.setLogTargetPoseCallback(
+                (targetPose) -> {
+                    Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
+                    field.getObject("PP/targetpose").setPoses(targetPose);
+                });
     }
 
     @Override

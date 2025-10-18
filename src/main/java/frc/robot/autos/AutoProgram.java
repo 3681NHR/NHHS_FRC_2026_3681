@@ -6,14 +6,17 @@ import edu.wpi.first.wpilibj2.command.Command;
 
 import java.util.function.Function;
 
+import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
+
 /**
  * An autonomous program.
  */
 public class AutoProgram {
     private final String label;
 
-    private final Function<AutoFactory, Pair<Pose2d[], Command>> commandFactory;
+    private final Function<AutoFactory, Pair<PathPlannerTrajectory, Command>> commandFactory;
 
+    private Pair<PathPlannerTrajectory, Command> commandPair;
     /**
      * Create an autonomous program
      *
@@ -24,9 +27,13 @@ public class AutoProgram {
      * @param commandFactory
      * The command factory for the program
      */
-    public AutoProgram(final String label, final Function<AutoFactory, Pair<Pose2d[], Command>> commandFactory) {
+    public AutoProgram(final String label, final Function<AutoFactory, Pair<PathPlannerTrajectory, Command>> commandFactory) {
         this.label = label;
         this.commandFactory = commandFactory;
+
+    }
+    public void update(AutoFactory factory){
+        this.commandPair = commandFactory.apply(factory);
     }
 
     /**
@@ -47,14 +54,38 @@ public class AutoProgram {
      * The {@link Command} for this program from the provided {@link AutoFactory}
      */
     public Command getCommand(final AutoFactory autoFactory) {
-        return commandFactory.apply(autoFactory).getSecond().withName(label);
+        return commandPair.getSecond();
     }
 
     public Pose2d getStartingPose(final AutoFactory autoFactory) {
-        return commandFactory.apply(autoFactory).getFirst()[0];
+        if(getPoses(autoFactory).length == 0){
+            return new Pose2d();
+        } else {
+            return commandPair.getFirst().getInitialPose();
+        }
     }
 
     public Pose2d[] getPoses(final AutoFactory autoFactory){
-        return commandFactory.apply(autoFactory).getFirst();
+        if(commandPair.getFirst() != null){
+            return commandPair.getFirst().getStates().stream().map(state -> state.pose).toArray(Pose2d[]::new);
+        } else {
+            return new Pose2d[0];
+        }
+    }
+
+    public Pose2d getPoseAtTime(final AutoFactory autoFactory, double time){
+        if(commandPair.getFirst() != null){
+            return commandPair.getFirst().sample(time).pose;
+        } else {
+            return new Pose2d();
+        }
+    }
+    
+    public double getPathLength(final AutoFactory autoFactory){
+        if(commandPair.getFirst() != null){
+            return commandPair.getFirst().getTotalTimeSeconds();
+        } else {
+            return 0.0;
+        }
     }
 }
