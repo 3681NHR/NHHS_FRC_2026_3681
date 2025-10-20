@@ -31,10 +31,14 @@ public class Led extends SubsystemBase {
 
     private LEDAnim b = new RainbowAnim(50);
 
+
     public Led() {
         led.setLength(buffer.getLength());
 
         led.start();
+
+        b.scroll(10);
+
     }
 
     @Override
@@ -88,6 +92,7 @@ public class Led extends SubsystemBase {
         // pattern = pattern.blink(Seconds.of(.125));
         // }
 
+        b.update();
         if (rainbow.get()) {
             for (int i = 0; i < buffer.getLength(); i++) {
                 buffer.setLED(i, b.getLEDs()[i]);
