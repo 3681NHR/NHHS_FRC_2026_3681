@@ -39,6 +39,8 @@ import frc.utils.Alert.SendableAlerts;
  *             </li>
  *         </ol>
  * </p>
+ * <br/><br/>
+ * thanks to 2910 for half of this code
  */
 public class AutoChooser {
 
