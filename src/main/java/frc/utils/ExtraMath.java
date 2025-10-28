@@ -80,6 +80,25 @@ public final class ExtraMath {
     public static double lerp(double start, double end, double val) {
         return (end - start) * val + start;
     }
+    public static Color colLerp(Color start, Color end, double val) {
+        // Color hsv = rgbToHsv(start);
+        // Color hsvEnd = rgbToHsv(end);
+        // double h = lerp(hsv.red, hsvEnd.red, val);
+        // double s = lerp(hsv.green, hsvEnd.green, val);
+        // double v = lerp(hsv.blue, hsvEnd.blue, val);
+        // return Color.fromHSV((int)(h*180), (int)(s*255), (int)(v*255));
+
+        double r = lerp(start.red, end.red, val);
+        double g = lerp(start.green, end.green, val);
+        double b = lerp(start.blue, end.blue, val);
+        return new Color(r, g, b);
+    }
+
+    public static Color rgbToHsv(Color in) {
+        float[] hsv = new float[3];
+        java.awt.Color.RGBtoHSB((int)(in.red*255), (int)(in.green*255), (int)(in.blue*255), hsv);
+        return new Color(hsv[0], hsv[1], hsv[2]);
+    }
 
     public static double holdPositive(double in) {
         return in < 0 ? 0 : in;
