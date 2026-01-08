@@ -6,6 +6,9 @@ import java.util.function.DoubleSupplier;
 import edu.wpi.first.wpilibj.simulation.BatterySim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 
+/*
+ * singleton class to manage current draw for all simulated parts of the robot
+ */
 public class BatteryVoltageSim {
     private static BatteryVoltageSim instance;
 

@@ -1,8 +1,11 @@
-package frc.utils;
+package frc.utils.controlWrappers;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 
+/*
+ * wrapper for ProfiledPIDController that allows setting gains from a record
+ */
 public class ProfiledPID extends ProfiledPIDController{
     public ProfiledPID(double kP, double kI, double kD, Constraints constraints){
         super(kP, kI, kD, constraints);

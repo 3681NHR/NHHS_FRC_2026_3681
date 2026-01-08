@@ -4,6 +4,9 @@ import java.util.function.DoubleSupplier;
 import edu.wpi.first.math.geometry.Translation2d;
 
 public class Joystick {
+    /*
+     * radial deadzone, allows moving at slight angles easier
+     */
     public static Translation2d deadzone(double deadzone, double x, double y) {
         if (ExtraMath.getMagnitude(x, y) < deadzone) {
             return new Translation2d();
@@ -11,6 +14,9 @@ public class Joystick {
         return new Translation2d(x, y);
     }
 
+    /*
+     * class to hold DoubleSupplier for two joysticks
+     */
     public static class duelJoystickAxis{
         public DoubleSupplier lx = () -> 0;
         public DoubleSupplier ly = () -> 0;

@@ -21,9 +21,9 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.constants.DriveConstants.module;
-import frc.utils.ProfiledPID;
-import frc.utils.SimpleFF;
 import frc.utils.SparkOdometryThread;
+import frc.utils.controlWrappers.ProfiledPID;
+import frc.utils.controlWrappers.SimpleFF;
 
 import java.util.Queue;
 import java.util.function.DoubleSupplier;

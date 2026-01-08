@@ -1,7 +1,10 @@
-package frc.utils;
+package frc.utils.controlWrappers;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 
+/*
+ * wrapper for SimpleMotorFeedforward that allows setting gains from a record
+ */
 public class SimpleFF extends SimpleMotorFeedforward{
     public SimpleFF(double kS, double kV, double kA){
         super(kS, kV, kA);

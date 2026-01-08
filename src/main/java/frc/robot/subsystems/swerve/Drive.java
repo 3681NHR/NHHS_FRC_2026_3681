@@ -51,9 +51,9 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionEstimate;
 import frc.utils.ExtraMath;
 import frc.utils.LoggedField2d;
-import frc.utils.PID;
 import frc.utils.SparkOdometryThread;
 import frc.utils.Joystick.duelJoystickAxis;
+import frc.utils.controlWrappers.PID;
 
 import java.util.List;
 import java.util.concurrent.locks.Lock;

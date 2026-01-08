@@ -14,10 +14,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import frc.robot.constants.DriveConstants.module;
 import frc.utils.BatteryVoltageSim;
-import frc.utils.PID;
-import frc.utils.ProfiledPID;
-import frc.utils.SimpleFF;
 import frc.utils.SparkUtil;
+import frc.utils.controlWrappers.PID;
+import frc.utils.controlWrappers.ProfiledPID;
+import frc.utils.controlWrappers.SimpleFF;
 
 /** Physics sim implementation of module IO. */
 public class ModuleIOSim implements ModuleIO {

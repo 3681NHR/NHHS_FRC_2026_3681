@@ -11,7 +11,9 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * Persistent alert to be sent via NetworkTables. Alerts are tagged with a type of {@code kError},
+ * modified version of Alerts that allows getting all active alerts by name and type
+ * 
+ * <p>Persistent alert to be sent via NetworkTables. Alerts are tagged with a type of {@code kError},
  * {@code kWarning}, or {@code kInfo} to denote urgency. See {@link
  * edu.wpi.first.wpilibj.Alert.AlertType AlertType} for suggested usage of each type. Alerts can be
  * displayed on supported dashboards, and are shown in a priority order based on type and recency of
@@ -19,27 +21,6 @@ import java.util.TreeSet;
  *
  * <p>Alerts should be created once and stored persistently, then updated to "active" or "inactive"
  * as necessary. {@link #set(boolean)} can be safely called periodically.
- *
- * <p><b>This API is new for 2025, but is likely to change in future seasons to facilitate deeper
- * integration with the robot control system.</b>
- *
- * <pre>
- * class Robot {
- *   Alert alert = new Alert("Something went wrong", AlertType.kWarning);
- *
- *   periodic() {
- *     alert.set(...);
- *   }
- * }
- * </pre>
- *
- * <p>Alternatively, alerts which are only used once at startup can be created and activated inline.
- *
- * <pre>
- * public Robot() {
- *   new Alert("Failed to load auto paths", AlertType.kError).set(true);
- * }
- * </pre>
  */
 public class Alert implements AutoCloseable {
   /** Represents an alert's level of urgency. */

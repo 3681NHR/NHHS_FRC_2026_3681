@@ -9,16 +9,28 @@ import edu.wpi.first.wpilibj.util.Color;
 import java.lang.Math;
 import java.util.ArrayList;
 
+/*
+ * extra math utils
+ */
 public final class ExtraMath {
 
+    /*
+     * round to n decimal places
+     */
     public static double roundToPoint(double val, int point) {
         return (int)(val*Math.pow(10, point)) / Math.pow(10, point);
     }
 
+    /*
+     * get rotation2D angle from 0,0 to u,v
+     */
     public static Rotation2d getAngle(double u, double v) {
         return new Rotation2d(Math.atan2(v, u));
     }
 
+    /*
+     * get distance between 0,0 and x,y
+     */
     public static double getMagnitude(double x, double y) {
         return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
     }
@@ -27,7 +39,7 @@ public final class ExtraMath {
      * get tilt of robot
      * 
      * @param angle
-     * @return double[2], 0 is yaw angle(-pi to pi), 1 is tilt angle
+     * @return double[2] index 0 is direction(-pi to pi), index 1 is tilt angle
      */
     public static double[] getTip(Rotation3d angle) {
         double[] out = new double[2];
@@ -80,14 +92,10 @@ public final class ExtraMath {
     public static double lerp(double start, double end, double val) {
         return (end - start) * val + start;
     }
+    /*
+     * lerp rgb color
+     */
     public static Color colLerp(Color start, Color end, double val) {
-        // Color hsv = rgbToHsv(start);
-        // Color hsvEnd = rgbToHsv(end);
-        // double h = lerp(hsv.red, hsvEnd.red, val);
-        // double s = lerp(hsv.green, hsvEnd.green, val);
-        // double v = lerp(hsv.blue, hsvEnd.blue, val);
-        // return Color.fromHSV((int)(h*180), (int)(s*255), (int)(v*255));
-
         double r = lerp(start.red, end.red, val);
         double g = lerp(start.green, end.green, val);
         double b = lerp(start.blue, end.blue, val);
@@ -100,10 +108,9 @@ public final class ExtraMath {
         return new Color(hsv[0], hsv[1], hsv[2]);
     }
 
-    public static double holdPositive(double in) {
-        return in < 0 ? 0 : in;
-    }
-
+    /*
+     * get nearest pose from array to current
+     */
     public static Pose2d getNearestPose(Pose2d[] poses, Pose2d current) {
         double min = Double.MAX_VALUE;
         Pose2d out = poses[0];
@@ -118,11 +125,16 @@ public final class ExtraMath {
         }
         return out;
     }
-
+    /*
+     * get translation distance between two pose2Ds
+     */
     public static double getDistance(Pose2d a, Pose2d b) {
         return a.getTranslation().getDistance(b.getTranslation());
     }
 
+    /*
+     * check if two poses are within tolerance in translation and rotation
+     */
     public static boolean PoseWithinTolerance(Pose2d a, Pose2d b, double toleranceLinear, double toleranceAngular) {
 
         double dist = getDistance(a, b);
@@ -137,21 +149,21 @@ public final class ExtraMath {
     }
 
     /**
-     * Derrivitive class
+     * Derivitive class
      */
-    public static class Derrivitive {
+    public static class Derivitive {
 
         private double value;
         private double oldValue;
         private boolean init = false;
 
         /**
-         * constructs a new Derrivitive object, first update will be based off initial
+         * constructs a new Derivitive object, first update will be based off initial
          * mesurement
          * 
          * @param initMesure initial mesurement
          */
-        public Derrivitive(double initMesure) {
+        public Derivitive(double initMesure) {
             oldValue = initMesure;
             init = true;
         }
@@ -159,7 +171,7 @@ public final class ExtraMath {
         /**
          * constructs a new Derrivitive object, first update will return 0
          */
-        public Derrivitive() {
+        public Derivitive() {
             init = false;
         }
 

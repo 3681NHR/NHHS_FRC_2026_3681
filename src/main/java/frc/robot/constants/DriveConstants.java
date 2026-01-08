@@ -27,7 +27,7 @@ import edu.wpi.first.units.VoltageUnit;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.units.measure.Voltage;
-import frc.utils.PIDGains;
+import frc.utils.controlWrappers.PIDGains;
 
 public class DriveConstants {
     // prevents drift when translating and rotation at the same time

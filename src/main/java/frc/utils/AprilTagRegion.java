@@ -2,6 +2,9 @@ package frc.utils;
 
 import java.util.Arrays;
 
+/*
+ * code to get tag ids for a given field element and side
+ */
 public class AprilTagRegion {
     private enum Regions {
         STATION(new int[]{1, 2}, new int[]{12, 13}),

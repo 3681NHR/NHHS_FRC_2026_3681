@@ -1,7 +1,9 @@
 package frc.utils;
 
+/*
+ * constants for button and axis mappings for Xbox one and ps4 controllers
+ */
 public class ControllerMap {
-   
 		
 	//XboxOne Joysticks
 	public static final int LEFT_STICK_X = 0;
