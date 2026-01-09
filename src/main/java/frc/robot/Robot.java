@@ -26,9 +26,9 @@ import frc.utils.TimerHandler;
  * project.
  */
 public class Robot extends LoggedRobot {
-    private Command m_autonomousCommand;
+    private Command autonomousCommand;
 
-    private RobotContainer m_robotContainer;
+    private RobotContainer robotContainer;
 
     /**
      * This function is run when the robot is first started up and should be used
@@ -82,7 +82,7 @@ public class Robot extends LoggedRobot {
         // Start AdvantageKit logger
         Logger.start();
         // initalize robot container
-        m_robotContainer = new RobotContainer();
+        robotContainer = new RobotContainer();
 
         // start timerhandler
         TimerHandler.init();
@@ -110,7 +110,7 @@ public class Robot extends LoggedRobot {
         CommandScheduler.getInstance().run();
         TimerHandler.update();
 
-        m_robotContainer.Periodic();
+        robotContainer.Periodic();
 
     }
 
@@ -131,13 +131,13 @@ public class Robot extends LoggedRobot {
     @Override
     public void autonomousInit() {
         Elastic.selectTab(0);
-        m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+        autonomousCommand = robotContainer.getAutonomousCommand();
 
-        m_robotContainer.enableTeleop();
+        robotContainer.enableTeleop();
 
         // schedule the autonomous command (example)
-        if (m_autonomousCommand != null) {
-            m_autonomousCommand.schedule();
+        if (autonomousCommand != null) {
+            CommandScheduler.getInstance().schedule(autonomousCommand);
         }
         TimerHandler.initAuto();
 
@@ -160,10 +160,10 @@ public class Robot extends LoggedRobot {
         // continue until interrupted by another command, remove
         // this line or comment it out.
         TimerHandler.initTeleop();
-        m_robotContainer.enableTeleop();
+        robotContainer.enableTeleop();
 
-        if (m_autonomousCommand != null) {
-            m_autonomousCommand.cancel();
+        if (autonomousCommand != null) {
+            autonomousCommand.cancel();
         }
     }
 
@@ -195,7 +195,7 @@ public class Robot extends LoggedRobot {
     /** This function is called periodically whilst in simulation. */
     @Override
     public void simulationPeriodic() {
-        m_robotContainer.SimPeriodic();
+        robotContainer.SimPeriodic();
 
         // update battery voltage(set as roborio input voltage)
         BatteryVoltageSim.getInstance().calculateVoltage();
