@@ -6,15 +6,15 @@ import static frc.utils.SparkUtil.*;
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase;
+import com.revrobotics.ResetMode;
+import com.revrobotics.PersistMode;
 import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
@@ -68,7 +68,8 @@ public class ModuleIOSpark implements ModuleIO {
     private double driveVelocityRadPerSecond = 0.0;
     private double turnVelocityRadPerSecond = 0.0;
 
-    public ModuleIOSpark(int IO) {
+        @SuppressWarnings("removal")
+	public ModuleIOSpark(int IO) {
         driveSpark = new SparkMax(
                 switch (IO) {
                     case 0 -> module.FL_DRIVE_ID;
@@ -103,6 +104,7 @@ public class ModuleIOSpark implements ModuleIO {
                 .velocityConversionFactor(module.DRIVE_ENCODER_VEL_FACTOR)
                 .uvwMeasurementPeriod(10)
                 .uvwAverageDepth(4);
+                
         driveConfig.closedLoop
                 .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                 .pidf(
@@ -207,7 +209,7 @@ public class ModuleIOSpark implements ModuleIO {
         if (driveClosedLoop) {
             // drivesetpoint.position is actually velocity
             double ffVolts = driveFF.calculate(driveGoal);
-            driveController.setReference(
+            driveController.setSetpoint(
                     driveGoal + getDriveOffsetVelocity(),
                     ControlType.kVelocity,
                     ClosedLoopSlot.kSlot0,
