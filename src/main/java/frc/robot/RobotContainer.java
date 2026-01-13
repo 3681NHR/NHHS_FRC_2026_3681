@@ -10,10 +10,6 @@ import frc.robot.constants.VisionConstants;
 import frc.robot.subsystems.Led;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.WantedSuperState;
-import frc.robot.subsystems.physButtons.ButtonIO;
-import frc.robot.subsystems.physButtons.ButtonIODIO;
-import frc.robot.subsystems.physButtons.ButtonIOSim;
-import frc.robot.subsystems.physButtons.Buttons;
 import frc.robot.subsystems.swerve.*;
 import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOPigeon2;
@@ -70,17 +66,13 @@ public class RobotContainer {
 
     private Drive drive;
     private Vision vision;
-    @SuppressWarnings("unused")
-    private Buttons buttons;
 
     private Led led = new Led();
 
     private final XboxController driverController = new XboxController(OperatorConstants.DRIVER_CONTROLLER_PORT);
-
     private final XboxController operatorController = new XboxController(OperatorConstants.OPERATOR_CONTROLLER_PORT);
 
     private LoggedNetworkBoolean resetOdometry = new LoggedNetworkBoolean("resetOdometry", false);
-    // private LoggedDashboardChooser<Command> autoChooser;
     private AutoChooser autoChooser;
 
     private RumbleHandler rumbler = new RumbleHandler(driverController);
@@ -176,7 +168,6 @@ public class RobotContainer {
                         vision,
                         driverSticks,
                         led);
-                buttons = new Buttons(new ButtonIODIO(4));
                 break;
 
             case SIM:
@@ -196,7 +187,6 @@ public class RobotContainer {
                             vision,
                             driverSticks,
                             led);
-                    buttons = new Buttons(new ButtonIOSim(() -> false));
                 }
                 break;
 
@@ -224,8 +214,6 @@ public class RobotContainer {
                         vision,
                         driverSticks,
                         led);
-                buttons = new Buttons(new ButtonIO() {
-                });
                 break;
         }
 
