@@ -17,6 +17,10 @@ import frc.robot.subsystems.swerve.gyro.GyroIOSim;
 import frc.robot.subsystems.swerve.module.ModuleIO;
 import frc.robot.subsystems.swerve.module.ModuleIOSim;
 import frc.robot.subsystems.swerve.module.ModuleIOSpark;
+import frc.robot.subsystems.turret.Turret;
+import frc.robot.subsystems.turret.TurretIO;
+import frc.robot.subsystems.turret.TurretIOReal;
+import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.CameraIO;
 import frc.robot.subsystems.vision.CameraIOPhoton;
 import frc.robot.subsystems.vision.CameraIOPhotonSim;
@@ -66,6 +70,7 @@ public class RobotContainer {
 
     private Drive drive;
     private Vision vision;
+    private Turret turret;
 
     private Led led = new Led();
 
@@ -168,6 +173,7 @@ public class RobotContainer {
                         vision,
                         driverSticks,
                         led);
+                turret = new Turret(new TurretIOReal());
                 break;
 
             case SIM:
@@ -187,6 +193,7 @@ public class RobotContainer {
                             vision,
                             driverSticks,
                             led);
+                turret = new Turret(new TurretIOSim());
                 }
                 break;
 
@@ -214,6 +221,7 @@ public class RobotContainer {
                         vision,
                         driverSticks,
                         led);
+                turret = new Turret(new TurretIO() {});
                 break;
         }
 
