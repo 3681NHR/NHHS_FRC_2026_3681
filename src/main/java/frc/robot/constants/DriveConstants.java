@@ -17,8 +17,6 @@ import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
-import com.ctre.phoenix.motorcontrol.InvertType;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
 
