@@ -17,7 +17,7 @@ public final class TurretConstants {
     public static final int TURRET_ENCODER_2_GEAR_TEETH = 34;
 
     public static final double TURRET_ANGLE_OFFSET = 0;
-    public static final double TURRET_ANGLE_LIM = 360;//soft limit before unwind(from center)
+    public static final double TURRET_ANGLE_LIM = Units.degreesToRadians(360);//soft limit before unwind(from center)
 
     public static final SimpleFF TURRET_ID_GAINS = new SimpleFF(0.2,1,0.01);//gains from sysid for state space model
 
@@ -26,12 +26,14 @@ public final class TurretConstants {
 
     public static final State TURRET_SETPOINT_TOLERANCE = new State(Units.degreesToRadians(1), 1);
 
-    public static final Translation2d RED_HUB = new Translation2d();
+    public static final Translation2d RED_HUB = new Translation2d(4.6, 4);
     public static final Translation2d RED_PASS_L = new Translation2d();
     public static final Translation2d RED_PASS_R = new Translation2d();
     
-    public static final Translation2d BLUE_HUB = new Translation2d();
+    public static final Translation2d BLUE_HUB = new Translation2d(4.6, 4);
     public static final Translation2d BLUE_PASS_L = new Translation2d();
     public static final Translation2d BLUE_PASS_R = new Translation2d();
+
+    public static final double TURRET_LOCK_POS = 0.0;
 
 }

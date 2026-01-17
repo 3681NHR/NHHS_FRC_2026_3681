@@ -173,7 +173,7 @@ public class RobotContainer {
                         vision,
                         driverSticks,
                         led);
-                turret = new Turret(new TurretIOReal());
+                turret = new Turret(new TurretIOReal(), drive);
                 break;
 
             case SIM:
@@ -193,7 +193,7 @@ public class RobotContainer {
                             vision,
                             driverSticks,
                             led);
-                turret = new Turret(new TurretIOSim());
+                turret = new Turret(new TurretIOSim(), drive);
                 }
                 break;
 
@@ -221,7 +221,7 @@ public class RobotContainer {
                         vision,
                         driverSticks,
                         led);
-                turret = new Turret(new TurretIO() {});
+                turret = new Turret(new TurretIO() {}, drive);
                 break;
         }
 
