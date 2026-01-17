@@ -68,7 +68,7 @@ public class Turret extends SubsystemBase {
             case TRACK_POS:
                 Logger.recordOutput("Turret/target pos", trackpos);
                 double angle = getAngleToPos(trackpos, drive.getPose().getTranslation()).getRadians();
-                angle = new Rotation2d(angle).minus(new Rotation2d(in.filteredAngle)).getRadians();
+                angle = new Rotation2d(angle).minus(new Rotation2d(in.filteredAngle).plus(drive.getPose().getRotation())).getRadians();
                 Logger.recordOutput("Turret/angle offset", angle%(2*Math.PI));
                 angle = in.filteredAngle + angle;
                 Logger.recordOutput("Turret/angle targeted", angle);
@@ -106,5 +106,9 @@ public class Turret extends SubsystemBase {
     
     private Rotation2d getAngleToPos(Translation2d target, Translation2d curr){
         return new Rotation2d(Math.atan2(target.getY()-curr.getY(), target.getX()-curr.getX()));
+    }
+
+    public double getAngle(){
+        return in.filteredAngle;
     }
 }

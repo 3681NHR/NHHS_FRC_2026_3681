@@ -5,11 +5,10 @@ package frc.robot;
 import frc.robot.autos.AutoChooser;
 import frc.robot.constants.Constants;
 import frc.robot.constants.DriveConstants;
+import frc.robot.constants.TurretConstants;
 import frc.robot.constants.Constants.OperatorConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.subsystems.Led;
-import frc.robot.subsystems.Superstructure;
-import frc.robot.subsystems.Superstructure.WantedSuperState;
 import frc.robot.subsystems.swerve.*;
 import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOPigeon2;
@@ -21,6 +20,7 @@ import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOReal;
 import frc.robot.subsystems.turret.TurretIOSim;
+import frc.robot.subsystems.turret.Turret.TurretState;
 import frc.robot.subsystems.vision.CameraIO;
 import frc.robot.subsystems.vision.CameraIOPhoton;
 import frc.robot.subsystems.vision.CameraIOPhotonSim;
@@ -49,6 +49,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import frc.utils.Alert;
 import frc.utils.Alert.AlertType;
@@ -85,18 +86,12 @@ public class RobotContainer {
 
     private PowerDistribution pdp = new PowerDistribution(1, ModuleType.kRev);
 
-    private VariableLimSLR lxLim = new VariableLimSLR(Double.POSITIVE_INFINITY);
-    private VariableLimSLR lyLim = new VariableLimSLR(Double.POSITIVE_INFINITY);
-    private VariableLimSLR rxLim = new VariableLimSLR(Double.POSITIVE_INFINITY);
-    private VariableLimSLR ryLim = new VariableLimSLR(Double.POSITIVE_INFINITY);
 
     AprilTagFieldLayout e = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
     private final Alert driverDisconnected = new Alert("Driver controller disconnected (port 0).", AlertType.kWarning);
     private final Alert operatorDisconnected = new Alert("Operator controller disconnected (port 1).",
             AlertType.kWarning);
-
-    private Superstructure superstructure;
 
     private duelJoystickAxis driverSticks;
 
@@ -128,35 +123,36 @@ public class RobotContainer {
 
             driveSim = new SwerveDriveSimulation(driveTrainSimulationConfig, Constants.STARTING_POSE);
             SimulatedArena.getInstance().addDriveTrainSimulation(driveSim);
+        //     driveSim.
         }
 
         // process driver controls(radial deadzone, curve, trigger slowdown, and
         // inversion)
         driverSticks = new duelJoystickAxis(
-                () -> lxLim.calculate(ExtraMath.processInput(
+                () -> ExtraMath.processInput(
                         Joystick.deadzone(Constants.OperatorConstants.LEFT_DEADBAND,
                                 driverController.getRawAxis(LEFT_STICK_X), driverController.getRawAxis(LEFT_STICK_Y))
                                 .getX(),
                         -1.0,
-                        Constants.OperatorConstants.TRANSLATION_CURVE, 0.0)),
-                () -> lyLim.calculate(ExtraMath.processInput(
+                        Constants.OperatorConstants.TRANSLATION_CURVE, 0.0),
+                () -> ExtraMath.processInput(
                         Joystick.deadzone(Constants.OperatorConstants.LEFT_DEADBAND,
                                 driverController.getRawAxis(LEFT_STICK_X), driverController.getRawAxis(LEFT_STICK_Y))
                                 .getY(),
                         -1.0,
-                        Constants.OperatorConstants.TRANSLATION_CURVE, 0.0)),
-                () -> rxLim.calculate(ExtraMath.processInput(
+                        Constants.OperatorConstants.TRANSLATION_CURVE, 0.0),
+                () -> ExtraMath.processInput(
                         Joystick.deadzone(Constants.OperatorConstants.RIGHT_DEADBAND,
                                 driverController.getRawAxis(RIGHT_STICK_X), driverController.getRawAxis(RIGHT_STICK_Y))
                                 .getX(),
                         -0.75,
-                        Constants.OperatorConstants.ROTATION_CURVE, 0.0)),
-                () -> ryLim.calculate(ExtraMath.processInput(
+                        Constants.OperatorConstants.ROTATION_CURVE, 0.0),
+                () -> ExtraMath.processInput(
                         Joystick.deadzone(Constants.OperatorConstants.RIGHT_DEADBAND,
                                 driverController.getRawAxis(RIGHT_STICK_X), driverController.getRawAxis(RIGHT_STICK_Y))
                                 .getY(),
                         -1.0,
-                        Constants.OperatorConstants.ROTATION_CURVE, 0.0)));
+                        Constants.OperatorConstants.ROTATION_CURVE, 0.0));
 
         switch (Constants.MODE) {
             case REAL:
@@ -225,15 +221,6 @@ public class RobotContainer {
                 break;
         }
 
-        superstructure = new Superstructure(
-                drive,
-                vision,
-                led,
-                lxLim,
-                lyLim,
-                rxLim,
-                ryLim);
-
         // build pathplanner autos and put in dashboard
         // autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
@@ -276,12 +263,6 @@ public class RobotContainer {
         // override auto drive
         new Trigger(() -> driverController.getPOV() == 0).onTrue(drive.TeleopDrive());
 
-        // state override
-        new Trigger(() -> driverController.getPOV() == 180).or(() -> operatorController.getRawButton(LOGO_RIGHT))
-                .onTrue(new InstantCommand(() -> {
-                    superstructure.setWantedState(WantedSuperState.DEFAULT_STATE);
-                }));
-
         // ------------------------------------------------------------------------------
         // operator controls
         // ------------------------------------------------------------------------------
@@ -294,6 +275,12 @@ public class RobotContainer {
         operatorDisconnected.set(!operatorController.isConnected());
     
         autoChooser.update();
+
+        turret.trackpos = TurretConstants.RED_HUB;
+        turret.setState(TurretState.TRACK_POS);
+
+        Logger.recordOutput("zeroPose", new Pose3d());
+        Logger.recordOutput("Components", new Pose3d[]{new Pose3d(0,0,0,new Rotation3d(0,0,turret.getAngle()+Math.PI))});
     }
 
     public void SimPeriodic() {
@@ -303,10 +290,8 @@ public class RobotContainer {
         Logger.recordOutput("simulatedVoltage", BatteryVoltageSim.getInstance().calculateVoltage());
         Logger.recordOutput("FieldSimulation/RobotPose", driveSim.getSimulatedDriveTrainPose());
 
-        Logger.recordOutput("FieldSimulation/Algae",
-                SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
-        Logger.recordOutput("FieldSimulation/Coral",
-                SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
+        Logger.recordOutput("FieldSimulation/Fuel",
+                SimulatedArena.getInstance().getGamePiecesArrayByType("Fuel"));
     }
 
     public Command getAutonomousCommand() {
