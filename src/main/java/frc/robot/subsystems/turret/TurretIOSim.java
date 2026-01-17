@@ -1,23 +1,18 @@
 package frc.robot.subsystems.turret;
 
 import edu.wpi.first.math.numbers.N2;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.KalmanFilter;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
-import frc.utils.ExtraMath;
 import frc.utils.controlWrappers.ProfiledPID;
 import frc.utils.controlWrappers.SimpleFF;
 
 import static frc.robot.constants.TurretConstants.*;
-
-import org.dyn4j.geometry.Rotation;
 
 public class TurretIOSim implements TurretIO {
     
@@ -57,7 +52,7 @@ public class TurretIOSim implements TurretIO {
 
         input.goal = goal;
         input.setpoint = pid.getSetpoint();
-        input.atSetpoint = ExtraMath.isNearState(pid.getGoal(), new State(angle, goal), TURRET_SETPOINT_TOLERANCE);
+        input.atSetpoint = MathUtil.isNear(goal, angle, TURRET_SETPOINT_TOLERANCE);
     
         input.openLoop = openloop;
     }

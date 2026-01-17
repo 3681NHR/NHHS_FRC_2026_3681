@@ -7,11 +7,8 @@ import static frc.robot.constants.TurretConstants.TURRET_LOCK_POS;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -21,23 +18,25 @@ public class Turret extends SubsystemBase {
     
     public enum TurretState{
         SYS_ID,
-        TRACK_HUB,
+        TRACK_POS,
         LOCK,
-        TRACK_PASS,
-        TRACK_MANUAL,
-        POSITION_MANUAL,
-        UNWIND
+        POSITION_MANUAL
     }
 
-    TurretState state = TurretState.TRACK_HUB;
+    TurretState state = TurretState.TRACK_POS;
     TurretState oldState = TurretState.LOCK;
 
     boolean ready = false;
+    boolean unwinding = false;
+
+    double unwindgoal = 0.0;
 
     TurretIO io;
     TurretIOInputsAutoLogged in = new TurretIOInputsAutoLogged();
 
     Drive drive;
+
+    public Translation2d trackpos = new Translation2d();
 
     public Turret(TurretIO io, Drive drive){
         this.io = io;
@@ -51,6 +50,9 @@ public class Turret extends SubsystemBase {
         ready = in.atSetpoint;
         Logger.recordOutput("Turret/state", state);
         Logger.recordOutput("Turret/old state", oldState);
+        Logger.recordOutput("Turret/ready", ready);
+        Logger.recordOutput("Turret/unwind angle", unwindgoal);
+        Logger.recordOutput("Turret/unwinding", unwinding);
 
         switch(state){
             case LOCK:
@@ -63,36 +65,34 @@ public class Turret extends SubsystemBase {
             case SYS_ID:
                 ready = false;
             break;
-            case TRACK_HUB:
-                Translation2d hub = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? BLUE_HUB : RED_HUB;
-                Logger.recordOutput("Turret/hub pos", hub);
-                double angle = getAngleToPos(hub, drive.getPose().getTranslation()).getRadians();
+            case TRACK_POS:
+                Logger.recordOutput("Turret/target pos", trackpos);
+                double angle = getAngleToPos(trackpos, drive.getPose().getTranslation()).getRadians();
                 angle = new Rotation2d(angle).minus(new Rotation2d(in.filteredAngle)).getRadians();
                 Logger.recordOutput("Turret/angle offset", angle%(2*Math.PI));
-                angle = in.filteredAngle + angle  - drive.getPose().getRotation().getRadians();
-                Logger.recordOutput("Turret/angle targeted", angle + drive.getPose().getRotation().getRadians());
+                angle = in.filteredAngle + angle;
+                Logger.recordOutput("Turret/angle targeted", angle);
                 if(Math.abs(angle) > TURRET_ANGLE_LIM){
-                    setState(TurretState.UNWIND);
+                    unwinding = true;
                 } else {
-                    io.setGoal(angle);
+                    if(!unwinding){
+                        io.setGoal(angle);
+                    } else {
+                        unwindgoal = angle;
+                    }
                 }
-            break;
-            case TRACK_MANUAL:
-            //track manual target
-            break;
-            case TRACK_PASS:
-            //track nearest pass pose for alliance
-            break;
-            case UNWIND:
-                io.setGoal(MathUtil.angleModulus(in.goal));
-                if(in.atSetpoint){
-                    setState(oldState);
-                }
-                ready = false;
             break;
             default:
                 ready = false;
             break;
+        }
+
+        if(unwinding){
+            ready = false;
+            io.setGoal(unwindgoal%TURRET_ANGLE_LIM);
+            if(in.atSetpoint){
+                unwinding = false;
+            }
         }
     }
     public boolean isReady(){
@@ -100,9 +100,7 @@ public class Turret extends SubsystemBase {
     }
 
     public void setState(TurretState wanted){
-        if(state != TurretState.UNWIND){   
             oldState = state;
-        }
             state = wanted;
     }
     
