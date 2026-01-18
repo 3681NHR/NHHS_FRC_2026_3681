@@ -22,7 +22,7 @@ public final class TurretConstants {
     public static final SimpleFF TURRET_ID_GAINS = new SimpleFF(0.2,0.1,0.01);//gains from sysid for state space model
 
     public static final SimpleFF TURRET_FF_GAINS = TURRET_ID_GAINS;
-    public static final ProfiledPID TURRET_PID_GAINS = new ProfiledPID(0.5,0,0,20,100);
+    public static final ProfiledPID TURRET_PID_GAINS = new ProfiledPID(0,0.1,0,20,100);
 
     public static final double TURRET_SETPOINT_TOLERANCE = Units.degreesToRadians(5);
 
