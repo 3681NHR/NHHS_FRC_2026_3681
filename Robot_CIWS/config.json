@@ -1,0 +1,11 @@
+{
+  "name": "CIWS",
+  "rotations": [{ "axis": "x", "degrees": 180}],
+  "position": [0,0,0],
+  "components": [
+    {   
+    "zeroedRotations": [{ "axis": "x", "degrees": 180}],
+    "zeroedPosition": [0,0,0.3]
+    }
+  ]
+}
