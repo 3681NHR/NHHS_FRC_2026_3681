@@ -36,6 +36,8 @@ import frc.utils.Joystick;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
+import static frc.robot.constants.TurretConstants.*;
+
 import static frc.utils.ControllerMap.*;
 
 import org.ironmaple.simulation.SimulatedArena;
@@ -51,6 +53,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import frc.utils.Alert;
 import frc.utils.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -87,7 +90,7 @@ public class RobotContainer {
     private PowerDistribution pdp = new PowerDistribution(1, ModuleType.kRev);
 
 
-    AprilTagFieldLayout e = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    AprilTagFieldLayout apriltagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
     private final Alert driverDisconnected = new Alert("Driver controller disconnected (port 0).", AlertType.kWarning);
     private final Alert operatorDisconnected = new Alert("Operator controller disconnected (port 1).",
@@ -158,8 +161,8 @@ public class RobotContainer {
             case REAL:
                 // Real robot, instantiate hardware IO implementations
                 vision = new Vision(
-                        e,
-                        new CameraIOPhoton(e, VisionConstants.CAMERA_CONFIGS[0]));
+                        apriltagLayout,
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]));
                 drive = new Drive(
                         new GyroIOPigeon2(),
                         new ModuleIOSpark(0),
@@ -175,8 +178,8 @@ public class RobotContainer {
             case SIM:
                 // Sim robot, instantiate physics sim IO implementations
                 vision = new Vision(
-                        e,
-                        new CameraIOPhotonSim(e, VisionConstants.CAMERA_CONFIGS[0],
+                        apriltagLayout,
+                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0],
                                 driveSim::getSimulatedDriveTrainPose));
                 if (driveSim != null) {
                     drive = new Drive(
@@ -196,7 +199,7 @@ public class RobotContainer {
             default:
                 // Replayed robot, disable IO implementations for replay
                 vision = new Vision(
-                        e,
+                        apriltagLayout,
                         new CameraIO() {
                         },
                         new CameraIO() {
@@ -280,7 +283,10 @@ public class RobotContainer {
         turret.setState(TurretState.TRACK_POS);
 
         Logger.recordOutput("zeroPose", new Pose3d());
-        Logger.recordOutput("Components", new Pose3d[]{new Pose3d(0,0,0,new Rotation3d(0,0,turret.getAngle()+Math.PI))});
+        Logger.recordOutput("Components", new Pose3d[]{
+                new Pose3d(TURRET_OFFSET, new Rotation3d(0,0,turret.getAngle()-Math.PI/2)),
+                new Pose3d(TURRET_OFFSET.getX()+Math.cos(turret.getAngle())*HOOD_TO_TURRET_OFFSET.getX(),TURRET_OFFSET.getY()+(Math.sin(turret.getAngle())*HOOD_TO_TURRET_OFFSET.getX()), TURRET_OFFSET.getZ()+HOOD_TO_TURRET_OFFSET.getZ(),new Rotation3d(Units.degreesToRadians(10),0,turret.getAngle()-Math.PI/2)),
+        });
     }
 
     public void SimPeriodic() {

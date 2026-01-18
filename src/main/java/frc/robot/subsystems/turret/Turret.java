@@ -1,16 +1,13 @@
 package frc.robot.subsystems.turret;
 
-import static frc.robot.constants.TurretConstants.BLUE_HUB;
-import static frc.robot.constants.TurretConstants.RED_HUB;
 import static frc.robot.constants.TurretConstants.TURRET_ANGLE_LIM;
 import static frc.robot.constants.TurretConstants.TURRET_LOCK_POS;
+import static frc.robot.constants.TurretConstants.TURRET_THETA_COMP_FACTOR;
 
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.swerve.Drive;
 
@@ -76,7 +73,7 @@ public class Turret extends SubsystemBase {
                     unwinding = true;
                 } else {
                     if(!unwinding){
-                        io.setGoal(angle);
+                        io.setGoal(angle + TURRET_THETA_COMP_FACTOR*drive.getAngulerVelocity());
                     } else {
                         unwindgoal = angle;
                     }

@@ -26,14 +26,14 @@ public class TurretIOSim implements TurretIO {
 
     private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(TURRET_ID_GAINS.kV(), TURRET_ID_GAINS.kA());
     private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.01, 0.1);
-    private final KalmanFilter<N2, N1, N2> filter = new KalmanFilter<N2, N1, N2>(Nat.N2(), Nat.N2(), model, VecBuilder.fill(1.0, 1.0), VecBuilder.fill(0.7, 0.2), 0.02);
+    private final KalmanFilter<N2, N1, N2> filter = new KalmanFilter<N2, N1, N2>(Nat.N2(), Nat.N2(), model, VecBuilder.fill(0.2, 1.0), VecBuilder.fill(1.3, 0.7), 0.02);
 
     public TurretIOSim(){
     }
     public void updateInputs(TurretIOInputs input){
         sim.update(0.02);
-        filter.predict(VecBuilder.fill(Vout), 0.02);
-        filter.correct(VecBuilder.fill(Vout), sim.getOutput());
+        filter.predict(VecBuilder.fill(Vout - Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout))*Math.signum(sim.getOutput().get(1,0))), 0.02);
+        filter.correct(VecBuilder.fill(Vout - Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout))*Math.signum(sim.getOutput().get(1,0))), sim.getOutput());
         angle = filter.getXhat().get(0,0);
 
         if(!openloop){
