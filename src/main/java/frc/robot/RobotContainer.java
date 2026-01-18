@@ -15,6 +15,7 @@ import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOPigeon2;
 import frc.robot.subsystems.swerve.gyro.GyroIOSim;
 import frc.robot.subsystems.swerve.module.ModuleIO;
+import frc.robot.subsystems.swerve.module.ModuleIOCrackingSpark;
 import frc.robot.subsystems.swerve.module.ModuleIOSim;
 import frc.robot.subsystems.swerve.module.ModuleIOSpark;
 import frc.robot.subsystems.vision.CameraIO;
@@ -161,10 +162,10 @@ public class RobotContainer {
                         new CameraIOPhoton(e, VisionConstants.CAMERA_CONFIGS[0]));
                 drive = new Drive(
                         new GyroIOPigeon2(),
-                        new ModuleIOSpark(0),
-                        new ModuleIOSpark(1),
-                        new ModuleIOSpark(2),
-                        new ModuleIOSpark(3),
+                        new ModuleIOCrackingSpark(0),
+                        new ModuleIOCrackingSpark(1),
+                        new ModuleIOCrackingSpark(2),
+                        new ModuleIOCrackingSpark(3),
                         vision,
                         driverSticks,
                         led);
