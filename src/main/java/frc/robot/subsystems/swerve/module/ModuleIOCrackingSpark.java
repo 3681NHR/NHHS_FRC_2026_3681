@@ -1,7 +1,12 @@
 package frc.robot.subsystems.swerve.module;
 
-import static frc.robot.constants.DriveConstants.*;
-import static frc.utils.SparkUtil.*;
+import static frc.robot.constants.DriveConstants.ODOMETRY_FREQ;
+import static frc.utils.SparkUtil.ifOk;
+import static frc.utils.SparkUtil.sparkStickyFault;
+import static frc.utils.SparkUtil.tryUntilOk;
+
+import java.util.Queue;
+import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
@@ -15,30 +20,22 @@ import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.AbsoluteEncoder;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase;
-import com.revrobotics.ResetMode;
-import com.revrobotics.PersistMode;
-import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.SparkClosedLoopController;
-import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
-import frc.robot.constants.Constants.drive;
 import frc.robot.constants.DriveConstants.module;
 import frc.utils.SparkOdometryThread;
 import frc.utils.controlWrappers.ProfiledPID;
 import frc.utils.controlWrappers.SimpleFF;
-
-import java.util.Queue;
-import java.util.function.DoubleSupplier;
 
 /**
  * Module IO implementation for Spark Flex drive motor controller, Spark Max
@@ -79,7 +76,6 @@ public class ModuleIOCrackingSpark implements ModuleIO {
     private double driveVelocityRadPerSecond = 0.0;
     private double turnVelocityRadPerSecond = 0.0;
 
-        @SuppressWarnings("removal")
 	public ModuleIOCrackingSpark(int IO) {
         driveTalon = new TalonFX(
                 switch (IO) {
@@ -191,7 +187,7 @@ public class ModuleIOCrackingSpark implements ModuleIO {
         if (driveClosedLoop) {
             // drivesetpoint.position is actually velocity
             double ffVolts = driveFF.calculate(driveGoal);
-            driveTalon.setControl(driveController.withVelocity(driveGoal + getDriveOffsetVelocity()).withFeedForward(ffVolts));
+            driveTalon.setControl(driveController.withVelocity(driveGoal/6.28 + getDriveOffsetVelocity()/6.28).withFeedForward(ffVolts));
         }
         if (turnClosedLoop) {
             double ffVolts = turnFF.calculate(turnPID.getSetpoint().velocity);
