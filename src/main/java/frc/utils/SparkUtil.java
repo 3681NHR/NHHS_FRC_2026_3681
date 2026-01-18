@@ -15,8 +15,6 @@ package frc.utils;
 
 import static edu.wpi.first.units.Units.Seconds;
 
-import com.ctre.phoenix.ErrorCode;
-import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 import com.revrobotics.REVLibError;
 import com.revrobotics.spark.SparkBase;
 import edu.wpi.first.wpilibj.Timer;
