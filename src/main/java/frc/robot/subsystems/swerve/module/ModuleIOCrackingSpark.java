@@ -158,7 +158,7 @@ public class ModuleIOCrackingSpark implements ModuleIO {
         inputs.driveVelocityRadPerSec = driveVelocityRadPerSecond;
         inputs.driveAppliedVolts = driveTalon.getDutyCycle().getValueAsDouble()*driveTalon.getSupplyVoltage().getValueAsDouble();
         inputs.driveCurrentAmps = driveTalon.getSupplyCurrent().getValueAsDouble();
-        inputs.driveConnected = driveConnectedDebounce.calculate(!driveTalon.isConnected());
+        inputs.driveConnected = driveConnectedDebounce.calculate(driveTalon.isConnected());
 
         // Update turn inputs
         sparkStickyFault = false;
