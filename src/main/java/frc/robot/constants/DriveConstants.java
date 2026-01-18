@@ -118,11 +118,10 @@ public class DriveConstants {
         public static final DCMotor DRIVE_GEARBOX = DCMotor.getNEO(1);
 
         // Drive encoder configuration
-        public static final double DRIVE_ENCODER_POS_FACTOR = 2 * Math.PI / DRIVE_REDUCTION; // Rotor Rotations -> Wheel
-                                                                                             // Radians
-        public static final double DRIVE_ENCODER_VEL_FACTOR = (2 * Math.PI) / 60.0 / DRIVE_REDUCTION; // Rotor RPM ->
-                                                                                                      // Wheel
-                                                                                                      // Rad/Sec
+        // NOTE: CTRE TalonFX takes gear reduciton into account when using getPosition()
+        public static final double DRIVE_ENCODER_POS_FACTOR = 2 * Math.PI; // Mech Rotations -> Wheel Radians
+        // NOTE: CTRE TalonFX returns Mechanism Rotations per second not rpm like the Spark MAX, it also takes configured gear reductions into account when running getVelocity() instead of getRotorVelocity()
+        public static final double DRIVE_ENCODER_VEL_FACTOR = (2 * Math.PI); // Mech RPS -> Wheel RAD/Sec
 
         // Drive PID configuration
         public static final PIDGains.PID DRIVE_PID = new PIDGains.PID(0.01, 0.0, 0.0);// TODO should tune

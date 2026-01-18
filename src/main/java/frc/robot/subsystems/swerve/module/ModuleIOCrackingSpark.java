@@ -148,9 +148,9 @@ public class ModuleIOCrackingSpark implements ModuleIO {
 
     @Override
     public void updateInputs(ModuleIOInputs inputs) {
-        drivePositionRad = driveTalon.getPosition().getValueAsDouble();
+        drivePositionRad = driveTalon.getPosition().getValueAsDouble() * module.DRIVE_ENCODER_POS_FACTOR;
 
-        driveVelocityRadPerSecond = driveTalon.getVelocity().getValueAsDouble();
+        driveVelocityRadPerSecond = driveTalon.getVelocity().getValueAsDouble() * module.DRIVE_ENCODER_VEL_FACTOR;
         turnVelocityRadPerSecond = turnEncoder.getVelocity();
 
         inputs.turnTemp = turnSpark.getMotorTemperature();
@@ -188,7 +188,6 @@ public class ModuleIOCrackingSpark implements ModuleIO {
         turnPositionQueue.clear();
 
         if (driveClosedLoop) {
-            // drivesetpoint.position is actually velocity
             double ffVolts = driveFF.calculate(driveGoal);
             driveTalon.setControl(driveController.withVelocity(driveGoal/6.28 + getDriveOffsetVelocity()/6.28).withFeedForward(ffVolts));
         }
