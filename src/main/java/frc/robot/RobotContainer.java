@@ -17,7 +17,6 @@ import frc.robot.subsystems.swerve.gyro.GyroIOSim;
 import frc.robot.subsystems.swerve.module.ModuleIO;
 import frc.robot.subsystems.swerve.module.ModuleIOCrackingSpark;
 import frc.robot.subsystems.swerve.module.ModuleIOSim;
-import frc.robot.subsystems.swerve.module.ModuleIOSpark;
 import frc.robot.subsystems.vision.CameraIO;
 import frc.robot.subsystems.vision.CameraIOPhoton;
 import frc.robot.subsystems.vision.CameraIOPhotonSim;
@@ -29,6 +28,7 @@ import frc.utils.TimerHandler;
 import frc.utils.BatteryVoltageSim;
 import frc.utils.ExtraMath;
 import frc.utils.Joystick;
+import frc.utils.Symphony;
 
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
@@ -95,6 +95,8 @@ public class RobotContainer {
     private Superstructure superstructure;
 
     private duelJoystickAxis driverSticks;
+
+    private Symphony symphony = Symphony.getSymphony();
 
     public RobotContainer() {
 

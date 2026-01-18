@@ -34,6 +34,7 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.constants.DriveConstants.module;
 import frc.utils.SparkOdometryThread;
+import frc.utils.Symphony;
 import frc.utils.controlWrappers.ProfiledPID;
 import frc.utils.controlWrappers.SimpleFF;
 
@@ -107,6 +108,8 @@ public class ModuleIOCrackingSpark implements ModuleIO {
                         .withKD(module.DRIVE_PID.kD()))
                 .withFeedback(new FeedbackConfigs().withRotorToSensorRatio(module.DRIVE_REDUCTION));
         driveTalon.getConfigurator().apply(driveConfig);
+
+        Symphony.getSymphony().registerInstrument(driveTalon);
 
         // Configure turn motor
         var turnConfig = new SparkMaxConfig();
