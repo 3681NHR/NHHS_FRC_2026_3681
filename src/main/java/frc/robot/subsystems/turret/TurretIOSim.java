@@ -8,6 +8,7 @@ import edu.wpi.first.math.estimator.KalmanFilter;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
 import frc.utils.controlWrappers.ProfiledPID;
 import frc.utils.controlWrappers.SimpleFF;
@@ -40,8 +41,11 @@ public class TurretIOSim implements TurretIO {
             Vout = pid.calculate(angle, goal);
             Vout += ff.calculate(pid.getSetpoint().velocity);
         }
-
-        sim.setInput(Vout - Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout))*Math.signum(sim.getOutput().get(1,0)));
+        if(DriverStation.isEnabled()){
+            sim.setInput(Vout - Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout))*Math.signum(sim.getOutput().get(1,0)));
+        } else {
+            sim.setInput(0);
+        }
         
         input.filteredAngle = angle;
         input.filteredSpeed = filter.getXhat(1);

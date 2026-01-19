@@ -283,6 +283,9 @@ public class Drive extends SubsystemBase {
     public void setFOD(boolean fod) {
         this.FODEnabled = fod;
     }
+    public boolean getFOD(){
+        return FODEnabled;
+    }
 
     private ChassisSpeeds getSpeedsFromController() {
 
@@ -356,7 +359,10 @@ public class Drive extends SubsystemBase {
             if (FODEnabled) {
                 runVelocity(getSpeedsFromController());
             } else {
-                runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(getSpeedsFromController(), getRotation()));
+                runVelocity(new ChassisSpeeds(
+                        driverSticks.ly.getAsDouble() * getMaxLinearSpeedMetersPerSec(),
+                        driverSticks.lx.getAsDouble() * getMaxLinearSpeedMetersPerSec(),
+                        driverSticks.rx.getAsDouble() * getMaxAngularSpeedRadPerSec()));
             }
         }, this)
         .withName("Teleop drive");
@@ -562,7 +568,7 @@ public class Drive extends SubsystemBase {
 
     /** Returns the measured chassis speeds of the robot. */
     @AutoLogOutput(key = "SwerveChassisSpeeds/Measured")
-    private ChassisSpeeds getChassisSpeeds() {
+    public ChassisSpeeds getChassisSpeeds() {
         return kinematics.toChassisSpeeds(getModuleStates());
     }
 

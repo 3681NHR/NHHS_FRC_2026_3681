@@ -33,17 +33,24 @@ import frc.utils.BatteryVoltageSim;
 import frc.utils.ExtraMath;
 import frc.utils.Joystick;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
-
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Minute;
 import static frc.robot.constants.TurretConstants.*;
 
 import static frc.utils.ControllerMap.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
+import org.ironmaple.simulation.gamepieces.GamePieceProjectile;
 import org.littletonrobotics.junction.LoggedPowerDistribution;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
@@ -51,7 +58,10 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import frc.utils.Alert;
@@ -65,7 +75,10 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+
+import org.ironmaple.simulation.seasonspecific.rebuilt2026.*;
 
 public class RobotContainer {
 
@@ -162,7 +175,10 @@ public class RobotContainer {
                 // Real robot, instantiate hardware IO implementations
                 vision = new Vision(
                         apriltagLayout,
-                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]));
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1]),
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2]),
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3]));
                 drive = new Drive(
                         new GyroIOPigeon2(),
                         new ModuleIOSpark(0),
@@ -179,8 +195,10 @@ public class RobotContainer {
                 // Sim robot, instantiate physics sim IO implementations
                 vision = new Vision(
                         apriltagLayout,
-                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0],
-                                driveSim::getSimulatedDriveTrainPose));
+                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0], driveSim::getSimulatedDriveTrainPose),
+                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1], driveSim::getSimulatedDriveTrainPose),
+                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2], driveSim::getSimulatedDriveTrainPose),
+                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3], driveSim::getSimulatedDriveTrainPose));
                 if (driveSim != null) {
                     drive = new Drive(
                             new GyroIOSim(driveSim.getGyroSimulation()) {
@@ -200,6 +218,8 @@ public class RobotContainer {
                 // Replayed robot, disable IO implementations for replay
                 vision = new Vision(
                         apriltagLayout,
+                        new CameraIO() {
+                        },
                         new CameraIO() {
                         },
                         new CameraIO() {
@@ -263,6 +283,34 @@ public class RobotContainer {
             rumbler.overrideQue(RumblePreset.TAP.load());
         }));
 
+        new Trigger(() -> driverController.getRawButton(LEFT_STICK_BUTTON)).onTrue(new InstantCommand(() -> {
+            drive.setFOD(!drive.getFOD());
+            rumbler.overrideQue(RumblePreset.TAP.load());
+        }));
+        
+        new Trigger(() -> driverController.getRawButton(A)).whileTrue(new InstantCommand(() -> {
+                double launchvel = 7.5;
+                double angle = Units.degreesToRadians(75);
+                GamePieceProjectile fuel = new GamePieceProjectile(
+                        RebuiltFuelOnField.REBUILT_FUEL_INFO,
+                        driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
+                                Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
+                                Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()
+                        )),
+                        new Translation2d(
+                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + Math.cos(drive.getRotation().getRadians() + turret.getAngle())*Math.cos(angle)*launchvel,
+                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + Math.sin(drive.getRotation().getRadians() + turret.getAngle())*Math.cos(angle)*launchvel
+                        ),
+                        Units.inchesToMeters(20),
+                        Math.sin(angle)*launchvel,
+                        new Rotation3d()
+                        );
+                
+                fuel.withTouchGroundHeight(Inches.of(3).in(Meters));
+                fuel.enableBecomesGamePieceOnFieldAfterTouchGround();
+                SimulatedArena.getInstance().addGamePieceProjectile(fuel);
+        }).andThen(new WaitCommand(0.1)).repeatedly());
+
         // override auto drive
         new Trigger(() -> driverController.getPOV() == 0).onTrue(drive.TeleopDrive());
 
@@ -279,13 +327,18 @@ public class RobotContainer {
     
         autoChooser.update();
 
-        turret.trackpos = TurretConstants.RED_HUB;
+        Translation2d hub = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? TurretConstants.RED_HUB : TurretConstants.BLUE_HUB;
+        Translation2d pass = drive.getPose().getTranslation().nearest(Arrays.asList(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? RED_PASS : BLUE_PASS));
+        boolean hubTrack = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? drive.getPose().getX()>12 : drive.getPose().getX()<4.5);
+        Logger.recordOutput("tracking hub", hubTrack);
+        turret.trackpos = hubTrack ? hub : pass;
         turret.setState(TurretState.TRACK_POS);
+        turret.timeOfFlight = 1.5;//TODO: use LOT
 
         Logger.recordOutput("zeroPose", new Pose3d());
         Logger.recordOutput("Components", new Pose3d[]{
                 new Pose3d(TURRET_OFFSET, new Rotation3d(0,0,turret.getAngle()-Math.PI/2)),
-                new Pose3d(TURRET_OFFSET.getX()+Math.cos(turret.getAngle())*HOOD_TO_TURRET_OFFSET.getX(),TURRET_OFFSET.getY()+(Math.sin(turret.getAngle())*HOOD_TO_TURRET_OFFSET.getX()), TURRET_OFFSET.getZ()+HOOD_TO_TURRET_OFFSET.getZ(),new Rotation3d(Units.degreesToRadians(10),0,turret.getAngle()-Math.PI/2)),
+                new Pose3d(TURRET_OFFSET.getX()+Math.cos(turret.getAngle())*HOOD_TO_TURRET_OFFSET.getX(),TURRET_OFFSET.getY()+(Math.sin(turret.getAngle())*HOOD_TO_TURRET_OFFSET.getX()), TURRET_OFFSET.getZ()+HOOD_TO_TURRET_OFFSET.getZ(),new Rotation3d(Units.degreesToRadians(0),0,turret.getAngle()-Math.PI/2)),
         });
     }
 

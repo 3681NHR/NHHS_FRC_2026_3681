@@ -27,17 +27,21 @@ public final class TurretConstants {
 
     public static final double TURRET_SETPOINT_TOLERANCE = Units.degreesToRadians(5);
 
-    public static final Translation2d RED_HUB = new Translation2d(4.6, 4);
-    public static final Translation2d RED_PASS_L = new Translation2d();
-    public static final Translation2d RED_PASS_R = new Translation2d();
+    public static final Translation2d RED_HUB = new Translation2d(11.915, 4.034);
+    public static final Translation2d[] RED_PASS = new Translation2d[]{
+        new Translation2d(13, 6.5),
+        new Translation2d(13, 2)
+    };
     
-    public static final Translation2d BLUE_HUB = new Translation2d(4.6, 4);
-    public static final Translation2d BLUE_PASS_L = new Translation2d();
-    public static final Translation2d BLUE_PASS_R = new Translation2d();
+    public static final Translation2d BLUE_HUB = new Translation2d(4.625, 4.034);
+    public static final Translation2d[] BLUE_PASS = new Translation2d[]{
+        new Translation2d(3.5, 6.5),
+        new Translation2d(3.5, 2)
+    };
 
     public static final double TURRET_LOCK_POS = 0.0;
 
-    public static final Translation3d TURRET_OFFSET = new Translation3d(0,0.158750,0.298450);
+    public static final Translation3d TURRET_OFFSET = new Translation3d(-.158750,0,0.298450);
     public static final Translation3d HOOD_TO_TURRET_OFFSET = new Translation3d(0.085914,0,0.141886);
 
 }

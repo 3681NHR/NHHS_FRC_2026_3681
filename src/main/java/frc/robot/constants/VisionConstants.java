@@ -1,7 +1,9 @@
 package frc.robot.constants;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.util.Units;
 
 public class VisionConstants {
     /**
@@ -35,11 +37,68 @@ public class VisionConstants {
     // Camera names, must match names configured on coprocessor
     public static CameraConfig[] CAMERA_CONFIGS = {
         new CameraConfig(
-            "camera",
-            "default camera",
+            "FL",
+            "front left",
             1.0,
             1.0,
-            new Transform3d()
+            new Transform3d(
+                Units.inchesToMeters(11.4),
+                Units.inchesToMeters(11.4),
+                Units.inchesToMeters(8),
+                new Rotation3d(
+                    Units.degreesToRadians(0),
+                    Units.degreesToRadians(-20),
+                    Units.degreesToRadians(45)
+                )
+            )
+        ),
+        new CameraConfig(
+            "FR",
+            "front right",
+            1.0,
+            1.0,
+            new Transform3d(
+                Units.inchesToMeters(11.4),
+                Units.inchesToMeters(11.4),
+                Units.inchesToMeters(8),
+                new Rotation3d(
+                    Units.degreesToRadians(0),
+                    Units.degreesToRadians(-20),
+                    Units.degreesToRadians(315)
+                )
+            )
+        ),
+        new CameraConfig(
+            "BL",
+            "back left",
+            1.0,
+            1.0,
+            new Transform3d(
+                Units.inchesToMeters(-11.4),
+                Units.inchesToMeters(11.4),
+                Units.inchesToMeters(8),
+                new Rotation3d(
+                    Units.degreesToRadians(0),
+                    Units.degreesToRadians(-20),
+                    Units.degreesToRadians(135)
+                )
+            )
+        ),
+        new CameraConfig(
+            "BR",
+            "back right",
+            1.0,
+            1.0,
+            new Transform3d(
+                Units.inchesToMeters(-11.4),
+                Units.inchesToMeters(-11.4),
+                Units.inchesToMeters(8),
+                new Rotation3d(
+                    Units.degreesToRadians(0),
+                    Units.degreesToRadians(-20),
+                    Units.degreesToRadians(225)
+                )
+            )
         )
     };
     // Basic filtering thresholds

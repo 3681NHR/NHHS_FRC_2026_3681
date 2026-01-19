@@ -2,12 +2,14 @@ package frc.robot.subsystems.turret;
 
 import static frc.robot.constants.TurretConstants.TURRET_ANGLE_LIM;
 import static frc.robot.constants.TurretConstants.TURRET_LOCK_POS;
+import static frc.robot.constants.TurretConstants.TURRET_OFFSET;
 import static frc.robot.constants.TurretConstants.TURRET_THETA_COMP_FACTOR;
 
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.swerve.Drive;
 
@@ -34,6 +36,7 @@ public class Turret extends SubsystemBase {
     Drive drive;
 
     public Translation2d trackpos = new Translation2d();
+    public double timeOfFlight = 0.0;
 
     public Turret(TurretIO io, Drive drive){
         this.io = io;
@@ -64,10 +67,23 @@ public class Turret extends SubsystemBase {
             break;
             case TRACK_POS:
                 Logger.recordOutput("Turret/target pos", trackpos);
-                double angle = getAngleToPos(trackpos, drive.getPose().getTranslation()).getRadians();
-                angle = new Rotation2d(angle).minus(new Rotation2d(in.filteredAngle).plus(drive.getPose().getRotation())).getRadians();
-                Logger.recordOutput("Turret/angle offset", angle%(2*Math.PI));
-                angle = in.filteredAngle + angle;
+                double angle = getAngleToPos(trackpos, 
+                    drive.getPose().getTranslation()//drive pos
+                        .plus(new Translation2d(//turret offest
+                            Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
+                            Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()))
+                        .plus(new Translation2d(//lead shot
+                            ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond,
+                            ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond
+                        ).times(timeOfFlight))
+                    ).getRadians();
+                
+                double offset = new Rotation2d(angle)
+                    .minus(new Rotation2d(in.filteredAngle)
+                    .plus(drive.getPose().getRotation())).getRadians();
+
+                Logger.recordOutput("Turret/angle offset", offset%(2*Math.PI));
+                angle = in.filteredAngle + offset;
                 Logger.recordOutput("Turret/angle targeted", angle);
                 if(Math.abs(angle) > TURRET_ANGLE_LIM){
                     unwinding = true;
