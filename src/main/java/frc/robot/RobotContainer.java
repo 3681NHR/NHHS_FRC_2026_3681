@@ -316,6 +316,8 @@ public class RobotContainer {
 
     public void enableTeleop() {
         CommandScheduler.getInstance().schedule(drive.TeleopDrive());
+        // symphony.loadSong("music/the-trout.chrp");
+        // symphony.play();
         drive.setCallback();
     }
 
