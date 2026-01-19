@@ -149,6 +149,7 @@ public class ModuleIOCrackingSpark implements ModuleIO {
     @Override
     public void updateInputs(ModuleIOInputs inputs) {
         drivePositionRad = driveTalon.getPosition().getValueAsDouble() * module.DRIVE_ENCODER_POS_FACTOR;
+        turnPositionRad = turnEncoder.getPosition();
 
         driveVelocityRadPerSecond = driveTalon.getVelocity().getValueAsDouble() * module.DRIVE_ENCODER_VEL_FACTOR;
         turnVelocityRadPerSecond = turnEncoder.getVelocity();
