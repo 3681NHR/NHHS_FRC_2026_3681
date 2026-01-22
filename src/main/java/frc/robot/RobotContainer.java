@@ -9,6 +9,10 @@ import frc.robot.constants.TurretConstants;
 import frc.robot.constants.Constants.OperatorConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.subsystems.Led;
+import frc.robot.subsystems.launcher.Launcher;
+import frc.robot.subsystems.launcher.LauncherIO;
+import frc.robot.subsystems.launcher.LauncherIOReal;
+import frc.robot.subsystems.launcher.LauncherIOSim;
 import frc.robot.subsystems.swerve.*;
 import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOPigeon2;
@@ -79,6 +83,7 @@ public class RobotContainer {
     private Drive drive;
     private Vision vision;
     private Turret turret;
+    private Launcher launcher;
 
     private Led led = new Led();
 
@@ -180,6 +185,7 @@ public class RobotContainer {
                         driverSticks,
                         led);
                 turret = new Turret(new TurretIOReal(), drive);
+                launcher = new Launcher(new LauncherIOReal());
                 break;
 
             case SIM:
@@ -202,6 +208,7 @@ public class RobotContainer {
                             driverSticks,
                             led);
                 turret = new Turret(new TurretIOSim(), drive);
+                launcher = new Launcher(new LauncherIOSim());
                 }
                 break;
 
@@ -232,6 +239,7 @@ public class RobotContainer {
                         driverSticks,
                         led);
                 turret = new Turret(new TurretIO() {}, drive);
+                launcher = new Launcher(new LauncherIO() {});
                 break;
         }
 
@@ -244,6 +252,7 @@ public class RobotContainer {
 
         LoggedPowerDistribution.getInstance(pdp.getModule(), ModuleType.kRev);
 
+        //TODO: test logic for turret, set default and bindings
         CommandScheduler.getInstance().schedule(
             turret.track(() -> {
                 Translation2d hub = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? TurretConstants.RED_HUB : TurretConstants.BLUE_HUB;
@@ -252,6 +261,9 @@ public class RobotContainer {
                 Logger.recordOutput("tracking hub", hubTrack);
                 return hubTrack ? hub : pass;
             }, () -> 1.5)
+        );
+        CommandScheduler.getInstance().schedule(
+            launcher.velocityControl(() -> 3000)
         );
     }
 
@@ -292,7 +304,7 @@ public class RobotContainer {
         
         // TODO: placeholder binding to shooting in sim, remove before running on robot
         new Trigger(() -> driverController.getRawButton(A)).whileTrue(new InstantCommand(() -> {
-                double launchvel = 7.5;
+                double launchvel = launcher.getSpeed()*2*Math.PI*Units.inchesToMeters(2)/60;
                 double angle = Units.degreesToRadians(75);
                 GamePieceProjectile fuel = new GamePieceProjectile(
                         RebuiltFuelOnField.REBUILT_FUEL_INFO,
