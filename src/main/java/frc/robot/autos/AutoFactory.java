@@ -55,7 +55,7 @@ public class AutoFactory {
 
             List<PathPlannerTrajectoryState> traj = new LinkedList<PathPlannerTrajectoryState>();
 
-            traj.addAll((DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? path.flipPath() : path).getIdealTrajectory(DriveConstants.PP_CONFIG).get().getStates());
+            traj.addAll(getTraj(path).getStates());
 
             for(int i=0; i<20-traj.size(); i++){
                 traj.add(traj.get(traj.size()-1));
@@ -64,62 +64,6 @@ public class AutoFactory {
                 new PathPlannerTrajectory(traj),
                 Commands.sequence(
                     robotContainer.getDrive().followPath(path)
-                ));
-        } catch (Exception e){
-            throw new RuntimeException("Failed to create Test Auto", e);
-        }
-    }
-    
-    Pair<PathPlannerTrajectory, Command> createR5Auto() {
-        try{
-            PathPlannerPath[] paths = {
-                PathPlannerPath.fromPathFile("r3"),
-                PathPlannerPath.fromPathFile("3 rs"),
-                PathPlannerPath.fromPathFile("rs 2"),
-                PathPlannerPath.fromPathFile("2 rs"),
-            };
-
-        return Pair.of(
-                mergeTrajectories(
-                    getTraj(paths[0]),
-                    getTraj(paths[1]),
-                    getTraj(paths[2]),
-                    getTraj(paths[3])
-                ),
-                Commands.sequence(
-                    robotContainer.getDrive().followPath(paths[0]),
-                    robotContainer.getDrive().followPath(paths[1]),
-                    robotContainer.getDrive().followPath(paths[2]),
-                    robotContainer.getDrive().followPath(paths[3])
-                ));
-        } catch (Exception e){
-            throw new RuntimeException("Failed to create Test Auto", e);
-        }
-    }
-    
-    Pair<PathPlannerTrajectory, Command> createEAuto() {
-        try{
-            PathPlannerPath[] paths = {
-                PathPlannerPath.fromPathFile("New Path")
-            };
-
-            List<PathPlannerTrajectoryState> traj = new LinkedList<PathPlannerTrajectoryState>();
-
-            double timeOffset = 0.0;
-            for(int i = 0; i < paths.length; i++){
-                PathPlannerPath path = paths[i];
-                PathPlannerTrajectoryState[] states = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? path.flipPath() : path).getIdealTrajectory(DriveConstants.PP_CONFIG).get().getStates().toArray(new PathPlannerTrajectoryState[0]);
-                double nextoffset= states[states.length - 1].timeSeconds;
-                for(PathPlannerTrajectoryState s : states){
-                    s.timeSeconds += timeOffset;
-                    traj.add(s);
-                }
-                timeOffset += nextoffset;
-            }
-        return Pair.of(
-                new PathPlannerTrajectory(traj),
-                Commands.sequence(
-                    robotContainer.getDrive().followPath(paths[0])
                 ));
         } catch (Exception e){
             throw new RuntimeException("Failed to create Test Auto", e);
