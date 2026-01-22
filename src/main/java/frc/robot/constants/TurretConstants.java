@@ -1,8 +1,15 @@
 package frc.robot.constants;
 
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
+
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.utils.controlWrappers.PIDGains.ProfiledPID;
 import frc.utils.controlWrappers.PIDGains.SimpleFF;
 
@@ -44,4 +51,10 @@ public final class TurretConstants {
     public static final Translation3d TURRET_OFFSET = new Translation3d(-.158750,0,0.298450);
     public static final Translation3d HOOD_TO_TURRET_OFFSET = new Translation3d(0.085914,0,0.141886);
 
+    public static final SysIdRoutine.Config TURRET_SYSID_CONFIG = new SysIdRoutine.Config(
+        Volts.per(Second).of(1.0), 
+        Volts.of(5.0), 
+        Seconds.of(5),
+        (state) -> Logger.recordOutput("Turret/SysIdTestState", state.toString())
+    );
 }

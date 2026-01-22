@@ -1,73 +1,86 @@
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.TurretConstants.TURRET_ANGLE_LIM;
-import static frc.robot.constants.TurretConstants.TURRET_LOCK_POS;
 import static frc.robot.constants.TurretConstants.TURRET_OFFSET;
+import static frc.robot.constants.TurretConstants.TURRET_SYSID_CONFIG;
 import static frc.robot.constants.TurretConstants.TURRET_THETA_COMP_FACTOR;
+
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.swerve.Drive;
+import frc.utils.Alert;
+import frc.utils.Alert.AlertType;
 
 public class Turret extends SubsystemBase {
     
-    public enum TurretState{
-        SYS_ID,
-        TRACK_POS,
-        LOCK,
-        POSITION_MANUAL
-    }
+    private boolean ready = false;
 
-    TurretState state = TurretState.TRACK_POS;
-    TurretState oldState = TurretState.LOCK;
+    private boolean unwinding = false;
+    private double unwindgoal = 0.0;
 
-    boolean ready = false;
-    boolean unwinding = false;
+    private TurretIO io;
+    private TurretIOInputsAutoLogged in = new TurretIOInputsAutoLogged();
 
-    double unwindgoal = 0.0;
+    private Drive drive;
 
-    TurretIO io;
-    TurretIOInputsAutoLogged in = new TurretIOInputsAutoLogged();
+    private SysIdRoutine sysid = new SysIdRoutine(TURRET_SYSID_CONFIG, new SysIdRoutine.Mechanism(v -> io.setVout(v.in(Volts)), null, this));
 
-    Drive drive;
+    private Alert illegalTarg = new Alert("illegal or invalid Turret setpoint!", AlertType.kWarning);
 
-    public Translation2d trackpos = new Translation2d();
-    public double timeOfFlight = 0.0;
+    private Alert runningSysid = new Alert("Turret sysid running", AlertType.kInfo);
 
     public Turret(TurretIO io, Drive drive){
         this.io = io;
         this.drive = drive;
+
+        Logger.recordOutput("Turret/track/target pos", (Translation2d)null);
+        Logger.recordOutput("Turret/track/angle offset", Double.NaN);
+        Logger.recordOutput("Turret/track/angle targeted", Double.NaN);
+        Logger.recordOutput("Turret/manual/target", Double.NaN);
     }
 
     @Override
     public void periodic(){
         io.updateInputs(in);
         Logger.processInputs("TurretIO", in);
-        ready = in.atSetpoint;
-        Logger.recordOutput("Turret/state", state);
-        Logger.recordOutput("Turret/old state", oldState);
+
+        Logger.recordOutput("Turret/state", getCurrentCommand().getName());
         Logger.recordOutput("Turret/ready", ready);
         Logger.recordOutput("Turret/unwind angle", unwindgoal);
         Logger.recordOutput("Turret/unwinding", unwinding);
 
-        switch(state){
-            case LOCK:
-            //preset angle
-                io.setGoal(TURRET_LOCK_POS);
-            break;
-            case POSITION_MANUAL:
-            //manual angle
-            break;
-            case SYS_ID:
+    }
+
+    public Command manPos(DoubleSupplier targ){
+        return Commands.run(() -> {
+            if(Math.abs(targ.getAsDouble()) <= TURRET_ANGLE_LIM){
+                io.setGoal(targ.getAsDouble());
+                ready = in.atSetpoint;
+            } else {
                 ready = false;
-            break;
-            case TRACK_POS:
-                Logger.recordOutput("Turret/target pos", trackpos);
-                double angle = getAngleToPos(trackpos, 
+            }
+            illegalTarg.set(Math.abs(targ.getAsDouble()) > TURRET_ANGLE_LIM || !Double.isFinite(targ.getAsDouble()));
+            Logger.recordOutput("Turret/manual/target", targ.getAsDouble());
+        }, this).finallyDo(() -> {
+            Logger.recordOutput("Turret/manual/target", Double.NaN);
+        }).withName("manual angle");
+    }
+
+    public Command track(Supplier<Translation2d> targ, DoubleSupplier timeOfFlight){
+        return Commands.run(() -> {
+            Logger.recordOutput("Turret/track/target pos", targ.get());
+                double angle = getAngleToPos(targ.get(), 
                     drive.getPose().getTranslation()//drive pos
                         .plus(new Translation2d(//turret offest
                             Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
@@ -75,48 +88,63 @@ public class Turret extends SubsystemBase {
                         .plus(new Translation2d(//lead shot
                             ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond,
                             ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond
-                        ).times(timeOfFlight))
+                        ).times(timeOfFlight.getAsDouble()))
                     ).getRadians();
                 
                 double offset = new Rotation2d(angle)
                     .minus(new Rotation2d(in.filteredAngle)
                     .plus(drive.getPose().getRotation())).getRadians();
 
-                Logger.recordOutput("Turret/angle offset", offset%(2*Math.PI));
+                Logger.recordOutput("Turret/track/angle offset", offset);
                 angle = in.filteredAngle + offset;
-                Logger.recordOutput("Turret/angle targeted", angle);
+                Logger.recordOutput("Turret/track/angle targeted", angle);
                 if(Math.abs(angle) > TURRET_ANGLE_LIM){
                     unwinding = true;
                 } else {
                     if(!unwinding){
                         io.setGoal(angle + TURRET_THETA_COMP_FACTOR*drive.getAngulerVelocity());
+                        ready = in.atSetpoint;
                     } else {
-                        unwindgoal = angle;
+                        ready = false;
+                        io.setGoal(angle%TURRET_ANGLE_LIM);
+                        if(in.atSetpoint){
+                            unwinding = false;
+                        }
                     }
                 }
-            break;
-            default:
-                ready = false;
-            break;
-        }
-
-        if(unwinding){
-            ready = false;
-            io.setGoal(unwindgoal%TURRET_ANGLE_LIM);
-            if(in.atSetpoint){
-                unwinding = false;
-            }
-        }
+        }, this).finallyDo(() -> {
+            Logger.recordOutput("Turret/track/target pos", (Translation2d)null);
+                Logger.recordOutput("Turret/track/angle offset", Double.NaN);
+                Logger.recordOutput("Turret/track/angle targeted", Double.NaN);
+        }).withName("track position");
     }
+
+    public Command sysidQuasistatic(boolean reverse){
+        return sysid.quasistatic(reverse ? SysIdRoutine.Direction.kReverse : SysIdRoutine.Direction.kForward)
+        .until( () -> Math.abs(in.filteredAngle) > TURRET_ANGLE_LIM)
+        .raceWith(Commands.run(() -> {
+            ready = false;
+            runningSysid.set(true);
+            runningSysid.setText("Turret sysid running: dynamic: " + (reverse ? "reverse" : "forward"));
+        }))
+        .withName("quasistatic sysid: " + (reverse ? "reverse" : "forward"));
+    }
+
+    public Command sysidDynamic(boolean reverse){
+        return sysid.dynamic(reverse ? SysIdRoutine.Direction.kReverse : SysIdRoutine.Direction.kForward)
+        .until( () -> Math.abs(in.filteredAngle) > TURRET_ANGLE_LIM)
+        .raceWith(Commands.run(() -> {
+            ready = false;
+            runningSysid.set(true);
+            runningSysid.setText("Turret sysid running: quasistatic: " + (reverse ? "reverse" : "forward"));
+        }))
+        .withName("quasistatic sysid: " + (reverse ? "reverse" : "forward"));
+    }
+
     public boolean isReady(){
         return ready;
     }
 
-    public void setState(TurretState wanted){
-            oldState = state;
-            state = wanted;
-    }
-    
     private Rotation2d getAngleToPos(Translation2d target, Translation2d curr){
         return new Rotation2d(Math.atan2(target.getY()-curr.getY(), target.getX()-curr.getX()));
     }
@@ -124,4 +152,5 @@ public class Turret extends SubsystemBase {
     public double getAngle(){
         return in.filteredAngle;
     }
+
 }
