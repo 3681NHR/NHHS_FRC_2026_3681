@@ -33,21 +33,21 @@ public class Launcher extends SubsystemBase {
     public void periodic() {
         io.updateInputs(in);
         Logger.processInputs("Launcher", in);
-        Logger.recordOutput("Launcher/state", getCurrentCommand().getName());
+        Logger.recordOutput("Launcher/state", (getCurrentCommand() == null ? "none" : getCurrentCommand().getName()));
 
     }
 
     public Command velocityControl(DoubleSupplier vel){
         return Commands.run(() -> {
             io.setGoal(vel.getAsDouble());
-        })
+        }, this)
         .withName("velocity control");
     }
 
     public Command voltageControl(DoubleSupplier volt){
         return Commands.run(() -> {
             io.setVout(volt.getAsDouble());
-        })
+        }, this)
         .withName("voltage control");
     }
     

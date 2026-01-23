@@ -69,6 +69,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -252,7 +253,7 @@ public class RobotContainer {
 
         LoggedPowerDistribution.getInstance(pdp.getModule(), ModuleType.kRev);
 
-        //TODO: test logic for turret, set default and bindings
+        //TODO: test logic for turret and launcher, set default and bindings
         CommandScheduler.getInstance().schedule(
             turret.track(() -> {
                 Translation2d hub = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? TurretConstants.RED_HUB : TurretConstants.BLUE_HUB;
@@ -262,8 +263,10 @@ public class RobotContainer {
                 return hubTrack ? hub : pass;
             }, () -> 1.5)
         );
+
         CommandScheduler.getInstance().schedule(
-            launcher.velocityControl(() -> 3000)
+            // launcher.velocityControl(() -> 3000)
+            Commands.run(() -> {}, launcher).withName("test")
         );
     }
 

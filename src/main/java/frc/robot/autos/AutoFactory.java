@@ -70,6 +70,7 @@ public class AutoFactory {
         }
     }
 
+    @SuppressWarnings("unused")
     private PathPlannerTrajectory mergeTrajectories(PathPlannerTrajectory... in){
         List<PathPlannerTrajectoryState> traj = new LinkedList<PathPlannerTrajectoryState>();
 

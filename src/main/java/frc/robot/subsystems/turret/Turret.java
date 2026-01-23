@@ -55,7 +55,7 @@ public class Turret extends SubsystemBase {
         io.updateInputs(in);
         Logger.processInputs("TurretIO", in);
 
-        Logger.recordOutput("Turret/state", getCurrentCommand().getName());
+        Logger.recordOutput("Turret/state", (getCurrentCommand() == null ? "none" :getCurrentCommand().getName()));
         Logger.recordOutput("Turret/ready", ready);
         Logger.recordOutput("Turret/unwind angle", unwindgoal);
         Logger.recordOutput("Turret/unwinding", unwinding);
