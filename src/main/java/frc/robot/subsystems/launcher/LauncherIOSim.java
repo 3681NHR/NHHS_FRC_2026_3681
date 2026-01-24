@@ -33,7 +33,7 @@ public class LauncherIOSim implements LauncherIO {
         sim.update(0.02);
         filter.predict(VecBuilder.fill(vout - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout))*Math.signum(sim.getOutput().get(1,0))), 0.02);
         filter.correct(VecBuilder.fill(vout - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout))*Math.signum(sim.getOutput().get(1,0))), sim.getOutput());
-        speed = filter.getXhat().get(0,0);
+        speed = filter.getXhat().get(1,0);
 
         if(!openLoop){
             vout = pid.calculate(speed, goal);

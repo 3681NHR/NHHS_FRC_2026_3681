@@ -254,7 +254,7 @@ public class RobotContainer {
         LoggedPowerDistribution.getInstance(pdp.getModule(), ModuleType.kRev);
 
         //TODO: test logic for turret and launcher, set default and bindings
-        CommandScheduler.getInstance().schedule(
+        turret.setDefaultCommand(
             turret.track(() -> {
                 Translation2d hub = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? TurretConstants.RED_HUB : TurretConstants.BLUE_HUB;
                 Translation2d pass = drive.getPose().getTranslation().nearest(Arrays.asList(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? RED_PASS : BLUE_PASS));
@@ -264,9 +264,8 @@ public class RobotContainer {
             }, () -> 1.5)
         );
 
-        CommandScheduler.getInstance().schedule(
-            // launcher.velocityControl(() -> 3000)
-            Commands.run(() -> {}, launcher).withName("test")
+        launcher.setDefaultCommand(
+            launcher.velocityControl(() -> 3000)
         );
     }
 
