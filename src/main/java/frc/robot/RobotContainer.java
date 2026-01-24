@@ -331,6 +331,14 @@ public class RobotContainer {
         // force teleop drive
         new Trigger(() -> driverController.getPOV() == 0).onTrue(drive.TeleopDrive());
 
+        new Trigger(() -> driverController.getRawButton(X)).onTrue(new InstantCommand( () -> {
+            rumbler.overrideQue(new Rumble[]{
+                new Rumble(0.5,0,0.5),
+                new Rumble(0.5,0.5,0),
+                new Rumble(0.5,0,0.5)
+            });
+        }));
+
         // ------------------------------------------------------------------------------
         // operator controls
         // ------------------------------------------------------------------------------
