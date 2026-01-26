@@ -43,8 +43,8 @@ public class TurretIOSim implements TurretIO {
         }
         if(DriverStation.isEnabled()){
             sim.setInput(Vout - Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout))*Math.signum(sim.getOutput().get(1,0)));
-        } else {
-            sim.setInput(0);
+        } else {            
+            sim.setInput(-Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout))*Math.signum(sim.getOutput().get(1,0)));
         }
         
         input.filteredAngle = angle;

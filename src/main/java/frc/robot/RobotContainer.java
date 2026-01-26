@@ -9,6 +9,7 @@ import frc.robot.constants.TurretConstants;
 import frc.robot.constants.Constants.OperatorConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.subsystems.Led;
+import frc.robot.subsystems.launchLUT;
 import frc.robot.subsystems.launcher.Launcher;
 import frc.robot.subsystems.launcher.LauncherIO;
 import frc.robot.subsystems.launcher.LauncherIOReal;
@@ -99,6 +100,7 @@ public class RobotContainer {
 
     private PowerDistribution pdp = new PowerDistribution(1, ModuleType.kRev);
 
+    private Translation2d target = new Translation2d();
 
     AprilTagFieldLayout apriltagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
@@ -255,17 +257,11 @@ public class RobotContainer {
 
         //TODO: test logic for turret and launcher, set default and bindings
         turret.setDefaultCommand(
-            turret.track(() -> {
-                Translation2d hub = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? TurretConstants.RED_HUB : TurretConstants.BLUE_HUB;
-                Translation2d pass = drive.getPose().getTranslation().nearest(Arrays.asList(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? RED_PASS : BLUE_PASS));
-                boolean hubTrack = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? drive.getPose().getX()>12 : drive.getPose().getX()<4.5);
-                Logger.recordOutput("tracking hub", hubTrack);
-                return hubTrack ? hub : pass;
-            }, () -> 1.5)
+            turret.track(() -> target, () -> 1.5)
         );
 
         launcher.setDefaultCommand(
-            launcher.velocityControl(() -> 3000)
+            launcher.velocityControl(() -> launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[1])
         );
     }
 
@@ -306,8 +302,8 @@ public class RobotContainer {
         
         // TODO: placeholder binding to shooting in sim, remove before running on robot
         new Trigger(() -> driverController.getRawButton(A)).whileTrue(new InstantCommand(() -> {
-                double launchvel = launcher.getSpeed()*2*Math.PI*Units.inchesToMeters(2)/60;
-                double angle = Units.degreesToRadians(75);
+                double launchvel = (launcher.getSpeed()-2500)*2*Math.PI*Units.inchesToMeters(2)/60;
+                double angle = launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[0];
                 GamePieceProjectile fuel = new GamePieceProjectile(
                         RebuiltFuelOnField.REBUILT_FUEL_INFO,
                         driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
@@ -349,6 +345,12 @@ public class RobotContainer {
         rumbler.update(0.02);
         driverDisconnected.set(!driverController.isConnected());
         operatorDisconnected.set(!operatorController.isConnected());
+        
+        Translation2d hub = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? TurretConstants.RED_HUB : TurretConstants.BLUE_HUB;
+        Translation2d pass = drive.getPose().getTranslation().nearest(Arrays.asList(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? RED_PASS : BLUE_PASS));
+        boolean hubTrack = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? drive.getPose().getX()>12 : drive.getPose().getX()<4.5);
+        Logger.recordOutput("tracking hub", hubTrack);
+        target = hubTrack ? hub : pass;
     
         autoChooser.update();
 

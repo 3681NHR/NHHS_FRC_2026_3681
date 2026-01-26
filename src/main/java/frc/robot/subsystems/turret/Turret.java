@@ -153,4 +153,11 @@ public class Turret extends SubsystemBase {
         return in.filteredAngle;
     }
 
+    public Translation2d getFieldPos(){
+        return drive.getPose().getTranslation()//drive pos
+            .plus(new Translation2d(//turret offest
+                Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
+                Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()));
+    }
+
 }
