@@ -84,15 +84,13 @@ public class Vision extends SubsystemBase {
             for (var observation : inputs[cameraIndex].poseObservations) {
                 // Check whether to reject pose
                 boolean rejectPose = observation.tagCount() == 0 // Must have at least one tag
-                        || observation.ambiguity() > MAX_AMBIGUITY; // Cannot be too high ambiguity
-                // || Math.abs(observation.pose().getZ())
-                // > MAX_Z_ERROR // Must have realistic Z coordinate
-
-                // // Must be within the field boundaries
-                // || observation.pose().getX() < -1.0
-                // || observation.pose().getX() > layout.getFieldLength()+1
-                // || observation.pose().getY() < -1.0
-                // || observation.pose().getY() > layout.getFieldWidth()+1;
+                        || observation.ambiguity() > MAX_AMBIGUITY // Cannot be too high ambiguity
+                        || Math.abs(observation.pose().getZ()) > MAX_Z_ERROR // Must have realistic Z coordinate
+                        // // Must be within the field boundaries
+                        || observation.pose().getX() < -1.0
+                        || observation.pose().getX() > layout.getFieldLength()+1
+                        || observation.pose().getY() < -1.0
+                        || observation.pose().getY() > layout.getFieldWidth()+1;
 
                 // Add pose to log
                 robotPoses.add(observation.pose());

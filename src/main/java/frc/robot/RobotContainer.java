@@ -9,6 +9,11 @@ import frc.robot.constants.TurretConstants;
 import frc.robot.constants.Constants.OperatorConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.subsystems.Led;
+import frc.robot.subsystems.launchLUT;
+import frc.robot.subsystems.launcher.Launcher;
+import frc.robot.subsystems.launcher.LauncherIO;
+import frc.robot.subsystems.launcher.LauncherIOReal;
+import frc.robot.subsystems.launcher.LauncherIOSim;
 import frc.robot.subsystems.swerve.*;
 import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOPigeon2;
@@ -65,6 +70,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -79,6 +85,7 @@ public class RobotContainer {
     private Drive drive;
     private Vision vision;
     private Turret turret;
+    private Launcher launcher;
 
     private Led led = new Led();
 
@@ -93,6 +100,7 @@ public class RobotContainer {
 
     private PowerDistribution pdp = new PowerDistribution(1, ModuleType.kRev);
 
+    private Translation2d target = new Translation2d();
 
     AprilTagFieldLayout apriltagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
@@ -180,6 +188,7 @@ public class RobotContainer {
                         driverSticks,
                         led);
                 turret = new Turret(new TurretIOReal(), drive);
+                launcher = new Launcher(new LauncherIOReal());
                 break;
 
             case SIM:
@@ -202,6 +211,7 @@ public class RobotContainer {
                             driverSticks,
                             led);
                 turret = new Turret(new TurretIOSim(), drive);
+                launcher = new Launcher(new LauncherIOSim());
                 }
                 break;
 
@@ -232,6 +242,7 @@ public class RobotContainer {
                         driverSticks,
                         led);
                 turret = new Turret(new TurretIO() {}, drive);
+                launcher = new Launcher(new LauncherIO() {});
                 break;
         }
 
@@ -244,14 +255,13 @@ public class RobotContainer {
 
         LoggedPowerDistribution.getInstance(pdp.getModule(), ModuleType.kRev);
 
-        CommandScheduler.getInstance().schedule(
-            turret.track(() -> {
-                Translation2d hub = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? TurretConstants.RED_HUB : TurretConstants.BLUE_HUB;
-                Translation2d pass = drive.getPose().getTranslation().nearest(Arrays.asList(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? RED_PASS : BLUE_PASS));
-                boolean hubTrack = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? drive.getPose().getX()>12 : drive.getPose().getX()<4.5);
-                Logger.recordOutput("tracking hub", hubTrack);
-                return hubTrack ? hub : pass;
-            }, () -> 1.5)
+        //TODO: test logic for turret and launcher, set default and bindings
+        // turret.setDefaultCommand(
+        //     turret.track(() -> target, () -> launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[2])
+        // );
+
+        launcher.setDefaultCommand(
+            launcher.voltageControl(()->0) 
         );
     }
 
@@ -292,8 +302,8 @@ public class RobotContainer {
         
         // TODO: placeholder binding to shooting in sim, remove before running on robot
         new Trigger(() -> driverController.getRawButton(A)).whileTrue(new InstantCommand(() -> {
-                double launchvel = 7.5;
-                double angle = Units.degreesToRadians(75);
+                double launchvel = (launcher.getSpeed()-2500)*2*Math.PI*Units.inchesToMeters(2)/60;
+                double angle = launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[0];
                 GamePieceProjectile fuel = new GamePieceProjectile(
                         RebuiltFuelOnField.REBUILT_FUEL_INFO,
                         driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
@@ -317,6 +327,30 @@ public class RobotContainer {
         // force teleop drive
         new Trigger(() -> driverController.getPOV() == 0).onTrue(drive.TeleopDrive());
 
+        //launcher spin and shoot
+        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.2).whileTrue(
+            launcher.velocityControl(() -> launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[1])
+        );
+        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7).whileTrue(
+            null// TODO: feed to shooter while spun up
+        );
+        //set turret to auto track mode
+        new Trigger(() -> driverController.getRawButton(B)).onTrue(
+            turret.track(() -> target)
+        );
+        //set turret to preset angle mode
+        new Trigger(() -> driverController.getRawButton(A)).onTrue(
+            turret.manPos(() -> TURRET_LOCK_POS)
+        );
+        //intake
+        new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5).whileTrue(
+            null// TODO: intake
+        );
+        //lower hood for trench(should be auto also)(hold)
+        new Trigger(() -> driverController.getRawButton(X)).whileTrue(
+            null // TODO: lower hood for trench(should be auto also)(hold)
+        );
+
         // ------------------------------------------------------------------------------
         // operator controls
         // ------------------------------------------------------------------------------
@@ -327,6 +361,12 @@ public class RobotContainer {
         rumbler.update(0.02);
         driverDisconnected.set(!driverController.isConnected());
         operatorDisconnected.set(!operatorController.isConnected());
+        
+        Translation2d hub = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? TurretConstants.RED_HUB : TurretConstants.BLUE_HUB;
+        Translation2d pass = drive.getPose().getTranslation().nearest(Arrays.asList(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? RED_PASS : BLUE_PASS));
+        boolean hubTrack = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? drive.getPose().getX()>12 : drive.getPose().getX()<4.5);
+        Logger.recordOutput("tracking hub", hubTrack);
+        target = hubTrack ? hub : pass;
     
         autoChooser.update();
 

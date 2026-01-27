@@ -15,7 +15,7 @@ public class RumbleHandler {
     private boolean following = false;
     private RumbleHandler lead;
 
-    private ArrayList<Rumble> que = new ArrayList<Rumble>();
+    private ArrayList<Rumble> queue = new ArrayList<Rumble>();
     public RumbleHandler(XboxController controller){
         this.controller = controller;
         this.port = controller.getPort();
@@ -25,59 +25,64 @@ public class RumbleHandler {
         this.lead = lead;
     }
     /**
-     * clear rumble que, effectivly stopping all rumble
+     * clear rumble queue, effectivly stopping all rumble
      */
     public void clearQue(){
-        que.clear();
+        queue.clear();
     }
     public void addToQue(Rumble[] a){
         for(Rumble b : a){
-            que.add(b);
+            queue.add(b);
         }
     }
     public void addToQue(Collection<Rumble> a){
         for(Rumble b : a){
-            que.add(b);
+            queue.add(b);
         }
     }
     public void addToQue(Rumble a){
-        que.add(a);
+        queue.add(a);
     }
 
     public void overrideQue(Rumble a){
         clearQue();
-        que.add(a);
+        queue.add(a);
     }
     public void overrideQue(Collection<Rumble> a){
         clearQue();
         for(Rumble b : a){
-            que.add(b);
+            queue.add(b);
         }
     }
     public void overrideQue(Rumble[] a){
         clearQue();
         for(Rumble b : a){
-            que.add(b);
+            queue.add(b);
         }
     }
     public void update(double loopTime){
         if(following){
-            que = lead.que;
+            queue = lead.queue;
         }
-        for (int i=0; i < que.size(); i++) {
-            que.get(i).time -= loopTime;
-            if(que.get(i).time <= 0){
-                que.remove(i);
+        if(queue.size() > 0){
+            queue.get(0).time -= loopTime;
+        }
+        for (int i=0; i < queue.size(); i++) {
+            if(queue.get(i).time <= 0){
+                queue.remove(i);
             }
         }
-        if(que.size() >= 1){
-            controller.setRumble(RumbleType.kBothRumble, que.get(0).pow);
-            Logger.recordOutput("haptics/rumble: "+port+"/currentStrength", que.get(0).pow);
-            Logger.recordOutput("haptics/rumble: "+port+"/que", getPows());
+        if(queue.size() >= 1){
+            controller.setRumble(RumbleType.kLeftRumble, queue.get(0).powL);
+            controller.setRumble(RumbleType.kRightRumble, queue.get(0).powR);
+            Logger.recordOutput("haptics/rumble: "+port+"/current Strength left", queue.get(0).powL);
+            Logger.recordOutput("haptics/rumble: "+port+"/current Strength right", queue.get(0).powR);
+            Logger.recordOutput("haptics/rumble: "+port+"/queue", getPows());
         } else {
             controller.setRumble(RumbleType.kBothRumble, 0);
-            Logger.recordOutput("haptics/rumble: "+port+"/currentStrength", 0.0);
-            Logger.recordOutput("haptics/rumble: "+port+"/que", new double[0][0]);
+            Logger.recordOutput("haptics/rumble: "+port+"/current Strength left", 0.0);
+            Logger.recordOutput("haptics/rumble: "+port+"/current Strength right", 0.0);
+            Logger.recordOutput("haptics/rumble: "+port+"/queue", new double[0][0]);
         }
         Logger.recordOutput("haptics/rumble: "+port+"/following", following);
         
@@ -86,11 +91,12 @@ public class RumbleHandler {
         }
     } 
     private double[][] getPows(){
-        double[][] pows = new double[que.size()][2];
-        for(int i=0; i < que.size(); i++){
-            Rumble d = que.get(i);
-            pows[i][0] = d.pow;
-            pows[i][1] = d.time;
+        double[][] pows = new double[queue.size()][3];
+        for(int i=0; i < queue.size(); i++){
+            Rumble d = queue.get(i);
+            pows[i][0] = d.powR;
+            pows[i][1] = d.powL;
+            pows[i][2] = d.time;
         }
         return pows;
     }

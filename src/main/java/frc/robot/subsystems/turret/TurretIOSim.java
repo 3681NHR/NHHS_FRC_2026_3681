@@ -18,7 +18,7 @@ import static frc.robot.constants.TurretConstants.*;
 public class TurretIOSim implements TurretIO {
     
     private double goal = 0.0;
-    private boolean openloop = false;
+    private boolean openLoop = false;
     private double Vout = 0.0;
     private double angle = 0.0;
 
@@ -37,14 +37,14 @@ public class TurretIOSim implements TurretIO {
         filter.correct(VecBuilder.fill(Vout - Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout))*Math.signum(sim.getOutput().get(1,0))), sim.getOutput());
         angle = filter.getXhat().get(0,0);
 
-        if(!openloop){
+        if(!openLoop){
             Vout = pid.calculate(angle, goal);
             Vout += ff.calculate(pid.getSetpoint().velocity);
         }
         if(DriverStation.isEnabled()){
             sim.setInput(Vout - Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout))*Math.signum(sim.getOutput().get(1,0)));
-        } else {
-            sim.setInput(0);
+        } else {            
+            sim.setInput(-Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout))*Math.signum(sim.getOutput().get(1,0)));
         }
         
         input.filteredAngle = angle;
@@ -58,19 +58,19 @@ public class TurretIOSim implements TurretIO {
         input.setpoint = pid.getSetpoint();
         input.atSetpoint = MathUtil.isNear(goal, angle, TURRET_SETPOINT_TOLERANCE);
     
-        input.openLoop = openloop;
+        input.openLoop = openLoop;
     }
 
     public void setGoal(double goal){
-        this.openloop = false;
+        this.openLoop = false;
         this.goal = goal;
     }
     public void setVout(double vout){
-        this.openloop = true;
+        this.openLoop = true;
         Vout = vout;
     }
-    public void setOpenLoop(boolean openloop){
-        this.openloop = openloop;
+    public void setOpenLoop(boolean openLoop){
+        this.openLoop = openLoop;
     }
 
 }

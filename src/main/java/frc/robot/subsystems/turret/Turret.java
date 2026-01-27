@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.subsystems.launchLUT;
 import frc.robot.subsystems.swerve.Drive;
 import frc.utils.Alert;
 import frc.utils.Alert.AlertType;
@@ -55,7 +56,7 @@ public class Turret extends SubsystemBase {
         io.updateInputs(in);
         Logger.processInputs("TurretIO", in);
 
-        Logger.recordOutput("Turret/state", getCurrentCommand().getName());
+        Logger.recordOutput("Turret/state", (getCurrentCommand() == null ? "none" :getCurrentCommand().getName()));
         Logger.recordOutput("Turret/ready", ready);
         Logger.recordOutput("Turret/unwind angle", unwindgoal);
         Logger.recordOutput("Turret/unwinding", unwinding);
@@ -77,8 +78,9 @@ public class Turret extends SubsystemBase {
         }).withName("manual angle");
     }
 
-    public Command track(Supplier<Translation2d> targ, DoubleSupplier timeOfFlight){
+    public Command track(Supplier<Translation2d> targ){
         return Commands.run(() -> {
+            double timeOfFlight = launchLUT.get(targ.get().getDistance(getFieldPos()), true, launchLUT.LUTHub)[2];
             Logger.recordOutput("Turret/track/target pos", targ.get());
                 double angle = getAngleToPos(targ.get(), 
                     drive.getPose().getTranslation()//drive pos
@@ -88,7 +90,7 @@ public class Turret extends SubsystemBase {
                         .plus(new Translation2d(//lead shot
                             ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond,
                             ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond
-                        ).times(timeOfFlight.getAsDouble()))
+                        ).times(timeOfFlight))//TODO: recalculate tof at lead position, iterate n times to estimate correct aim
                     ).getRadians();
                 
                 double offset = new Rotation2d(angle)
@@ -151,6 +153,13 @@ public class Turret extends SubsystemBase {
 
     public double getAngle(){
         return in.filteredAngle;
+    }
+
+    public Translation2d getFieldPos(){
+        return drive.getPose().getTranslation()//drive pos
+            .plus(new Translation2d(//turret offest
+                Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
+                Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()));
     }
 
 }

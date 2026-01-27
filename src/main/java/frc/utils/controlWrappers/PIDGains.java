@@ -20,6 +20,9 @@ public class PIDGains {
                 throw new IllegalArgumentException("PID values must be positive");
             }
         }
+        public PID getPID(){
+            return new PID(kP, kI, kD);
+        }
     }
     /**
      * simple record for feedforward gains
