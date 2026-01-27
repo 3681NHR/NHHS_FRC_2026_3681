@@ -256,12 +256,12 @@ public class RobotContainer {
         LoggedPowerDistribution.getInstance(pdp.getModule(), ModuleType.kRev);
 
         //TODO: test logic for turret and launcher, set default and bindings
-        turret.setDefaultCommand(
-            turret.track(() -> target, () -> 1.5)
-        );
+        // turret.setDefaultCommand(
+        //     turret.track(() -> target, () -> launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[2])
+        // );
 
         launcher.setDefaultCommand(
-            launcher.velocityControl(() -> launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[1])
+            launcher.voltageControl(()->0) 
         );
     }
 
@@ -327,13 +327,29 @@ public class RobotContainer {
         // force teleop drive
         new Trigger(() -> driverController.getPOV() == 0).onTrue(drive.TeleopDrive());
 
-        new Trigger(() -> driverController.getRawButton(X)).onTrue(new InstantCommand( () -> {
-            rumbler.overrideQue(new Rumble[]{
-                new Rumble(0.5,0,0.5),
-                new Rumble(0.5,0.5,0),
-                new Rumble(0.5,0,0.5)
-            });
-        }));
+        //launcher spin and shoot
+        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.2).whileTrue(
+            launcher.velocityControl(() -> launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[1])
+        );
+        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7).whileTrue(
+            null// TODO: feed to shooter while spun up
+        );
+        //set turret to auto track mode
+        new Trigger(() -> driverController.getRawButton(B)).onTrue(
+            turret.track(() -> target)
+        );
+        //set turret to preset angle mode
+        new Trigger(() -> driverController.getRawButton(A)).onTrue(
+            turret.manPos(() -> TURRET_LOCK_POS)
+        );
+        //intake
+        new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5).whileTrue(
+            null// TODO: intake
+        );
+        //lower hood for trench(should be auto also)(hold)
+        new Trigger(() -> driverController.getRawButton(X)).whileTrue(
+            null // TODO: lower hood for trench(should be auto also)(hold)
+        );
 
         // ------------------------------------------------------------------------------
         // operator controls

@@ -19,6 +19,7 @@ public final class LauncherConstants {
     public static final PIDGains.PID LAUNCHER_PID_GAINS = new PIDGains.PID(3.0,0,0.0);
 
     public static final double LAUNCHER_SETPOINT_TOLERANCE = 50;//rpm
+    public static final double LAUNCHER_MAX_TEMP = 40;
 
     public static final SysIdRoutine.Config LAUNCHER_SYSID_CONFIG = new SysIdRoutine.Config(
         Volts.per(Second).of(1.0), 

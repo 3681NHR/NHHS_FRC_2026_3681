@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.subsystems.launchLUT;
 import frc.robot.subsystems.swerve.Drive;
 import frc.utils.Alert;
 import frc.utils.Alert.AlertType;
@@ -77,8 +78,9 @@ public class Turret extends SubsystemBase {
         }).withName("manual angle");
     }
 
-    public Command track(Supplier<Translation2d> targ, DoubleSupplier timeOfFlight){
+    public Command track(Supplier<Translation2d> targ){
         return Commands.run(() -> {
+            double timeOfFlight = launchLUT.get(targ.get().getDistance(getFieldPos()), true, launchLUT.LUTHub)[2];
             Logger.recordOutput("Turret/track/target pos", targ.get());
                 double angle = getAngleToPos(targ.get(), 
                     drive.getPose().getTranslation()//drive pos
@@ -88,7 +90,7 @@ public class Turret extends SubsystemBase {
                         .plus(new Translation2d(//lead shot
                             ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond,
                             ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond
-                        ).times(timeOfFlight.getAsDouble()))
+                        ).times(timeOfFlight))//TODO: recalculate tof at lead position, iterate n times to estimate correct aim
                     ).getRadians();
                 
                 double offset = new Rotation2d(angle)

@@ -24,6 +24,17 @@ public class launchLUT {
         {Units.feetToMeters(3.5), Units.degreesToRadians(20), 3107.0, 1.2},
     };
 
+    /**
+     * get data from LUT at given distance val
+     * @param dist - value to lookup
+     * @param lerp - weather to lerp between closest values or return nearest entry(will always return above dist)
+     * @param LUT - 2d array to use, needs to be n by 4 and sorted by distance
+     * @return - array with data, [hood angle, launcher speed, TOF]
+     * <p> edge cases:
+     * <p> - when dist is greater than the farthest entry, farthest entry will be returned. 
+     *          if lerp is true, returned value will be extrapolated from highest two entries
+     * <p> - when dist is closer than minimum entry, the minumum entry will be returned
+     */
     public static double[] get(double dist, boolean lerp, double[][] LUT){
         double[] out = new double[3];
 
@@ -31,7 +42,19 @@ public class launchLUT {
         while(LUT[i][0]<dist){
             i++;
             if(i>=LUT.length){
-                throw new IndexOutOfBoundsException("distance value out of LUT bounds");
+                if(!lerp){
+                    return new double[]{     
+                        LUT[LUT.length-1][1],
+                        LUT[LUT.length-1][2],
+                        LUT[LUT.length-1][3]
+                    };
+                } else {
+                    return new double[]{    //extrapolate based on last two values
+                        ExtraMath.lerp(LUT[LUT.length-2][1], LUT[LUT.length-1][1], (dist-LUT[LUT.length-2][0])/(LUT[LUT.length-1][0]-LUT[LUT.length-2][0])),
+                        ExtraMath.lerp(LUT[LUT.length-2][2], LUT[LUT.length-1][2], (dist-LUT[LUT.length-2][0])/(LUT[LUT.length-1][0]-LUT[LUT.length-2][0])),
+                        ExtraMath.lerp(LUT[LUT.length-2][3], LUT[LUT.length-1][3], (dist-LUT[LUT.length-2][0])/(LUT[LUT.length-1][0]-LUT[LUT.length-2][0]))
+                    };
+                }
             }
         }
         if(lerp && i>0){
