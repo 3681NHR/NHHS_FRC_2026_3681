@@ -1,5 +1,8 @@
 package frc.robot.subsystems.launcher;
 
+import static edu.wpi.first.units.Units.Celsius;
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.LauncherConstants.*;
@@ -17,6 +20,8 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.utils.Alert;
 import frc.utils.Alert.AlertType;
@@ -28,9 +33,9 @@ public class LauncherIOReal implements LauncherIO {
     VoltageOut openLoopRequest = new VoltageOut(0);
     VelocityVoltage closedLoopRequest = new VelocityVoltage(0);
     
-    double goal = 0.0;
-    double vout = 0.0;
-    double speed = 0.0;
+    AngularVelocity goal = RPM.of(0.0);
+    Voltage vout = Volts.of(0.0);
+    AngularVelocity speed = RPM.of(0.0);
     boolean openLoop = false;
 
     Alert overheat = new Alert("", AlertType.kError);//dynamic text, dont set here
@@ -51,51 +56,55 @@ public class LauncherIOReal implements LauncherIO {
         );
     }
 
+    @Override
     public void updateInputs(LauncherIOInputs input){
-        filter.predict(VecBuilder.fill(vout - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout))*Math.signum(motor.getVelocity().getValueAsDouble())), 0.02);
-        filter.correct(VecBuilder.fill(vout - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout))*Math.signum(motor.getVelocity().getValueAsDouble())), VecBuilder.fill(motor.getPosition().getValueAsDouble(), motor.getVelocity().getValueAsDouble()));
-        speed = filter.getXhat().get(1,0);
+        filter.predict(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout.in(Volts)))*Math.signum(motor.getVelocity().getValue().in(RadiansPerSecond))), 0.02);
+        filter.correct(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout.in(Volts)))*Math.signum(motor.getVelocity().getValue().in(RadiansPerSecond))), VecBuilder.fill(motor.getPosition().getValue().in(Radians), motor.getVelocity().getValue().in(RadiansPerSecond)));
+        speed = RadiansPerSecond.of(filter.getXhat().get(1,0));
 
         if(DriverStation.isEnabled()){
             if(!openLoop){
-                motor.setControl(closedLoopRequest.withVelocity(RadiansPerSecond.of(goal)));
+                motor.setControl(closedLoopRequest.withVelocity(goal));
             } else{
-                motor.setControl(openLoopRequest.withOutput(Volts.of(vout)));
+                motor.setControl(openLoopRequest.withOutput(vout));
             }
         } else {
             motor.stopMotor();
         }
-        if(motor.getDeviceTemp().getValueAsDouble() > LAUNCHER_MAX_TEMP){
+        if(motor.getDeviceTemp().getValue().magnitude() > LAUNCHER_MAX_TEMP.magnitude()){
             overheat.set(true);
-            overheat.setText("Launcher motor overheat! ("+motor.getDeviceTemp().getValueAsDouble()+"C)");
+            overheat.setText("Launcher motor overheat! ("+motor.getDeviceTemp().getValue().in(Celsius)+"C)");
         } else {
             overheat.set(false);
         }
         disconnect.set(motor.isConnected());
         
-        input.filteredAngle = filter.getXhat(0);
+        input.filteredAngle = Radians.of(filter.getXhat(0));
         input.filteredSpeed = speed;
-        input.rawAngle = motor.getPosition().getValueAsDouble();
-        input.rawSpeed = motor.getVelocity().getValueAsDouble();
+        input.rawAngle = motor.getPosition().getValue();
+        input.rawSpeed = motor.getVelocity().getValue();
 
-        input.motorCurrentOut = motor.getStatorCurrent().getValueAsDouble();
-        input.motorTemp = motor.getDeviceTemp().getValueAsDouble();
+        input.motorCurrentOut = motor.getStatorCurrent().getValue();
+        input.motorTemp = motor.getDeviceTemp().getValue();
         input.motorVoltageOut = vout;
 
         input.goal = goal;
-        input.atSetpoint = MathUtil.isNear(goal, speed, LAUNCHER_SETPOINT_TOLERANCE);
+        input.atSetpoint = MathUtil.isNear(goal.in(RPM), speed.in(RPM), LAUNCHER_SETPOINT_TOLERANCE.in(RPM));
     
         input.openLoop = openLoop;
     }
 
-    public void setGoal(double goal){
+    @Override
+    public void setGoal(AngularVelocity goal){
         this.openLoop = false;
         this.goal = goal;
     }
-    public void setvout(double vout){
+    @Override
+    public void setVout(Voltage vout){
         this.openLoop = true;
         this.vout = vout;
     }
+    @Override
     public void setOpenLoop(boolean openLoop){
         this.openLoop = openLoop;
     }

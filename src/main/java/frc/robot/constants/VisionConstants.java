@@ -1,9 +1,12 @@
 package frc.robot.constants;
 
+import static edu.wpi.first.units.Units.Meters;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Distance;
 
 public class VisionConstants {
     /**
@@ -103,7 +106,7 @@ public class VisionConstants {
     };
     // Basic filtering thresholds
     public static double MAX_AMBIGUITY = 0.75;
-    public static double MAX_Z_ERROR = 0.75;
+    public static Distance MAX_Z_ERROR = Meters.of(0.75);
 
     // Standard deviation baselines, for 1 meter distance and 1 tag
     // (Adjusted automatically based on distance and # of tags)

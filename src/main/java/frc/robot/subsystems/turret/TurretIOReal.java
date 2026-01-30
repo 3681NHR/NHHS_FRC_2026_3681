@@ -1,20 +1,26 @@
 package frc.robot.subsystems.turret;
 
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Voltage;
+
 public class TurretIOReal implements TurretIO {
     
-    
+    @Override
     public void updateInputs(TurretIOInputs input){
 
     }    
     
-    public void setGoal(double goal){
+    @Override
+    public void setGoal(Angle goal){
 
     }
     
-    public void setVout(double vout){
+    @Override
+    public void setVout(Voltage vout){
 
     }
     
+    @Override
     public void setOpenLoop(boolean openloop){
 
     }

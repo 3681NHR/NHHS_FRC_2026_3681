@@ -5,6 +5,7 @@ import org.littletonrobotics.junction.AutoLog;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.units.measure.Distance;
 
 public interface CameraIO {
     @AutoLog
@@ -15,6 +16,9 @@ public interface CameraIO {
         public TargetObservation latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d(),
                 -1);
         public TargetObservation[] targets = new TargetObservation[0];
+
+        public Transform3d robotToCamera = new Transform3d();
+        public String name = "";
     }
 
     /** Represents the angle to a simple target, not used for pose estimation. */
@@ -27,17 +31,9 @@ public interface CameraIO {
             Pose3d pose,
             double ambiguity,
             int tagCount,
-            double averageTagDistance) {
+            Distance averageTagDistance) {
     }
 
     public default void updateInputs(CameraIOInputs inputs) {
-    }
-
-    public default String getName() {
-        return null;
-    }
-
-    public default Transform3d getRobotToCamera() {
-        return new Transform3d();
     }
 }

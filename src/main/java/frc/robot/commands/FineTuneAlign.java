@@ -1,5 +1,8 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.Radians;
+
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
@@ -54,9 +57,9 @@ public class FineTuneAlign extends Command {
         drive.runVelocity(drive.autoController.calculateRobotRelativeSpeeds(drive.getPose(), state));
 
         done = drive.getPose().getTranslation()
-                .getDistance(target.get().getTranslation()) <= DriveConstants.AUTO_ALIGN_POS_MAX_OFFSET &&
+                .getDistance(target.get().getTranslation()) <= DriveConstants.AUTO_ALIGN_POS_MAX_OFFSET.in(Meters) &&
                 Math.abs(drive.getPose().getRotation().minus(target.get().getRotation())
-                        .getDegrees()) <= DriveConstants.AUTO_ALIGN_ANGLE_MAX_OFFSET;
+                        .getDegrees()) <= DriveConstants.AUTO_ALIGN_ANGLE_MAX_OFFSET.in(Radians);
 
         led.alignInPos = done;
         Logger.recordOutput("Drive/Align/Fine tune/good", done);

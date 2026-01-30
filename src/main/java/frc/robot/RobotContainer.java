@@ -38,6 +38,9 @@ import frc.utils.Joystick;
 
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.TurretConstants.*;
 
 import static frc.utils.ControllerMap.*;
@@ -70,7 +73,6 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -133,7 +135,7 @@ public class RobotContainer {
                             DCMotor.getNEO(1),
                             COTS.WHEELS.DEFAULT_NEOPRENE_TREAD.cof,
                             2))
-                    .withTrackLengthTrackWidth(Meters.of(DriveConstants.LENGTH), Meters.of(DriveConstants.WIDTH))
+                    .withTrackLengthTrackWidth(DriveConstants.LENGTH, DriveConstants.WIDTH)
                     .withBumperSize(Inches.of(31), Inches.of(33));
 
             driveSim = new SwerveDriveSimulation(driveTrainSimulationConfig, Constants.STARTING_POSE);
@@ -261,7 +263,7 @@ public class RobotContainer {
         // );
 
         launcher.setDefaultCommand(
-            launcher.voltageControl(()->0) 
+            launcher.voltageControl(() -> Volts.of(0)) 
         );
     }
 
@@ -302,7 +304,7 @@ public class RobotContainer {
         
         // TODO: placeholder binding to shooting in sim, remove before running on robot
         new Trigger(() -> driverController.getRawButton(A)).whileTrue(new InstantCommand(() -> {
-                double launchvel = (launcher.getSpeed()-2500)*2*Math.PI*Units.inchesToMeters(2)/60;
+                double launchvel = (launcher.getSpeed().in(RPM)-2500)*2*Math.PI*Units.inchesToMeters(2)/60;
                 double angle = launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[0];
                 GamePieceProjectile fuel = new GamePieceProjectile(
                         RebuiltFuelOnField.REBUILT_FUEL_INFO,
@@ -311,8 +313,8 @@ public class RobotContainer {
                                 Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()
                         )),
                         new Translation2d(
-                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + Math.cos(drive.getRotation().getRadians() + turret.getAngle())*Math.cos(angle)*launchvel,
-                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + Math.sin(drive.getRotation().getRadians() + turret.getAngle())*Math.cos(angle)*launchvel
+                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + Math.cos(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel,
+                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + Math.sin(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel
                         ),
                         Units.inchesToMeters(20),
                         Math.sin(angle)*launchvel,
@@ -329,7 +331,7 @@ public class RobotContainer {
 
         //launcher spin and shoot
         new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.2).whileTrue(
-            launcher.velocityControl(() -> launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[1])
+            launcher.velocityControl(() -> RPM.of(launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[1]))
         );
         new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7).whileTrue(
             null// TODO: feed to shooter while spun up
@@ -372,8 +374,8 @@ public class RobotContainer {
 
         Logger.recordOutput("zeroPose", new Pose3d());
         Logger.recordOutput("Components", new Pose3d[]{
-                new Pose3d(TURRET_OFFSET, new Rotation3d(0,0,turret.getAngle()-Math.PI/2)),
-                new Pose3d(TURRET_OFFSET.getX()+Math.cos(turret.getAngle())*HOOD_TO_TURRET_OFFSET.getX(),TURRET_OFFSET.getY()+(Math.sin(turret.getAngle())*HOOD_TO_TURRET_OFFSET.getX()), TURRET_OFFSET.getZ()+HOOD_TO_TURRET_OFFSET.getZ(),new Rotation3d(Units.degreesToRadians(0),0,turret.getAngle()-Math.PI/2)),
+                new Pose3d(TURRET_OFFSET, new Rotation3d(0,0,turret.getAngle().in(Radians)-Math.PI/2)),
+                new Pose3d(TURRET_OFFSET.getX()+Math.cos(turret.getAngle().in(Radians))*HOOD_TO_TURRET_OFFSET.getX(),TURRET_OFFSET.getY()+(Math.sin(turret.getAngle().in(Radians))*HOOD_TO_TURRET_OFFSET.getX()), TURRET_OFFSET.getZ()+HOOD_TO_TURRET_OFFSET.getZ(),new Rotation3d(Units.degreesToRadians(0),0,turret.getAngle().in(Radians)-Math.PI/2)),
         });
     }
 

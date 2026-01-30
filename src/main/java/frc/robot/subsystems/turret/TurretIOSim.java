@@ -8,19 +8,24 @@ import edu.wpi.first.math.estimator.KalmanFilter;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
 import frc.utils.controlWrappers.ProfiledPID;
 import frc.utils.controlWrappers.SimpleFF;
 
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.TurretConstants.*;
 
 public class TurretIOSim implements TurretIO {
     
-    private double goal = 0.0;
+    private Angle goal = Radians.of(0.0);
     private boolean openLoop = false;
-    private double Vout = 0.0;
-    private double angle = 0.0;
+    private Voltage Vout = Volts.of(0.0);
+    private Angle angle = Radians.of(0.0);
 
     private ProfiledPID pid = new ProfiledPID(TURRET_PID_GAINS);
     private SimpleFF ff = new SimpleFF(TURRET_FF_GAINS);
@@ -31,44 +36,49 @@ public class TurretIOSim implements TurretIO {
 
     public TurretIOSim(){
     }
+    @Override
     public void updateInputs(TurretIOInputs input){
         sim.update(0.02);
-        filter.predict(VecBuilder.fill(Vout - Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout))*Math.signum(sim.getOutput().get(1,0))), 0.02);
-        filter.correct(VecBuilder.fill(Vout - Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout))*Math.signum(sim.getOutput().get(1,0))), sim.getOutput());
-        angle = filter.getXhat().get(0,0);
+        filter.predict(VecBuilder.fill(Vout.in(Volts) - Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0))), 0.02);
+        filter.correct(VecBuilder.fill(Vout.in(Volts) - Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0))), sim.getOutput());
+        angle = Radians.of(filter.getXhat().get(0,0));
 
         if(!openLoop){
-            Vout = pid.calculate(angle, goal);
-            Vout += ff.calculate(pid.getSetpoint().velocity);
+            Vout = Volts.of(pid.calculate(angle.in(Radians), goal.in(Radians)));
+            Vout = Vout.plus(Volts.of(ff.calculate(pid.getSetpoint().velocity)));
         }
         if(DriverStation.isEnabled()){
-            sim.setInput(Vout - Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout))*Math.signum(sim.getOutput().get(1,0)));
+            sim.setInput(Vout.in(Volts) - Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0)));
         } else {            
-            sim.setInput(-Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout))*Math.signum(sim.getOutput().get(1,0)));
+            sim.setInput(-Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0)));
         }
         
         input.filteredAngle = angle;
-        input.filteredSpeed = filter.getXhat(1);
-        input.rawAngle = sim.getOutput().get(0, 0);
-        input.rawSpeed = sim.getOutput().get(1, 0);
+        input.filteredSpeed = RadiansPerSecond.of(filter.getXhat(1));
+        input.rawAngle = Radians.of(sim.getOutput().get(0, 0));
+        input.rawSpeed = RadiansPerSecond.of(sim.getOutput().get(1, 0));
 
         input.motorVoltageOut = Vout;
 
         input.goal = goal;
-        input.setpoint = pid.getSetpoint();
-        input.atSetpoint = MathUtil.isNear(goal, angle, TURRET_SETPOINT_TOLERANCE);
+        input.setpointPos = Radians.of(pid.getSetpoint().position);
+        input.setpointVel = RadiansPerSecond.of(pid.getSetpoint().velocity);
+        input.atSetpoint = MathUtil.isNear(goal.in(Radians), angle.in(Radians), TURRET_SETPOINT_TOLERANCE.in(Radians));
     
         input.openLoop = openLoop;
     }
 
-    public void setGoal(double goal){
+    @Override
+    public void setGoal(Angle goal){
         this.openLoop = false;
         this.goal = goal;
     }
-    public void setVout(double vout){
+    @Override
+    public void setVout(Voltage vout){
         this.openLoop = true;
         Vout = vout;
     }
+    @Override
     public void setOpenLoop(boolean openLoop){
         this.openLoop = openLoop;
     }

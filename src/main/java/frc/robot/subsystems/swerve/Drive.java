@@ -26,6 +26,9 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import frc.utils.Alert;
 import frc.utils.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -69,14 +72,6 @@ import org.littletonrobotics.junction.Logger;
  */
 public class Drive extends SubsystemBase {
 
-    // public enum CurrentDriveState {
-    //     SYS_ID,
-    //     TELEOP_DRIVE,
-    //     ROTATION_LOCK,
-    //     DRIVE_TO_POINT,
-    //     LOCK
-    // }
-
     private duelJoystickAxis driverSticks;
 
     private Led led;
@@ -103,7 +98,7 @@ public class Drive extends SubsystemBase {
             AlertType.kError);
 
     private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(MODULE_POSITIONS);
-    private Rotation2d rawGyroRotation = new Rotation2d();
+    private Angle rawGyroRotation = Radians.of(0);
     private SwerveModulePosition[] lastModulePositions = // For delta tracking
             new SwerveModulePosition[] {
                     new SwerveModulePosition(),
@@ -111,7 +106,7 @@ public class Drive extends SubsystemBase {
                     new SwerveModulePosition(),
                     new SwerveModulePosition()
             };
-    private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation,
+    private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, new Rotation2d(rawGyroRotation.in(Radians)),
             lastModulePositions, Constants.STARTING_POSE);
 
     public Drive(
@@ -166,7 +161,7 @@ public class Drive extends SubsystemBase {
                         DRIVE_SYSID_TIMEOUT,
                         (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
-                        (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+                        (voltage) -> runCharacterization(voltage), null, this));
         steerSysId = new SysIdRoutine(
                 new SysIdRoutine.Config(
                         TURN_SYSID_VRAMP,
@@ -174,7 +169,7 @@ public class Drive extends SubsystemBase {
                         TURN_SYSID_TIMEOUT,
                         (state) -> Logger.recordOutput("Drive/SteerSysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
-                        (voltage) -> runSteerCharacterization(voltage.in(Volts)), null, this));
+                        (voltage) -> runSteerCharacterization(voltage), null, this));
         angleSysId = new SysIdRoutine(
                 new SysIdRoutine.Config(
                         null,
@@ -187,11 +182,11 @@ public class Drive extends SubsystemBase {
         YAGSLWidget.maxAngularVelocity = getMaxAngularSpeedRadPerSec();
         YAGSLWidget.maxSpeed = getMaxLinearSpeedMetersPerSec();
         YAGSLWidget.moduleCount = 4;
-        YAGSLWidget.sizeFrontBack = LENGTH;
-        YAGSLWidget.sizeLeftRight = WIDTH;
+        YAGSLWidget.sizeFrontBack = LENGTH.in(Meters);
+        YAGSLWidget.sizeLeftRight = WIDTH.in(Meters);
         YAGSLWidget.wheelLocations = new double[8];
 
-        angleController.setTolerance(AUTO_ALIGN_ANGLE_MAX_OFFSET);
+        angleController.setTolerance(AUTO_ALIGN_ANGLE_MAX_OFFSET.in(Radians));
 
         for (int i = 0; i > MODULE_POSITIONS.length; i += 2) {
             Translation2d t = MODULE_POSITIONS[i];
@@ -255,15 +250,15 @@ public class Drive extends SubsystemBase {
             // Update gyro angle
             if (gyroInputs.connected) {
                 // Use the real gyro angle
-                rawGyroRotation = gyroInputs.odometryYawPositions[i];
+                rawGyroRotation = Radians.of(gyroInputs.odometryYawPositions[i]);
             } else {
                 // Use the angle delta from the kinematics and module deltas
                 Twist2d twist = kinematics.toTwist2d(moduleDeltas);
-                rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
+                rawGyroRotation = rawGyroRotation.plus(Radians.of(twist.dtheta));
             }
 
             // Apply update
-            poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
+            poseEstimator.updateWithTime(sampleTimestamps[i], new Rotation2d(rawGyroRotation.in(Radians)), modulePositions);
         }
 
         // Update gyro alert
@@ -337,7 +332,7 @@ public class Drive extends SubsystemBase {
             
             ChassisSpeeds speeds = getTranslationalSpeedsFromController(
                 MathUtil.clamp(angleController.calculate(getRotation().getRadians(), headingRad.getAsDouble()),
-                        -ANGLE_MAX_VELOCITY, ANGLE_MAX_VELOCITY));
+                        -ANGLE_MAX_VELOCITY.in(RadiansPerSecond), ANGLE_MAX_VELOCITY.in(RadiansPerSecond)));
 
             Logger.recordOutput("Drive/Rotation lock/Target angle", headingRad.getAsDouble());
             Logger.recordOutput("Drive/Rotation lock/Angle PID out", speeds.omegaRadiansPerSecond);
@@ -492,8 +487,8 @@ public class Drive extends SubsystemBase {
         return rotation;
     }
 
-    public double getAngulerVelocity() {
-        return gyroInputs.yawVelocityRadPerSec;
+    public AngularVelocity getAngulerVelocity() {
+        return gyroInputs.yawVelocity;
     }
 
     @AutoLogOutput(key = "Drive/speed")
@@ -506,26 +501,26 @@ public class Drive extends SubsystemBase {
     }
     /** Returns a command to run a quasistatic test in the specified direction. */
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-        return run(() -> runCharacterization(0.0))
+        return run(() -> runCharacterization(Volts.of(0.0)))
                 .withTimeout(1.0)
                 .andThen(driveSysId.quasistatic(direction));
     }
 
     /** Returns a command to run a dynamic test in the specified direction. */
     public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-        return run(() -> runCharacterization(0.0)).withTimeout(1.0).andThen(driveSysId.dynamic(direction));
+        return run(() -> runCharacterization(Volts.of(0.0))).withTimeout(1.0).andThen(driveSysId.dynamic(direction));
     }
 
     /** Returns a command to run a quasistatic test in the specified direction. */
     public Command steerSysIdQuasistatic(SysIdRoutine.Direction direction) {
-        return run(() -> runSteerCharacterization(0.0))
+        return run(() -> runSteerCharacterization(Volts.of(0.0)))
                 .withTimeout(1.0)
                 .andThen(steerSysId.quasistatic(direction));
     }
 
     /** Returns a command to run a dynamic test in the specified direction. */
     public Command steerSysIdDynamic(SysIdRoutine.Direction direction) {
-        return run(() -> runSteerCharacterization(0.0)).withTimeout(1.0).andThen(steerSysId.dynamic(direction));
+        return run(() -> runSteerCharacterization(Volts.of(0.0))).withTimeout(1.0).andThen(steerSysId.dynamic(direction));
     }
 
     /** Returns a command to run a quasistatic test in the specified direction. */
@@ -591,28 +586,28 @@ public class Drive extends SubsystemBase {
 
     /** Resets the current odometry pose. */
     public void setPose(Pose2d pose) {
-        poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
+        poseEstimator.resetPosition(new Rotation2d(rawGyroRotation.in(Radians)), getModulePositions(), pose);
     }
 
     /** Returns the maximum linear speed in meters per sec. */
     public double getMaxLinearSpeedMetersPerSec() {
-        return MAX_SPEED;
+        return MAX_SPEED.in(MetersPerSecond);
     }
 
     /** Returns the maximum angular speed in radians per sec. */
     public double getMaxAngularSpeedRadPerSec() {
-        return MAX_SPEED / RADIUS;
+        return MAX_SPEED.in(MetersPerSecond) / RADIUS.in(Meters);
     }
 
     /** Runs the drive in a straight line with the specified drive output. */
-    public void runCharacterization(double output) {
+    public void runCharacterization(Voltage output) {
         for (int i = 0; i < 4; i++) {
             modules[i].runCharacterization(output);
         }
     }
 
     /** spins modules */
-    public void runSteerCharacterization(double output) {
+    public void runSteerCharacterization(Voltage output) {
         for (int i = 0; i < 4; i++) {
             modules[i].runSteerCharacterization(output);
         }

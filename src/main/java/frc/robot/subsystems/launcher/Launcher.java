@@ -1,11 +1,11 @@
 package frc.robot.subsystems.launcher;
 
-import static edu.wpi.first.units.Units.*;
-
-import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -22,7 +22,7 @@ public class Launcher extends SubsystemBase {
 
     boolean ready = false;
 
-    private SysIdRoutine sysid = new SysIdRoutine(LAUNCHER_SYSID_CONFIG, new SysIdRoutine.Mechanism(v -> io.setVout(v.in(Volts)), null, this));
+    private SysIdRoutine sysid = new SysIdRoutine(LAUNCHER_SYSID_CONFIG, new SysIdRoutine.Mechanism(v -> io.setVout(v), null, this));
     private Alert runningSysid = new Alert("Launcher sysid running", AlertType.kInfo);
 
     public Launcher(LauncherIO io) {
@@ -37,16 +37,16 @@ public class Launcher extends SubsystemBase {
 
     }
 
-    public Command velocityControl(DoubleSupplier vel){
+    public Command velocityControl(Supplier<AngularVelocity> vel){
         return Commands.run(() -> {
-            io.setGoal(vel.getAsDouble());
+            io.setGoal(vel.get());
         }, this)
         .withName("velocity control");
     }
 
-    public Command voltageControl(DoubleSupplier volt){
+    public Command voltageControl(Supplier<Voltage> volt){
         return Commands.run(() -> {
-            io.setVout(volt.getAsDouble());
+            io.setVout(volt.get());
         }, this)
         .withName("voltage control");
     }
@@ -74,7 +74,7 @@ public class Launcher extends SubsystemBase {
     public boolean isReady(){
         return ready;
     }
-    public double getSpeed(){
+    public AngularVelocity getSpeed(){
         return in.filteredSpeed;
     }
 }

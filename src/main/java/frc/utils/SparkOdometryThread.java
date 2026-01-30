@@ -2,11 +2,13 @@ package frc.utils;
 
 import com.revrobotics.REVLibError;
 import com.revrobotics.spark.SparkBase;
+
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.constants.DriveConstants;
 import frc.robot.subsystems.swerve.Drive;
 
+import static edu.wpi.first.units.Units.Hertz;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -43,7 +45,7 @@ public class SparkOdometryThread {
 
   public void start() {
     if (timestampQueues.size() > 0) {
-      notifier.startPeriodic(1.0 / DriveConstants.ODOMETRY_FREQ);
+      notifier.startPeriodic(1.0 / DriveConstants.ODOMETRY_FREQ.in(Hertz));
     }
   }
 
@@ -91,7 +93,7 @@ public class SparkOdometryThread {
     Drive.odometryLock.lock();
     try {
       // Get sample timestamp
-      double timestamp = RobotController.getFPGATime() / 1e6;
+      Double timestamp = RobotController.getFPGATime() / 1e6;
 
       // Read Spark values, mark invalid in case of error
       double[] sparkValues = new double[sparkSignals.size()];
