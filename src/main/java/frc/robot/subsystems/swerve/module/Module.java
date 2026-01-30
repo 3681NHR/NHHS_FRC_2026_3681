@@ -6,7 +6,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Voltage;
 import frc.utils.Alert;
 import frc.utils.Alert.AlertType;
@@ -47,7 +46,7 @@ public class Module {
         int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
         odometryPositions = new SwerveModulePosition[sampleCount];
         for (int i = 0; i < sampleCount; i++) {
-            Distance positionMeters = module.WHEEL_RAD.times(inputs.odometryDrivePositions[i].in(Radians));
+            Distance positionMeters = module.WHEEL_RAD.times(inputs.odometryDrivePositions[i]);
             Rotation2d angle = new Rotation2d(inputs.odometryTurnPositions[i]);
             odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
         }
@@ -140,7 +139,7 @@ public class Module {
     }
 
     /** Returns the timestamps of the samples received this cycle. */
-    public Time[] getOdometryTimestamps() {
+    public double[] getOdometryTimestamps() {
         return inputs.odometryTimestamps;
     }
 }

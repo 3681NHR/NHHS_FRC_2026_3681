@@ -27,7 +27,6 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.constants.DriveConstants.module;
 import frc.utils.SparkOdometryThread;
@@ -57,7 +56,7 @@ public class ModuleIOSpark implements ModuleIO {
     private final SimpleFF driveFF = new SimpleFF(module.DRIVE_FF);
 
     // Queue inputs from odometry thread
-    private final Queue<Time> timestampQueue;
+    private final Queue<Double> timestampQueue;
     private final Queue<Double> drivePositionQueue;
     private final Queue<Double> turnPositionQueue;
 
@@ -205,9 +204,9 @@ public class ModuleIOSpark implements ModuleIO {
         inputs.turnConnected = turnConnectedDebounce.calculate(!sparkStickyFault);
 
         // Update odometry inputs
-        inputs.odometryTimestamps = timestampQueue.stream().toArray(e -> new Time[e]);
-        inputs.odometryDrivePositions = drivePositionQueue.stream().toArray(e -> new Angle[e]);
-        inputs.odometryTurnPositions = turnPositionQueue.stream().toArray(e -> new Angle[e]);
+        inputs.odometryTimestamps = timestampQueue.stream().mapToDouble(e -> e).toArray();
+        inputs.odometryDrivePositions = drivePositionQueue.stream().mapToDouble(e -> e).toArray();
+        inputs.odometryTurnPositions = turnPositionQueue.stream().mapToDouble(e -> e).toArray();
         timestampQueue.clear();
         drivePositionQueue.clear();
         turnPositionQueue.clear();

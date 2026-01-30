@@ -8,7 +8,6 @@ import org.ironmaple.simulation.drivesims.GyroSimulation;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.units.measure.Angle;
 import frc.utils.SparkUtil;
 
 public class GyroIOSim implements GyroIO {
@@ -29,7 +28,7 @@ public class GyroIOSim implements GyroIO {
         inputs.yawPosition = Radians.of(gyro.getGyroReading().getRadians());
         inputs.yawVelocity = gyro.getMeasuredAngularVelocity();
 
-        inputs.odometryYawPositions = Arrays.stream(gyro.getCachedGyroReadings()).map(e -> Radians.of(e.getRadians())).toArray(e -> new Angle[e]);
+        inputs.odometryYawPositions = Arrays.stream(gyro.getCachedGyroReadings()).mapToDouble(e -> e.getRadians()).toArray();
         inputs.odometryYawTimestamps = SparkUtil.getSimulationOdometryTimeStamps();
 
         inputs.angle = new Rotation3d(0, 0, inputs.yawPosition.in(Radians));

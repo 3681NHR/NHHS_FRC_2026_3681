@@ -8,7 +8,6 @@ import org.littletonrobotics.junction.AutoLog;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Time;
 
 public interface GyroIO {
 
@@ -17,8 +16,8 @@ public interface GyroIO {
         public boolean connected = false;
         public Angle yawPosition = Radians.of(0);
         public AngularVelocity yawVelocity = RadiansPerSecond.of(0);
-        public Time[] odometryYawTimestamps = new Time[] {};
-        public Angle[] odometryYawPositions = new Angle[] {};
+        public double[] odometryYawTimestamps = new double[] {};
+        public double[] odometryYawPositions = new double[] {};
         public Rotation3d angle = new Rotation3d();
     }
 

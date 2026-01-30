@@ -9,7 +9,6 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Time;
 import frc.utils.SparkOdometryThread;
 
 import static edu.wpi.first.units.Units.Radian;
@@ -22,7 +21,7 @@ public class GyroIOPigeon2 implements GyroIO {
     private final Pigeon2 pigeon = new Pigeon2(GYRO_ID);
     private final StatusSignal<Angle> yaw = pigeon.getYaw();
     private final Queue<Double> yawPositionQueue;
-    private final Queue<Time> yawTimestampQueue;
+    private final Queue<Double> yawTimestampQueue;
     private final StatusSignal<AngularVelocity> yawVelocity = pigeon.getAngularVelocityZWorld();
 
     public GyroIOPigeon2() {
@@ -41,8 +40,8 @@ public class GyroIOPigeon2 implements GyroIO {
         inputs.yawPosition = yaw.getValue();
         inputs.yawVelocity = yawVelocity.getValue();
 
-        inputs.odometryYawTimestamps = yawTimestampQueue.stream().toArray(e -> new Time[e]);
-        inputs.odometryYawPositions = yawPositionQueue.stream().toArray(e -> new Angle[e]);
+        inputs.odometryYawTimestamps = yawTimestampQueue.stream().mapToDouble(e -> e).toArray();
+        inputs.odometryYawPositions = yawPositionQueue.stream().mapToDouble(e -> e).toArray();
         yawTimestampQueue.clear();
         yawPositionQueue.clear();
 

@@ -104,8 +104,8 @@ public class ModuleIOSim implements ModuleIO {
 
         // Update odometry inputs
         inputs.odometryTimestamps = SparkUtil.getSimulationOdometryTimeStamps();
-        inputs.odometryDrivePositions = moduleSim.getCachedDriveWheelFinalPositions();
-        inputs.odometryTurnPositions = Arrays.stream(moduleSim.getCachedSteerAbsolutePositions()).map(r -> Radians.of(r.getRadians())).toArray( e -> new Angle[e]);
+        inputs.odometryDrivePositions = Arrays.stream(moduleSim.getCachedDriveWheelFinalPositions()).mapToDouble(r -> r.in(Radians)).toArray();
+        inputs.odometryTurnPositions = Arrays.stream(moduleSim.getCachedSteerAbsolutePositions()).mapToDouble(r -> r.getRadians()).toArray();
     }
 
     @Override

@@ -28,7 +28,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Voltage;
 import frc.utils.Alert;
 import frc.utils.Alert.AlertType;
@@ -233,7 +232,7 @@ public class Drive extends SubsystemBase {
         }
 
         // Update odometry
-        Time[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
+        double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
         int sampleCount = sampleTimestamps.length;
         for (int i = 0; i < sampleCount; i++) {
             // Read wheel positions and deltas from each module
@@ -251,7 +250,7 @@ public class Drive extends SubsystemBase {
             // Update gyro angle
             if (gyroInputs.connected) {
                 // Use the real gyro angle
-                rawGyroRotation = gyroInputs.odometryYawPositions[i];
+                rawGyroRotation = Radians.of(gyroInputs.odometryYawPositions[i]);
             } else {
                 // Use the angle delta from the kinematics and module deltas
                 Twist2d twist = kinematics.toTwist2d(moduleDeltas);
@@ -259,7 +258,7 @@ public class Drive extends SubsystemBase {
             }
 
             // Apply update
-            poseEstimator.updateWithTime(sampleTimestamps[i].in(Seconds), new Rotation2d(rawGyroRotation.in(Radians)), modulePositions);
+            poseEstimator.updateWithTime(sampleTimestamps[i], new Rotation2d(rawGyroRotation.in(Radians)), modulePositions);
         }
 
         // Update gyro alert

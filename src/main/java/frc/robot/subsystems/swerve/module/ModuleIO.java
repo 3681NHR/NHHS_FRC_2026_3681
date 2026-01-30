@@ -4,7 +4,6 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
-import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Voltage;
 
 import org.littletonrobotics.junction.AutoLog;
@@ -26,9 +25,9 @@ public interface ModuleIO {
         public Current turnCurrent;
         public Temperature turnTemp;
 
-        public Time[] odometryTimestamps = new Time[] {};
-        public Angle[] odometryDrivePositions = new Angle[] {};
-        public Angle[] odometryTurnPositions = new Angle[] {};
+        public double[] odometryTimestamps = new double[] {};
+        public double[] odometryDrivePositions = new double[] {};
+        public double[] odometryTurnPositions = new double[] {};
     }
 
     /** Updates the set of loggable inputs. */
