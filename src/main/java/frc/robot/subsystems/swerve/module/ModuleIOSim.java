@@ -10,7 +10,9 @@ import java.util.Arrays;
 import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
 import org.ironmaple.simulation.motorsims.SimulatedMotorController;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import frc.robot.constants.DriveConstants.module;
 import frc.utils.BatteryVoltageSim;
@@ -35,13 +37,13 @@ public class ModuleIOSim implements ModuleIO {
 
     private final SimpleFF driveFF = new SimpleFF(module.DRIVE_FF_SIM);
 
-    private double driveAppliedVolts = 0.0;
-    private double turnAppliedVolts = 0.0;
+    private Voltage driveAppliedVolts = Volts.of(0.0);
+    private Voltage turnAppliedVolts = Volts.of(0.0);
 
-    private double turnGoal = 0.0;
-    private double driveGoal = 0.0;
+    private Angle turnGoal = Radians.of(0.0);
+    private AngularVelocity driveGoal = RadiansPerSecond.of(0.0);
 
-    private double turnPosRad = 0.0;
+    private Angle turnPos = Radians.of(0.0);
 
     public ModuleIOSim(SwerveModuleSimulation moduleSim) {
         this.moduleSim = moduleSim;
@@ -54,7 +56,7 @@ public class ModuleIOSim implements ModuleIO {
                 .withCurrentLimit(Amps.of(40));
 
         // Enable wrapping for turn PID
-        turnController.enableContinuousInput(module.TURN_MIN_POS, module.TURN_MAX_POS);
+        turnController.enableContinuousInput(module.TURN_MIN_POS.in(Radians), module.TURN_MAX_POS.in(Radians));
 
         BatteryVoltageSim.getInstance().addCurrentSource(() -> moduleSim.getDriveMotorSupplyCurrent().in(Amps));
         BatteryVoltageSim.getInstance().addCurrentSource(() -> moduleSim.getSteerMotorSupplyCurrent().in(Amps));
@@ -63,76 +65,70 @@ public class ModuleIOSim implements ModuleIO {
     @Override
     public void updateInputs(ModuleIOInputs inputs) {
 
-        turnPosRad = MathUtil.inputModulus(moduleSim.getSteerAbsoluteFacing().getRadians(), module.TURN_MIN_POS, module.TURN_MAX_POS);
-        turnGoal = MathUtil.inputModulus(turnGoal, module.TURN_MIN_POS, module.TURN_MAX_POS);
+        turnPos = Radians.of(MathUtil.inputModulus(moduleSim.getSteerAbsoluteFacing().getRadians(), module.TURN_MIN_POS.in(Radians), module.TURN_MAX_POS.in(Radians)));
+        turnGoal = Radians.of(MathUtil.inputModulus(turnGoal.in(Radians), module.TURN_MIN_POS.in(Radians), module.TURN_MAX_POS.in(Radians)));
 
         // Run closed-loop control
         if (driveClosedLoop) {
-            driveAppliedVolts = driveFF.calculate(driveGoal)
-                    + driveController.calculate(moduleSim.getDriveWheelFinalSpeed().in(RadiansPerSecond), driveGoal);
+            driveAppliedVolts = Volts.of(driveFF.calculate(driveGoal.in(RadiansPerSecond))
+                    + driveController.calculate(moduleSim.getDriveWheelFinalSpeed().in(RadiansPerSecond), driveGoal.in(RadiansPerSecond)));
         } else {
             driveController.reset();
         }
         if (turnClosedLoop) {
-            turnAppliedVolts = module.TURN_FF_SIM.kS() * Math.signum(turnController.getSetpoint().position)
-                    + turnController.calculate(turnPosRad, turnGoal);
+            turnAppliedVolts = Volts.of(module.TURN_FF_SIM.kS() * Math.signum(turnController.getSetpoint().position)
+                    + turnController.calculate(turnPos.in(Radians), turnGoal.in(Radians)));
         } else {
-            turnController.reset(turnPosRad);
-            ;
+            turnController.reset(turnPos.in(Radians));
         }
 
         // Update simulation state
         turnSim.requestVoltage(
-                Volts.of(MathUtil.clamp(turnAppliedVolts, -RoboRioSim.getVInVoltage(), RoboRioSim.getVInVoltage())));
+                Volts.of(MathUtil.clamp(turnAppliedVolts.in(Volts), -RoboRioSim.getVInVoltage(), RoboRioSim.getVInVoltage())));
         driveSim.requestVoltage(
-                Volts.of(MathUtil.clamp(driveAppliedVolts, -RoboRioSim.getVInVoltage(), RoboRioSim.getVInVoltage())));
+                Volts.of(MathUtil.clamp(driveAppliedVolts.in(Volts), -RoboRioSim.getVInVoltage(), RoboRioSim.getVInVoltage())));
 
         // Update drive inputs
         inputs.driveConnected = true;
-        inputs.drivePositionRad = moduleSim.getDriveWheelFinalPosition().in(Radians);
-        inputs.driveVelocityRadPerSec = moduleSim.getDriveWheelFinalSpeed().in(RadiansPerSecond);
+        inputs.drivePosition = moduleSim.getDriveWheelFinalPosition();
+        inputs.driveVelocity = moduleSim.getDriveWheelFinalSpeed();
         inputs.driveAppliedVolts = driveAppliedVolts;
-        inputs.driveCurrentAmps = Math.abs(moduleSim.getDriveMotorSupplyCurrent().in(Amps));
+        inputs.driveCurrent = Amps.of(Math.abs(moduleSim.getDriveMotorSupplyCurrent().in(Amps)));
 
         // Update turn inputs
         inputs.turnConnected = true;
-        inputs.turnPositionRad = turnPosRad;
-        inputs.turnVelocityRadPerSec = moduleSim.getSteerAbsoluteEncoderSpeed().in(RadiansPerSecond);
+        inputs.turnPosition = turnPos;
+        inputs.turnVelocity = moduleSim.getSteerAbsoluteEncoderSpeed();
         inputs.turnAppliedVolts = turnAppliedVolts;
-        inputs.turnCurrentAmps = Math.abs(moduleSim.getSteerMotorSupplyCurrent().in(Amps));
+        inputs.turnCurrent = Amps.of(Math.abs(moduleSim.getSteerMotorSupplyCurrent().in(Amps)));
 
         // Update odometry inputs
         inputs.odometryTimestamps = SparkUtil.getSimulationOdometryTimeStamps();
-        inputs.odometryDrivePositionsRad = Arrays.stream(moduleSim.getCachedDriveWheelFinalPositions())
-                .mapToDouble(angle -> angle.in(Radians))
-                .toArray();
-        inputs.odometryTurnPositionsRad = inputs.odometryTurnPositionsRad = Arrays
-                .stream(moduleSim.getCachedSteerAbsolutePositions())
-                .mapToDouble(angle -> angle.getRadians())
-                .toArray();
+        inputs.odometryDrivePositions = moduleSim.getCachedDriveWheelFinalPositions();
+        inputs.odometryTurnPositions = Arrays.stream(moduleSim.getCachedSteerAbsolutePositions()).map(r -> Radians.of(r.getRadians())).toArray( e -> new Angle[e]);
     }
 
     @Override
-    public void setDriveOpenLoop(double output) {
+    public void setDriveOpenLoop(Voltage output) {
         driveClosedLoop = false;
         driveAppliedVolts = output;
     }
 
     @Override
-    public void setTurnOpenLoop(double output) {
+    public void setTurnOpenLoop(Voltage output) {
         turnClosedLoop = false;
         turnAppliedVolts = output;
     }
 
     @Override
-    public void setDriveVelocity(double velocityRadPerSec) {
+    public void setDriveVelocity(AngularVelocity velocity) {
         driveClosedLoop = true;
-        driveGoal = velocityRadPerSec;
+        driveGoal = velocity;
     }
 
     @Override
-    public void setTurnPosition(Rotation2d rotation) {
+    public void setTurnPosition(Angle rotation) {
         turnClosedLoop = true;
-        turnGoal = rotation.getRadians();
+        turnGoal = rotation;
     }
 }

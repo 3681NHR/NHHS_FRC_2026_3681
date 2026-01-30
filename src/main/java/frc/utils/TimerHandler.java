@@ -1,5 +1,7 @@
 package frc.utils;
 
+import static edu.wpi.first.units.Units.Seconds;
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj.Timer;
@@ -15,13 +17,13 @@ public class TimerHandler {
 
     public static void updateTeleop(){
         Logger.recordOutput("time/teleop/UpTime"       , Timer.getFPGATimestamp()-teleopStart);
-        Logger.recordOutput("time/teleop/RemainingTime", Math.max(0, Constants.TELEOP_TIME-(Timer.getFPGATimestamp()-teleopStart)));
-        Logger.recordOutput("time/RemainingTime", Math.max(0, Constants.TELEOP_TIME-(Timer.getFPGATimestamp()-teleopStart)));
+        Logger.recordOutput("time/teleop/RemainingTime", Math.max(0, Constants.TELEOP_TIME.in(Seconds)-(Timer.getFPGATimestamp()-teleopStart)));
+        Logger.recordOutput("time/RemainingTime", Math.max(0, Constants.TELEOP_TIME.in(Seconds)-(Timer.getFPGATimestamp()-teleopStart)));
     }
     public static void updateAuto(){
         Logger.recordOutput("time/auto/UpTime"       , Timer.getFPGATimestamp()-autoStart);
-        Logger.recordOutput("time/auto/RemainingTime", Math.max(0, Constants.AUTO_TIME-(Timer.getFPGATimestamp()-autoStart)));
-        Logger.recordOutput("time/RemainingTime", Math.max(0, Constants.AUTO_TIME-(Timer.getFPGATimestamp()-autoStart)));
+        Logger.recordOutput("time/auto/RemainingTime", Math.max(0, Constants.AUTO_TIME.in(Seconds)-(Timer.getFPGATimestamp()-autoStart)));
+        Logger.recordOutput("time/RemainingTime", Math.max(0, Constants.AUTO_TIME.in(Seconds)-(Timer.getFPGATimestamp()-autoStart)));
     }
     public static void initTeleop(){
         teleopStart = Timer.getFPGATimestamp();
@@ -49,10 +51,10 @@ public class TimerHandler {
         Logger.recordOutput("time/upTime", Timer.getFPGATimestamp());
     } 
     public static double getTeleopRemaining(){
-        return Math.max(0, Constants.TELEOP_TIME-(Timer.getFPGATimestamp()-teleopStart));
+        return Math.max(0, Constants.TELEOP_TIME.in(Seconds)-(Timer.getFPGATimestamp()-teleopStart));
     }
     public static double getAutoRemaining(){
-        return Math.max(0, Constants.AUTO_TIME-(Timer.getFPGATimestamp()-autoStart));
+        return Math.max(0, Constants.AUTO_TIME.in(Seconds)-(Timer.getFPGATimestamp()-autoStart));
     }
     
 }

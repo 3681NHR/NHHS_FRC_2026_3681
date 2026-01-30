@@ -8,18 +8,24 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
 import frc.utils.controlWrappers.PID;
 import frc.utils.controlWrappers.SimpleFF;
 
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.LauncherConstants.*;
 
 public class LauncherIOSim implements LauncherIO {
 
-    double goal = 0.0;
-    double vout = 0.0;
-    double speed = 0.0;
+    AngularVelocity goal = RPM.of(0.0);
+    Voltage vout = Volts.of(0.0);
+    AngularVelocity speed = RPM.of(0.0);
     boolean openLoop = false;
 
     private PID pid = new PID(LAUNCHER_PID_GAINS);
@@ -29,43 +35,47 @@ public class LauncherIOSim implements LauncherIO {
     private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.01, 0.1);
     private final KalmanFilter<N2, N1, N2> filter = new KalmanFilter<N2, N1, N2>(Nat.N2(), Nat.N2(), model, VecBuilder.fill(0.2, 1.0), VecBuilder.fill(1.3, 0.7), 0.02);
     
+    @Override
     public void updateInputs(LauncherIOInputs input){
         sim.update(0.02);
-        filter.predict(VecBuilder.fill(vout - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout))*Math.signum(sim.getOutput().get(1,0))), 0.02);
-        filter.correct(VecBuilder.fill(vout - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout))*Math.signum(sim.getOutput().get(1,0))), sim.getOutput());
-        speed = filter.getXhat().get(1,0);
+        filter.predict(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0))), 0.02);
+        filter.correct(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0))), sim.getOutput());
+        speed = RadiansPerSecond.of(filter.getXhat().get(1,0));
 
         if(!openLoop){
-            vout = pid.calculate(speed, goal);
-            vout += ff.calculate(goal);
+            vout = Volts.of(pid.calculate(speed.in(RPM), goal.in(RPM)));
+            vout = vout.plus(Volts.of(ff.calculate(goal.in(RPM))));
         }
         if(DriverStation.isEnabled()){
-            sim.setInput(vout - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout))*Math.signum(sim.getOutput().get(1,0)));
+            sim.setInput(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0)));
         } else {
             sim.setInput(0);
         }
         
-        input.filteredAngle = filter.getXhat(0);
+        input.filteredAngle = Radians.of(filter.getXhat(0));
         input.filteredSpeed = speed;
-        input.rawAngle = sim.getOutput().get(0, 0);
-        input.rawSpeed = sim.getOutput().get(1, 0);
+        input.rawAngle = Radians.of(sim.getOutput().get(0, 0));
+        input.rawSpeed = RadiansPerSecond.of(sim.getOutput().get(1, 0));
 
         input.motorVoltageOut = vout;
 
         input.goal = goal;
-        input.atSetpoint = MathUtil.isNear(goal, speed, LAUNCHER_SETPOINT_TOLERANCE);
+        input.atSetpoint = MathUtil.isNear(goal.in(RPM), speed.in(RPM), LAUNCHER_SETPOINT_TOLERANCE.in(RPM));
     
         input.openLoop = openLoop;
     }
 
-    public void setGoal(double goal){
+    @Override
+    public void setGoal(AngularVelocity goal){
         this.openLoop = false;
         this.goal = goal;
     }
-    public void setvout(double vout){
+    @Override
+    public void setVout(Voltage vout){
         this.openLoop = true;
         this.vout = vout;
     }
+    @Override
     public void setOpenLoop(boolean openLoop){
         this.openLoop = openLoop;
     }

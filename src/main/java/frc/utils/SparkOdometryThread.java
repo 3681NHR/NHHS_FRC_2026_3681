@@ -2,10 +2,15 @@ package frc.utils;
 
 import com.revrobotics.REVLibError;
 import com.revrobotics.spark.SparkBase;
+
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.constants.DriveConstants;
 import frc.robot.subsystems.swerve.Drive;
+
+import static edu.wpi.first.units.Units.Hertz;
+import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +30,7 @@ public class SparkOdometryThread {
   private final List<DoubleSupplier> genericSignals = new ArrayList<>();
   private final List<Queue<Double>> sparkQueues = new ArrayList<>();
   private final List<Queue<Double>> genericQueues = new ArrayList<>();
-  private final List<Queue<Double>> timestampQueues = new ArrayList<>();
+  private final List<Queue<Time>> timestampQueues = new ArrayList<>();
 
   private static SparkOdometryThread instance = null;
   private Notifier notifier = new Notifier(this::run);
@@ -43,7 +48,7 @@ public class SparkOdometryThread {
 
   public void start() {
     if (timestampQueues.size() > 0) {
-      notifier.startPeriodic(1.0 / DriveConstants.ODOMETRY_FREQ);
+      notifier.startPeriodic(1.0 / DriveConstants.ODOMETRY_FREQ.in(Hertz));
     }
   }
 
@@ -75,8 +80,8 @@ public class SparkOdometryThread {
   }
 
   /** Returns a new queue that returns timestamp values for each sample. */
-  public Queue<Double> makeTimestampQueue() {
-    Queue<Double> queue = new ArrayBlockingQueue<>(20);
+  public Queue<Time> makeTimestampQueue() {
+    Queue<Time> queue = new ArrayBlockingQueue<>(20);
     Drive.odometryLock.lock();
     try {
       timestampQueues.add(queue);
@@ -91,7 +96,7 @@ public class SparkOdometryThread {
     Drive.odometryLock.lock();
     try {
       // Get sample timestamp
-      double timestamp = RobotController.getFPGATime() / 1e6;
+      Time timestamp = Seconds.of(RobotController.getFPGATime() / 1e6);
 
       // Read Spark values, mark invalid in case of error
       double[] sparkValues = new double[sparkSignals.size()];
