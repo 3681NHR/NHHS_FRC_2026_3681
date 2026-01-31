@@ -5,11 +5,15 @@ package frc.robot;
 import frc.robot.autos.AutoChooser;
 import frc.robot.constants.Constants;
 import frc.robot.constants.DriveConstants;
+import frc.robot.constants.TurretConstants;
 import frc.robot.constants.Constants.OperatorConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.subsystems.Led;
-import frc.robot.subsystems.Superstructure;
-import frc.robot.subsystems.Superstructure.WantedSuperState;
+import frc.robot.subsystems.launchLUT;
+import frc.robot.subsystems.launcher.Launcher;
+import frc.robot.subsystems.launcher.LauncherIO;
+import frc.robot.subsystems.launcher.LauncherIOReal;
+import frc.robot.subsystems.launcher.LauncherIOSim;
 import frc.robot.subsystems.swerve.*;
 import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOPigeon2;
@@ -17,12 +21,16 @@ import frc.robot.subsystems.swerve.gyro.GyroIOSim;
 import frc.robot.subsystems.swerve.module.ModuleIO;
 import frc.robot.subsystems.swerve.module.ModuleIOCrackingSpark;
 import frc.robot.subsystems.swerve.module.ModuleIOSim;
+import frc.robot.subsystems.swerve.module.ModuleIOSpark;
+import frc.robot.subsystems.turret.Turret;
+import frc.robot.subsystems.turret.TurretIO;
+import frc.robot.subsystems.turret.TurretIOReal;
+import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.CameraIO;
 import frc.robot.subsystems.vision.CameraIOPhoton;
 import frc.robot.subsystems.vision.CameraIOPhotonSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.utils.rumble.*;
-import frc.utils.VariableLimSLR;
 import frc.utils.Joystick.duelJoystickAxis;
 import frc.utils.TimerHandler;
 import frc.utils.BatteryVoltageSim;
@@ -32,13 +40,19 @@ import frc.utils.Symphony;
 
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.Volts;
+import static frc.robot.constants.TurretConstants.*;
 
 import static frc.utils.ControllerMap.*;
 
+import java.util.Arrays;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
+import org.ironmaple.simulation.gamepieces.GamePieceProjectile;
 import org.littletonrobotics.junction.LoggedPowerDistribution;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
@@ -46,7 +60,11 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import frc.utils.Alert;
 import frc.utils.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -58,7 +76,10 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+
+import org.ironmaple.simulation.seasonspecific.rebuilt2026.*;
 
 public class RobotContainer {
 
@@ -67,6 +88,8 @@ public class RobotContainer {
 
     private Drive drive;
     private Vision vision;
+    private Turret turret;
+    private Launcher launcher;
 
     private Led led = new Led();
 
@@ -81,18 +104,13 @@ public class RobotContainer {
 
     private PowerDistribution pdp = new PowerDistribution(1, ModuleType.kRev);
 
-    private VariableLimSLR lxLim = new VariableLimSLR(Double.POSITIVE_INFINITY);
-    private VariableLimSLR lyLim = new VariableLimSLR(Double.POSITIVE_INFINITY);
-    private VariableLimSLR rxLim = new VariableLimSLR(Double.POSITIVE_INFINITY);
-    private VariableLimSLR ryLim = new VariableLimSLR(Double.POSITIVE_INFINITY);
+    private Translation2d target = new Translation2d();
 
-    AprilTagFieldLayout e = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    AprilTagFieldLayout apriltagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
     private final Alert driverDisconnected = new Alert("Driver controller disconnected (port 0).", AlertType.kWarning);
     private final Alert operatorDisconnected = new Alert("Operator controller disconnected (port 1).",
             AlertType.kWarning);
-
-    private Superstructure superstructure;
 
     private duelJoystickAxis driverSticks;
 
@@ -121,47 +139,51 @@ public class RobotContainer {
                             DCMotor.getNEO(1),
                             COTS.WHEELS.DEFAULT_NEOPRENE_TREAD.cof,
                             2))
-                    .withTrackLengthTrackWidth(Meters.of(DriveConstants.LENGTH), Meters.of(DriveConstants.WIDTH))
+                    .withTrackLengthTrackWidth(DriveConstants.LENGTH, DriveConstants.WIDTH)
                     .withBumperSize(Inches.of(31), Inches.of(33));
 
             driveSim = new SwerveDriveSimulation(driveTrainSimulationConfig, Constants.STARTING_POSE);
             SimulatedArena.getInstance().addDriveTrainSimulation(driveSim);
+        //     driveSim.
         }
 
         // process driver controls(radial deadzone, curve, trigger slowdown, and
         // inversion)
         driverSticks = new duelJoystickAxis(
-                () -> lxLim.calculate(ExtraMath.processInput(
+                () -> ExtraMath.processInput(
                         Joystick.deadzone(Constants.OperatorConstants.LEFT_DEADBAND,
                                 driverController.getRawAxis(LEFT_STICK_X), driverController.getRawAxis(LEFT_STICK_Y))
                                 .getX(),
                         -1.0,
-                        Constants.OperatorConstants.TRANSLATION_CURVE, 0.0)),
-                () -> lyLim.calculate(ExtraMath.processInput(
+                        Constants.OperatorConstants.TRANSLATION_CURVE, 0.0),
+                () -> ExtraMath.processInput(
                         Joystick.deadzone(Constants.OperatorConstants.LEFT_DEADBAND,
                                 driverController.getRawAxis(LEFT_STICK_X), driverController.getRawAxis(LEFT_STICK_Y))
                                 .getY(),
                         -1.0,
-                        Constants.OperatorConstants.TRANSLATION_CURVE, 0.0)),
-                () -> rxLim.calculate(ExtraMath.processInput(
+                        Constants.OperatorConstants.TRANSLATION_CURVE, 0.0),
+                () -> ExtraMath.processInput(
                         Joystick.deadzone(Constants.OperatorConstants.RIGHT_DEADBAND,
                                 driverController.getRawAxis(RIGHT_STICK_X), driverController.getRawAxis(RIGHT_STICK_Y))
                                 .getX(),
                         -0.75,
-                        Constants.OperatorConstants.ROTATION_CURVE, 0.0)),
-                () -> ryLim.calculate(ExtraMath.processInput(
+                        Constants.OperatorConstants.ROTATION_CURVE, 0.0),
+                () -> ExtraMath.processInput(
                         Joystick.deadzone(Constants.OperatorConstants.RIGHT_DEADBAND,
                                 driverController.getRawAxis(RIGHT_STICK_X), driverController.getRawAxis(RIGHT_STICK_Y))
                                 .getY(),
                         -1.0,
-                        Constants.OperatorConstants.ROTATION_CURVE, 0.0)));
+                        Constants.OperatorConstants.ROTATION_CURVE, 0.0));
 
         switch (Constants.MODE) {
             case REAL:
                 // Real robot, instantiate hardware IO implementations
                 vision = new Vision(
-                        e,
-                        new CameraIOPhoton(e, VisionConstants.CAMERA_CONFIGS[0]));
+                        apriltagLayout,
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1]),
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2]),
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3]));
                 drive = new Drive(
                         new GyroIOPigeon2(),
                         new ModuleIOCrackingSpark(0),
@@ -171,14 +193,18 @@ public class RobotContainer {
                         vision,
                         driverSticks,
                         led);
+                turret = new Turret(new TurretIOReal(), drive);
+                launcher = new Launcher(new LauncherIOReal());
                 break;
 
             case SIM:
                 // Sim robot, instantiate physics sim IO implementations
                 vision = new Vision(
-                        e,
-                        new CameraIOPhotonSim(e, VisionConstants.CAMERA_CONFIGS[0],
-                                driveSim::getSimulatedDriveTrainPose));
+                        apriltagLayout,
+                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0], driveSim::getSimulatedDriveTrainPose),
+                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1], driveSim::getSimulatedDriveTrainPose),
+                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2], driveSim::getSimulatedDriveTrainPose),
+                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3], driveSim::getSimulatedDriveTrainPose));
                 if (driveSim != null) {
                     drive = new Drive(
                             new GyroIOSim(driveSim.getGyroSimulation()) {
@@ -190,13 +216,17 @@ public class RobotContainer {
                             vision,
                             driverSticks,
                             led);
+                turret = new Turret(new TurretIOSim(), drive);
+                launcher = new Launcher(new LauncherIOSim());
                 }
                 break;
 
             default:
                 // Replayed robot, disable IO implementations for replay
                 vision = new Vision(
-                        e,
+                        apriltagLayout,
+                        new CameraIO() {
+                        },
                         new CameraIO() {
                         },
                         new CameraIO() {
@@ -217,17 +247,10 @@ public class RobotContainer {
                         vision,
                         driverSticks,
                         led);
+                turret = new Turret(new TurretIO() {}, drive);
+                launcher = new Launcher(new LauncherIO() {});
                 break;
         }
-
-        superstructure = new Superstructure(
-                drive,
-                vision,
-                led,
-                lxLim,
-                lyLim,
-                rxLim,
-                ryLim);
 
         // build pathplanner autos and put in dashboard
         // autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -237,6 +260,15 @@ public class RobotContainer {
         autoChooser = new AutoChooser(this);
 
         LoggedPowerDistribution.getInstance(pdp.getModule(), ModuleType.kRev);
+
+        //TODO: test logic for turret and launcher, set default and bindings
+        // turret.setDefaultCommand(
+        //     turret.track(() -> target, () -> launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[2])
+        // );
+
+        launcher.setDefaultCommand(
+            launcher.voltageControl(() -> Volts.of(0)) 
+        );
     }
 
     private void configureBindings() {
@@ -268,14 +300,62 @@ public class RobotContainer {
             rumbler.overrideQue(RumblePreset.TAP.load());
         }));
 
-        // override auto drive
+        // toggle field oriented driving
+        new Trigger(() -> driverController.getRawButton(LEFT_STICK_BUTTON)).onTrue(new InstantCommand(() -> {
+            drive.setFOD(!drive.getFOD());
+            rumbler.overrideQue(RumblePreset.TAP.load());
+        }));
+        
+        // TODO: placeholder binding to shooting in sim, remove before running on robot
+        new Trigger(() -> driverController.getRawButton(A)).whileTrue(new InstantCommand(() -> {
+                double launchvel = (launcher.getSpeed().in(RPM)-2500)*2*Math.PI*Units.inchesToMeters(2)/60;
+                double angle = launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[0];
+                GamePieceProjectile fuel = new GamePieceProjectile(
+                        RebuiltFuelOnField.REBUILT_FUEL_INFO,
+                        driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
+                                Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
+                                Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()
+                        )),
+                        new Translation2d(
+                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + Math.cos(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel,
+                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + Math.sin(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel
+                        ),
+                        Units.inchesToMeters(20),
+                        Math.sin(angle)*launchvel,
+                        new Rotation3d()
+                        );
+                
+                fuel.withTouchGroundHeight(Inches.of(3).in(Meters));
+                fuel.enableBecomesGamePieceOnFieldAfterTouchGround();
+                SimulatedArena.getInstance().addGamePieceProjectile(fuel);
+        }).andThen(new WaitCommand(0.1)).repeatedly());
+
+        // force teleop drive
         new Trigger(() -> driverController.getPOV() == 0).onTrue(drive.TeleopDrive());
 
-        // state override
-        new Trigger(() -> driverController.getPOV() == 180).or(() -> operatorController.getRawButton(LOGO_RIGHT))
-                .onTrue(new InstantCommand(() -> {
-                    superstructure.setWantedState(WantedSuperState.DEFAULT_STATE);
-                }));
+        //launcher spin and shoot
+        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.2).whileTrue(
+            launcher.velocityControl(() -> RPM.of(launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[1]))
+        );
+        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7).whileTrue(
+            null// TODO: feed to shooter while spun up
+        );
+        //set turret to auto track mode
+        new Trigger(() -> driverController.getRawButton(B)).onTrue(
+            turret.track(() -> target)
+        );
+        //set turret to preset angle mode
+        new Trigger(() -> driverController.getRawButton(A)).onTrue(
+            turret.manPos(() -> TURRET_LOCK_POS)
+        );
+        //intake
+        new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5).whileTrue(
+            null// TODO: intake
+        );
+        //lower hood for trench(should be auto also)(hold)
+        new Trigger(() -> driverController.getRawButton(X)).whileTrue(
+            null // TODO: lower hood for trench(should be auto also)(hold)
+        );
 
         // ------------------------------------------------------------------------------
         // operator controls
@@ -287,8 +367,20 @@ public class RobotContainer {
         rumbler.update(0.02);
         driverDisconnected.set(!driverController.isConnected());
         operatorDisconnected.set(!operatorController.isConnected());
+        
+        Translation2d hub = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? TurretConstants.RED_HUB : TurretConstants.BLUE_HUB;
+        Translation2d pass = drive.getPose().getTranslation().nearest(Arrays.asList(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? RED_PASS : BLUE_PASS));
+        boolean hubTrack = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? drive.getPose().getX()>12 : drive.getPose().getX()<4.5);
+        Logger.recordOutput("tracking hub", hubTrack);
+        target = hubTrack ? hub : pass;
     
         autoChooser.update();
+
+        Logger.recordOutput("zeroPose", new Pose3d());
+        Logger.recordOutput("Components", new Pose3d[]{
+                new Pose3d(TURRET_OFFSET, new Rotation3d(0,0,turret.getAngle().in(Radians)-Math.PI/2)),
+                new Pose3d(TURRET_OFFSET.getX()+Math.cos(turret.getAngle().in(Radians))*HOOD_TO_TURRET_OFFSET.getX(),TURRET_OFFSET.getY()+(Math.sin(turret.getAngle().in(Radians))*HOOD_TO_TURRET_OFFSET.getX()), TURRET_OFFSET.getZ()+HOOD_TO_TURRET_OFFSET.getZ(),new Rotation3d(Units.degreesToRadians(0),0,turret.getAngle().in(Radians)-Math.PI/2)),
+        });
     }
 
     public void SimPeriodic() {
@@ -298,10 +390,8 @@ public class RobotContainer {
         Logger.recordOutput("simulatedVoltage", BatteryVoltageSim.getInstance().calculateVoltage());
         Logger.recordOutput("FieldSimulation/RobotPose", driveSim.getSimulatedDriveTrainPose());
 
-        Logger.recordOutput("FieldSimulation/Algae",
-                SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
-        Logger.recordOutput("FieldSimulation/Coral",
-                SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
+        Logger.recordOutput("FieldSimulation/Fuel",
+                SimulatedArena.getInstance().getGamePiecesArrayByType("Fuel"));
     }
 
     public Command getAutonomousCommand() {

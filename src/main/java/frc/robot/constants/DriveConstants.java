@@ -13,6 +13,18 @@
 
 package frc.robot.constants;
 
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Hertz;
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.KilogramSquareMeters;
+import static edu.wpi.first.units.Units.Kilograms;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
@@ -22,9 +34,18 @@ import com.pathplanner.lib.config.RobotConfig;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.units.VoltageUnit;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Frequency;
+import edu.wpi.first.units.measure.LinearAcceleration;
+import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Mass;
+import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Velocity;
 import frc.utils.controlWrappers.PIDGains;
@@ -36,20 +57,20 @@ public class DriveConstants {
     // rotation lock PIDs
     public static final PIDGains.PID ANGLE_PID = new PIDGains.PID(6, 0.0, 0.4);
     public static final PIDGains.PID ANGLE_PID_SIM = new PIDGains.PID(4, 0.0, 0.1);
-    public static final double ANGLE_MAX_VELOCITY = 11.2;
+    public static final AngularVelocity ANGLE_MAX_VELOCITY = RadiansPerSecond.of(11.2);
 
     // auto align tolerance
-    public static final double AUTO_ALIGN_ANGLE_MAX_OFFSET = 0.05;// degrees
-    public static final double AUTO_ALIGN_POS_MAX_OFFSET = 0.01;// meters
+    public static final Angle AUTO_ALIGN_ANGLE_MAX_OFFSET = Degrees.of(0.05);
+    public static final Distance AUTO_ALIGN_POS_MAX_OFFSET = Meters.of(0.01);
 
     // vision odometry enabled
     public static boolean USE_VISION = true;
 
     // pathplanner limits
-    public static final double MAX_SPEED_PP = 5;
-    public static final double MAX_ACCEL_PP = 2;
-    public static final double MAX_ANGLE_SPEED_PP = 10;
-    public static final double MAX_ANGLE_ACCEL_PP = MAX_ANGLE_SPEED_PP * 3;
+    public static final LinearVelocity MAX_SPEED_PP = MetersPerSecond.of(5);
+    public static final LinearAcceleration MAX_ACCEL_PP = MetersPerSecondPerSecond.of(2);
+    public static final AngularVelocity MAX_ANGLE_SPEED_PP = RadiansPerSecond.of(10);
+    public static final AngularAcceleration MAX_ANGLE_ACCEL_PP = RadiansPerSecondPerSecond.of(MAX_ANGLE_SPEED_PP.in(RadiansPerSecond) * 3);
 
     // pathplanner PIDs
     public static final PIDGains.PID AUTO_ANGLE_PID = new PIDGains.PID(8, 0.0, 0.0);
@@ -58,31 +79,31 @@ public class DriveConstants {
     public static final PIDGains.PID TRANS_PID_SIM = new PIDGains.PID(7, 1, 0.2);
 
     // kinematics
-    public static final double MAX_SPEED = 4.7;
-    public static final double ODOMETRY_FREQ = 100.0; // Hz
-    public static final double WIDTH = Units.inchesToMeters(22); // size between wheels
-    public static final double LENGTH = Units.inchesToMeters(25);// size between wheels
-    public static final double RADIUS = Math.hypot(WIDTH / 2.0, LENGTH / 2.0);
+    public static final LinearVelocity MAX_SPEED = MetersPerSecond.of(4.7);
+    public static final Frequency ODOMETRY_FREQ = Hertz.of(100.0);
+    public static final Distance WIDTH = Inches.of(22); // size between wheels
+    public static final Distance LENGTH = Inches.of(25);// size between wheels
+    public static final Distance RADIUS = Meters.of(Math.hypot(WIDTH.in(Meters) / 2.0, LENGTH.in(Meters) / 2.0));
     public static final Translation2d[] MODULE_POSITIONS = new Translation2d[] {
-            new Translation2d(WIDTH / 2.0, LENGTH / 2.0),
-            new Translation2d(WIDTH / 2.0, -LENGTH / 2.0),
-            new Translation2d(-WIDTH / 2.0, LENGTH / 2.0),
-            new Translation2d(-WIDTH / 2.0, -LENGTH / 2.0)
+            new Translation2d(WIDTH.in(Meters) / 2.0, LENGTH.in(Meters) / 2.0),
+            new Translation2d(WIDTH.in(Meters) / 2.0, -LENGTH.in(Meters) / 2.0),
+            new Translation2d(-WIDTH.in(Meters) / 2.0, LENGTH.in(Meters) / 2.0),
+            new Translation2d(-WIDTH.in(Meters) / 2.0, -LENGTH.in(Meters) / 2.0)
     };
 
     // PathPlanner configuration
-    public static final double MASS = 60;
-    public static final double MOI = 6;
+    public static final Mass MASS = Kilograms.of(60);
+    public static final MomentOfInertia MOI = KilogramSquareMeters.of(6);
     public static final double COF = 2.31421199;
     public static final RobotConfig PP_CONFIG = new RobotConfig(
             MASS,
             MOI,
             new ModuleConfig(
-                    module.WHEEL_RAD,
-                    MAX_SPEED,
+                    module.WHEEL_RAD.in(Meters),
+                    MAX_SPEED.in(MetersPerSecond),
                     COF,
                     module.DRIVE_GEARBOX.withReduction(module.DRIVE_REDUCTION),
-                    module.DRIVE_MAX_CURRENT,
+                    module.DRIVE_MAX_CURRENT.in(Amps),
                     1),
             MODULE_POSITIONS);
 
@@ -112,9 +133,9 @@ public class DriveConstants {
 
         // Drive motor configuration
         public static final boolean DRIVE_INVERT = true;
-        public static final int DRIVE_MAX_CURRENT = 30;
-        public static final double WHEEL_RAD = Units.inchesToMeters(2);
+        public static final Current DRIVE_MAX_CURRENT = Amps.of(30);
         public static final double DRIVE_REDUCTION = 6.75;
+        public static final Distance WHEEL_RAD = Inches.of(2);
         public static final DCMotor DRIVE_GEARBOX = DCMotor.getNEO(1);
 
         // Drive encoder configuration
@@ -131,7 +152,7 @@ public class DriveConstants {
 
         // Turn motor configuration
         public static final boolean TURN_INVERT = true;
-        public static final int TURN_CURRENT_LIM = 10;
+        public static final Current TURN_CURRENT_LIM = Amps.of(10);
         public static final double TURN_REDUCTION = 21.428;
         public static final DCMotor TURN_GEARBOX = DCMotor.getNEO(1);
 
@@ -148,8 +169,8 @@ public class DriveConstants {
                 Math.PI * 80);
         public static final PIDGains.SimpleFF TURN_FF_SIM = new PIDGains.SimpleFF(0.015, 0.0, 0.0);
 
-        public static final double TURN_MIN_POS = 0; // Radians
-        public static final double TURN_MAX_POS = 2 * Math.PI; // Radians
+        public static final Angle TURN_MIN_POS = Radians.of(0);
+        public static final Angle TURN_MAX_POS = Radians.of(2 * Math.PI);
 
         // factor to offset drive velocity based on turn velocity to reduce shift while turning
         public static final double DRIVE_OFFSET_VEL_FACTOR = 0.0;

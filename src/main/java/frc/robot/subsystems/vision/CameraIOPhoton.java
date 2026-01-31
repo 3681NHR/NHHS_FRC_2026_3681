@@ -1,5 +1,7 @@
 package frc.robot.subsystems.vision;
 
+import static edu.wpi.first.units.Units.Meters;
+
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -13,6 +15,7 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.units.measure.Distance;
 import frc.robot.constants.VisionConstants.CameraConfig;
 
 public class CameraIOPhoton implements CameraIO {
@@ -66,24 +69,18 @@ public class CameraIOPhoton implements CameraIO {
         inputs.connected = camera.isConnected();
         inputs.poseObservations = observations.toArray(new PoseObservation[0]);
 
+        inputs.name = camera.getName();
+        inputs.robotToCamera = robotToCamera;
+
         observations.clear();
     }
 
-    public double getAvgDistance(PhotonPipelineResult res) {
+    public Distance getAvgDistance(PhotonPipelineResult res) {
         double sum = 0;
         for (PhotonTrackedTarget target : res.getTargets()) {
             sum += target.getBestCameraToTarget().getTranslation().getNorm();
         }
 
-        return sum / res.getTargets().size();
-    }
-
-    public String getName() {
-        return camera.getName();
-    }
-
-    @Override
-    public Transform3d getRobotToCamera() {
-        return robotToCamera;
+        return Meters.of(sum / res.getTargets().size());
     }
 }

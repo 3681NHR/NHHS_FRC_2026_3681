@@ -7,11 +7,14 @@ import frc.utils.Alert;
 import frc.utils.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.CameraIO.TargetObservation;
+
+import static edu.wpi.first.units.Units.Meters;
 import static frc.robot.constants.VisionConstants.*;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
@@ -45,12 +48,16 @@ public class Vision extends SubsystemBase {
         for (int i = 0; i < inputs.length; i++) {
             inputs[i] = new CameraIOInputsAutoLogged();
         }
+        for (int i = 0; i < io.length; i++) {
+            io[i].updateInputs(inputs[i]);
+            Logger.processInputs("Vision/" + CAMERA_CONFIGS[i].name, inputs[i]);
+        }
 
         // Initialize disconnected alerts
         this.disconnectedAlerts = new Alert[io.length];
         for (int i = 0; i < inputs.length; i++) {
             disconnectedAlerts[i] = new Alert(
-                    "Camera: " + io[i].getName() == null ? Integer.toString(i) : io[i].getName() + " is disconnected.",
+                    "Camera: " + inputs[i].name == null ? Integer.toString(i) : inputs[i].name + " is disconnected.",
                     AlertType.kError);
         }
     }
@@ -84,15 +91,13 @@ public class Vision extends SubsystemBase {
             for (var observation : inputs[cameraIndex].poseObservations) {
                 // Check whether to reject pose
                 boolean rejectPose = observation.tagCount() == 0 // Must have at least one tag
-                        || observation.ambiguity() > MAX_AMBIGUITY; // Cannot be too high ambiguity
-                // || Math.abs(observation.pose().getZ())
-                // > MAX_Z_ERROR // Must have realistic Z coordinate
-
-                // // Must be within the field boundaries
-                // || observation.pose().getX() < -1.0
-                // || observation.pose().getX() > layout.getFieldLength()+1
-                // || observation.pose().getY() < -1.0
-                // || observation.pose().getY() > layout.getFieldWidth()+1;
+                        || observation.ambiguity() > MAX_AMBIGUITY // Cannot be too high ambiguity
+                        || Math.abs(observation.pose().getZ()) > MAX_Z_ERROR.in(Meters) // Must have realistic Z coordinate
+                        // // Must be within the field boundaries
+                        || observation.pose().getX() < -1.0
+                        || observation.pose().getX() > layout.getFieldLength()+1
+                        || observation.pose().getY() < -1.0
+                        || observation.pose().getY() > layout.getFieldWidth()+1;
 
                 // Add pose to log
                 robotPoses.add(observation.pose());
@@ -107,7 +112,7 @@ public class Vision extends SubsystemBase {
                     continue;
                 }
 
-                double stdDevFactor = Math.pow(observation.averageTagDistance(), 3.0) / observation.tagCount();
+                double stdDevFactor = Math.pow(observation.averageTagDistance().in(Meters), 3.0) / observation.tagCount();
                 double linearStdDev = LIN_STD_DEV_BASELINE * stdDevFactor;
                 double angularStdDev = ANG_STD_DEV_BASELINE * stdDevFactor;
                 if (cameraIndex < CAMERA_CONFIGS.length) {
@@ -127,26 +132,26 @@ public class Vision extends SubsystemBase {
             // Log camera data
             if (tagPoses.size() > 0) {
                 Logger.recordOutput(
-                        "Vision/Camera: " + (io[cameraIndex].getName() == null ? Integer.toString(cameraIndex)
-                                : io[cameraIndex].getName()) + "/TagPoses",
+                        "Vision/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
+                                : inputs[cameraIndex].name) + "/TagPoses",
                         tagPoses.toArray(new Pose3d[0]));
             }
             if (robotPoses.size() > 0) {
                 Logger.recordOutput(
-                        "Vision/Camera: " + (io[cameraIndex].getName() == null ? Integer.toString(cameraIndex)
-                                : io[cameraIndex].getName()) + "/AllRobotPoses",
+                        "Vision/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
+                                : inputs[cameraIndex].name) + "/AllRobotPoses",
                         robotPoses.toArray(new Pose3d[0]));
             }
             if (robotPosesAccepted.size() > 0) {
                 Logger.recordOutput(
-                        "Vision/Camera: " + (io[cameraIndex].getName() == null ? Integer.toString(cameraIndex)
-                                : io[cameraIndex].getName()) + "/RobotPosesAccepted",
+                        "Vision/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
+                                : inputs[cameraIndex].name) + "/RobotPosesAccepted",
                         robotPosesAccepted.toArray(new Pose3d[0]));
             }
             if (robotPosesRejected.size() > 0) {
                 Logger.recordOutput(
-                        "Vision/Camera: " + (io[cameraIndex].getName() == null ? Integer.toString(cameraIndex)
-                                : io[cameraIndex].getName()) + "/RobotPosesRejected",
+                        "Vision/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
+                                : inputs[cameraIndex].name) + "/RobotPosesRejected",
                         robotPosesRejected.toArray(new Pose3d[0]));
             }
             double[][] stdDevs = new double[estimates.size()][3];
@@ -154,8 +159,8 @@ public class Vision extends SubsystemBase {
                 stdDevs[i] = estimates.get(i).visionMeasurementStdDevs.getData();
             }
             Logger.recordOutput(
-                    "Vision/Camera: " + (io[cameraIndex].getName() == null ? Integer.toString(cameraIndex)
-                            : io[cameraIndex].getName()) + "/stdDevs",
+                    "Vision/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
+                            : inputs[cameraIndex].name) + "/stdDevs",
                     stdDevs);
 
             allTagPoses.addAll(tagPoses);
@@ -210,14 +215,14 @@ public class Vision extends SubsystemBase {
         if (tagID < 0) {
             for (int i = 0; i < inputs.length; i++) {
                 yaw = Optional.of(inputs[i].latestTargetObservation.tx().getRadians()
-                        + io[i].getRobotToCamera().getRotation().getZ());
+                        + inputs[i].robotToCamera.getRotation().getZ());
             }
         } else {
             for (int i = 0; i < inputs.length; i++) {
                 for (TargetObservation t : inputs[i].targets) {// FIXME
                     if (t != null) {
                         if (t.ID() == tagID) {
-                            yaw = Optional.of(t.tx().getRadians() + io[i].getRobotToCamera().getRotation().getZ());
+                            yaw = Optional.of(t.tx().getRadians() + inputs[i].robotToCamera.getRotation().getZ());
                         }
                     }
                 }

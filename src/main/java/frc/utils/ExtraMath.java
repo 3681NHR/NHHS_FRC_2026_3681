@@ -4,6 +4,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.wpilibj.util.Color;
 
 import java.lang.Math;
@@ -14,6 +15,9 @@ import java.util.ArrayList;
  */
 public final class ExtraMath {
 
+    public static boolean isNearState(State expected, State actual, State tolerance){
+        return MathUtil.isNear(expected.position, actual.position, tolerance.position) && MathUtil.isNear(expected.velocity, actual.velocity, tolerance.velocity);
+    }
     /*
      * round to n decimal places
      */
