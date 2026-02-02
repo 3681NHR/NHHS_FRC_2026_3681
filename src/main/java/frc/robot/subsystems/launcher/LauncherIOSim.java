@@ -45,6 +45,8 @@ public class LauncherIOSim implements LauncherIO {
         if(!openLoop){
             vout = Volts.of(pid.calculate(speed.in(RPM), goal.in(RPM)));
             vout = vout.plus(Volts.of(ff.calculate(goal.in(RPM))));
+            //set min out to 0v
+            vout = Volts.of(Math.max(0, vout.in(Volts)));
         }
         if(DriverStation.isEnabled()){
             sim.setInput(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0)));

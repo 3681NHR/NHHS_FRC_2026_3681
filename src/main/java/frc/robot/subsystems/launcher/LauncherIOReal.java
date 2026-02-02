@@ -8,6 +8,7 @@ import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.LauncherConstants.*;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.VoltageConfigs;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -54,6 +55,7 @@ public class LauncherIOReal implements LauncherIO {
             .withKV(LAUNCHER_FF_GAINS.kV())
             .withKA(LAUNCHER_FF_GAINS.kA())
         );
+        motor.getConfigurator().apply(new VoltageConfigs().withPeakReverseVoltage(0));
     }
 
     @Override
