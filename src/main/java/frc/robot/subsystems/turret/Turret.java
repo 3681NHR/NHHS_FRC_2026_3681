@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.launchLUT;
 import frc.robot.subsystems.swerve.Drive;
 import frc.utils.Alert;
+import frc.utils.ExtraMath;
 import frc.utils.Alert.AlertType;
 
 public class Turret extends SubsystemBase {
@@ -97,23 +98,25 @@ public class Turret extends SubsystemBase {
                         .plus(new Translation2d(//turret offest
                             Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
                             Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()))
-                );
+                )
+                    .minus(Radians.of(drive.getPose().getRotation().getRadians()));
                 
-            Angle offset = angle
-                .minus(in.filteredAngle)
-                .plus(Radians.of(drive.getPose().getRotation().getRadians()));
+                Logger.recordOutput("Turret/track/initial angle targeted", angle);
+                double modAngle = angle.in(Rotations)%1;
+                double modCurrent = in.filteredAngle.in(Rotations)%1;    
+                Angle offset = Rotations.of(ExtraMath.lesser(modAngle-modCurrent, modCurrent+(1-modAngle)));
 
             Angle finalAngle = in.filteredAngle.plus(offset);
             
-            if(angle.abs(Radian) > TURRET_ANGLE_LIM.in(Radians)){
+            if(finalAngle.abs(Radian) > TURRET_ANGLE_LIM.in(Radians)){
                 unwinding = true;
             } else {
                 if(!unwinding){
-                    io.setGoal(Radians.of(angle.in(Radians) + TURRET_THETA_COMP_FACTOR*drive.getAngulerVelocity().in(RadiansPerSecond)));
+                    io.setGoal(Radians.of(finalAngle.in(Radians) + (TURRET_THETA_COMP_FACTOR*drive.getAngulerVelocity().in(RadiansPerSecond))));
                     ready = in.atSetpoint;
                 } else {
                     ready = false;
-                    io.setGoal(Radians.of(angle.in(Radians)%TURRET_ANGLE_LIM.in(Radians)));
+                    io.setGoal(Radians.of(finalAngle.in(Radians)%TURRET_ANGLE_LIM.in(Radians)));
                     if(in.atSetpoint){
                         unwinding = false;
                     }

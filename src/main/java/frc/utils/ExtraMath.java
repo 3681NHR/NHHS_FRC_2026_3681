@@ -15,24 +15,56 @@ import java.util.ArrayList;
  */
 public final class ExtraMath {
 
+    /**
+     * @param in values to compare
+     * @return value with smallest absolute value
+     */
+    public static double lesser(double... in){
+        double lesser = Double.POSITIVE_INFINITY;
+        double lesserAbs = Double.POSITIVE_INFINITY;
+        for(int i=0;i<in.length;i++){
+            if(Math.abs(in[i]) < lesserAbs){
+                lesser = in[i];
+                lesserAbs = Math.abs(in[i]);
+            }
+        }
+        return lesser;
+    }
+    
+    /**
+     * @param in values to compare
+     * @return value with largest absolute value
+     */
+    public static double greater(double... in){
+        double greater = Double.NEGATIVE_INFINITY;
+        double greaterAbs = 0.0;
+        for(int i=0;i<in.length;i++){
+            if(Math.abs(in[i]) > greaterAbs){
+                greater = in[i];
+                greaterAbs = Math.abs(in[i]);
+            }
+        }
+        return greater;
+    }
+
     public static boolean isNearState(State expected, State actual, State tolerance){
         return MathUtil.isNear(expected.position, actual.position, tolerance.position) && MathUtil.isNear(expected.velocity, actual.velocity, tolerance.velocity);
     }
-    /*
+    /**
      * round to n decimal places
      */
     public static double roundToPoint(double val, int point) {
         return (int)(val*Math.pow(10, point)) / Math.pow(10, point);
     }
 
-    /*
+    /**
      * get rotation2D angle from 0,0 to u,v
      */
     public static Rotation2d getAngle(double u, double v) {
         return new Rotation2d(Math.atan2(v, u));
     }
 
-    /*
+    /**
      * get distance between 0,0 and x,y
      */
     public static double getMagnitude(double x, double y) {
@@ -96,7 +128,7 @@ public final class ExtraMath {
     public static double lerp(double start, double end, double val) {
         return (end - start) * val + start;
     }
-    /*
+    /**
      * lerp rgb color
      */
     public static Color colLerp(Color start, Color end, double val) {
@@ -112,7 +144,7 @@ public final class ExtraMath {
         return new Color(hsv[0], hsv[1], hsv[2]);
     }
 
-    /*
+    /**
      * get nearest pose from array to current
      */
     public static Pose2d getNearestPose(Pose2d[] poses, Pose2d current) {
@@ -129,14 +161,14 @@ public final class ExtraMath {
         }
         return out;
     }
-    /*
+    /**
      * get translation distance between two pose2Ds
      */
     public static double getDistance(Pose2d a, Pose2d b) {
         return a.getTranslation().getDistance(b.getTranslation());
     }
 
-    /*
+    /**
      * check if two poses are within tolerance in translation and rotation
      */
     public static boolean PoseWithinTolerance(Pose2d a, Pose2d b, double toleranceLinear, double toleranceAngular) {

@@ -76,6 +76,7 @@ public class LauncherIOSim implements LauncherIO {
     public void setVout(Voltage vout){
         this.openLoop = true;
         this.vout = vout;
+        this.goal = RPM.of(0);
     }
     @Override
     public void setOpenLoop(boolean openLoop){
