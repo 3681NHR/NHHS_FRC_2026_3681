@@ -3,6 +3,7 @@ package frc.robot.subsystems.turret;
 import static edu.wpi.first.units.Units.Radian;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
 import static frc.robot.constants.TurretConstants.TURRET_ANGLE_LIM;
 import static frc.robot.constants.TurretConstants.TURRET_OFFSET;
 import static frc.robot.constants.TurretConstants.TURRET_SYSID_CONFIG;
@@ -22,6 +23,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.launchLUT;
 import frc.robot.subsystems.swerve.Drive;
 import frc.utils.Alert;
+import frc.utils.ExtraMath;
 import frc.utils.Alert.AlertType;
 
 public class Turret extends SubsystemBase {
@@ -92,24 +94,26 @@ public class Turret extends SubsystemBase {
                             ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond,
                             ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond
                         ).times(timeOfFlight))//TODO: recalculate tof at lead position, iterate n times to estimate correct aim
-                    );
+                    )
+                    .minus(Radians.of(drive.getPose().getRotation().getRadians()));
                 
-                Angle offset = angle
-                    .minus(in.filteredAngle)
-                    .plus(Radians.of(drive.getPose().getRotation().getRadians()));
+                Logger.recordOutput("Turret/track/initial angle targeted", angle);
+                double modAngle = angle.in(Rotations)%1;
+                double modCurrent = in.filteredAngle.in(Rotations)%1;    
+                Angle offset = Rotations.of(ExtraMath.lesser(modAngle-modCurrent, modCurrent+(1-modAngle)));
 
                 Logger.recordOutput("Turret/track/angle offset", offset);
                 Angle finalAngle = in.filteredAngle.plus(offset);
                 Logger.recordOutput("Turret/track/angle targeted", finalAngle);
-                if(angle.abs(Radian) > TURRET_ANGLE_LIM.in(Radians)){
+                if(finalAngle.abs(Radian) > TURRET_ANGLE_LIM.in(Radians)){
                     unwinding = true;
                 } else {
                     if(!unwinding){
-                        io.setGoal(Radians.of(angle.in(Radians) + TURRET_THETA_COMP_FACTOR*drive.getAngulerVelocity().in(RadiansPerSecond)));
+                        io.setGoal(Radians.of(finalAngle.in(Radians) + (TURRET_THETA_COMP_FACTOR*drive.getAngulerVelocity().in(RadiansPerSecond))));
                         ready = in.atSetpoint;
                     } else {
                         ready = false;
-                        io.setGoal(Radians.of(angle.in(Radians)%TURRET_ANGLE_LIM.in(Radians)));
+                        io.setGoal(Radians.of(finalAngle.in(Radians)%TURRET_ANGLE_LIM.in(Radians)));
                         if(in.atSetpoint){
                             unwinding = false;
                         }
