@@ -14,7 +14,6 @@ import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
@@ -50,9 +49,12 @@ public class Turret extends SubsystemBase {
         this.io = io;
         this.drive = drive;
 
+        Logger.recordOutput("Turret/track/initial angle targeted", Double.NaN, Rotations);
+        Logger.recordOutput("Turret/track/angle offset", Double.NaN, Rotations);
+        Logger.recordOutput("Turret/track/angle targeted", Double.NaN, Rotations);
+        Logger.recordOutput("Turret/track/lead time", Double.NaN, Seconds);
         Logger.recordOutput("Turret/track/target pos", (Translation2d)null);
-        Logger.recordOutput("Turret/track/angle offset", Double.NaN);
-        Logger.recordOutput("Turret/track/angle targeted", Double.NaN);
+        Logger.recordOutput("Turret/track/virtual target pos", (Translation2d)null);
         Logger.recordOutput("Turret/manual/target", Double.NaN);
     }
 
@@ -102,23 +104,26 @@ public class Turret extends SubsystemBase {
                             Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
                             Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()))
                 )
-                    .minus(Radians.of(drive.getPose().getRotation().getRadians()));
+                .minus(Radians.of(drive.getPose().getRotation().getRadians()))
+                .plus(Radians.of(TURRET_THETA_COMP_FACTOR*drive.getAngulerVelocity().in(RadiansPerSecond)));
                 
             double modAngle = angle.in(Rotations)%1;
             double modCurrent = in.filteredAngle.in(Rotations)%1;    
             Angle offset = Rotations.of(ExtraMath.lesser(modAngle-modCurrent, modCurrent+(1-modAngle)));
 
-            Angle finalAngle = in.filteredAngle.plus(offset);
-        
-            io.setGoal(Radians.of(
-                (finalAngle.in(Radians) + (TURRET_THETA_COMP_FACTOR*drive.getAngulerVelocity().in(RadiansPerSecond)))
-                %
+            Angle finalAngle = in.filteredAngle.plus(offset); 
+            finalAngle = Radians.of((finalAngle.in(Radians)%
                 (TURRET_ANGLE_LIM.in(Radians)*Math.signum(finalAngle.in(Radians)))
                 ));
+        
+            io.setGoal(finalAngle);
+
             ready = in.atSetpoint;
 
             Logger.recordOutput("Turret/track/initial angle targeted", angle);
             Logger.recordOutput("Turret/track/angle offset", offset);
+            Logger.recordOutput("Turret/track/angle offset A", modAngle-modCurrent);
+            Logger.recordOutput("Turret/track/angle offset B", modCurrent+(1-modAngle));
             Logger.recordOutput("Turret/track/angle targeted", finalAngle);
             Logger.recordOutput("Turret/track/lead time", Seconds.of(timeOfFlight));
             Logger.recordOutput("Turret/track/target pos", targ.get());
