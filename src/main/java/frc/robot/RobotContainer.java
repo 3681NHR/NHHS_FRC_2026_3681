@@ -40,7 +40,6 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.TurretConstants.*;
 
 import static frc.utils.ControllerMap.*;
