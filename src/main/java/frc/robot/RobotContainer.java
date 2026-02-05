@@ -33,6 +33,7 @@ import frc.utils.rumble.*;
 import frc.utils.Joystick.duelJoystickAxis;
 import frc.utils.TimerHandler;
 import frc.utils.BatteryVoltageSim;
+import frc.utils.DisabledInstantCommand;
 import frc.utils.ExtraMath;
 import frc.utils.Joystick;
 
@@ -256,17 +257,18 @@ public class RobotContainer {
 
         LoggedPowerDistribution.getInstance(pdp.getModule(), ModuleType.kRev);
 
-        //TODO: test logic for turret and launcher, set default and bindings
-        // turret.setDefaultCommand(
-        //     turret.track(() -> target, () -> launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[2])
-        // );
+        turret.setDefaultCommand(
+            turret.manPos(turret::getAngle).ignoringDisable(true)
+        );
 
         launcher.setDefaultCommand(
-            launcher.velocityControl(() -> RPM.of(0)) 
+            launcher.velocityControl(() -> RPM.of(0)).ignoringDisable(true)
         );
     }
 
     private void configureBindings() {
+        // new Trigger(DriverStation::isDisabled).onTrue();
+
         // reset odometry dashboard button
         resetOdometry.set(false);
         new Trigger(() -> resetOdometry.get()).onTrue(new InstantCommand(() -> {

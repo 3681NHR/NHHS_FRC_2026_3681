@@ -34,6 +34,7 @@ public final class TurretConstants {
     public static final double TURRET_THETA_COMP_FACTOR = -0.08;//offset target angle while robot is spinning
 
     public static final Angle TURRET_SETPOINT_TOLERANCE = Degrees.of(5);
+    public static final Angle TURRET_DIVERGANCE_THRESH = Degrees.of(5);
 
     public static final Translation2d RED_HUB = new Translation2d(11.915, 4.034);
     public static final Translation2d[] RED_PASS = new Translation2d[]{

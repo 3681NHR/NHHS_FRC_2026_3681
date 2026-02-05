@@ -1,5 +1,6 @@
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radian;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
@@ -14,9 +15,12 @@ import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -49,13 +53,19 @@ public class Turret extends SubsystemBase {
         this.io = io;
         this.drive = drive;
 
-        Logger.recordOutput("Turret/track/initial angle targeted", Double.NaN, Rotations);
-        Logger.recordOutput("Turret/track/angle offset", Double.NaN, Rotations);
+        //init log values
+        Logger.recordOutput("Turret/track/pathing/modAngle", Double.NaN, Rotations);
+        Logger.recordOutput("Turret/track/pathing/modCurrent", Double.NaN, Rotations);
+        Logger.recordOutput("Turret/track/pathing/angle offset", Double.NaN, Rotations);
+        Logger.recordOutput("Turret/track/pathing/angle offset A", Double.NaN, Rotations);
+        Logger.recordOutput("Turret/track/pathing/angle offset B", Double.NaN, Rotations);
+        Logger.recordOutput("Turret/track/pathing/angle offset c", Double.NaN, Rotations);
         Logger.recordOutput("Turret/track/angle targeted", Double.NaN, Rotations);
         Logger.recordOutput("Turret/track/lead time", Double.NaN, Seconds);
         Logger.recordOutput("Turret/track/target pos", (Translation2d)null);
         Logger.recordOutput("Turret/track/virtual target pos", (Translation2d)null);
-        Logger.recordOutput("Turret/manual/target", Double.NaN);
+    
+        Logger.recordOutput("Turret/manual/target", Double.NaN, Rotations);
     }
 
     @Override
@@ -68,6 +78,8 @@ public class Turret extends SubsystemBase {
         Logger.recordOutput("Turret/unwind angle", unwindgoal);
         Logger.recordOutput("Turret/unwinding", unwinding);
 
+        Logger.recordOutput("Turret/field angle", in.filteredAngle.plus(Radians.of(drive.getRotation().getRadians())).plus(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? Degrees.of(180) : Degrees.of(0)));
+
     }
 
     public Command manPos(Supplier<Angle> targ){
@@ -78,7 +90,7 @@ public class Turret extends SubsystemBase {
             } else {
                 ready = false;
             }
-            illegalTarg.set(targ.get().abs(Radian) > TURRET_ANGLE_LIM.in(Radians) || targ.get() != null);
+            illegalTarg.set(targ.get().abs(Radian) > TURRET_ANGLE_LIM.in(Radians));
             Logger.recordOutput("Turret/manual/target", targ.get());
         }, this).finallyDo(() -> {
             Logger.recordOutput("Turret/manual/target", Double.NaN);
@@ -107,9 +119,9 @@ public class Turret extends SubsystemBase {
                 .minus(Radians.of(drive.getPose().getRotation().getRadians()))
                 .plus(Radians.of(TURRET_THETA_COMP_FACTOR*drive.getAngulerVelocity().in(RadiansPerSecond)));
                 
-            double modAngle = angle.in(Rotations)%1;
-            double modCurrent = in.goal.in(Rotations)%1;    
-            Angle offset = Rotations.of(ExtraMath.lesser(modAngle-modCurrent, modCurrent+(1-modAngle)));
+            double modAngle = MathUtil.inputModulus(angle.in(Rotations), 0, 1);
+            double modCurrent = MathUtil.inputModulus(in.goal.in(Rotations), 0, 1);
+            Angle offset = Rotations.of(ExtraMath.lesser(modAngle-modCurrent, 1+modAngle-modCurrent, modAngle-modCurrent-1));
 
             Angle finalAngle = in.goal.plus(offset); 
             finalAngle = Radians.of((finalAngle.in(Radians)%
@@ -120,19 +132,24 @@ public class Turret extends SubsystemBase {
 
             ready = in.atSetpoint;
 
-            Logger.recordOutput("Turret/track/initial angle targeted(mod)", modAngle);
-            Logger.recordOutput("Turret/track/mod angle current", modCurrent);
-            Logger.recordOutput("Turret/track/angle offset", offset);
-            Logger.recordOutput("Turret/track/angle offset A", modAngle-modCurrent);
-            Logger.recordOutput("Turret/track/angle offset B", modCurrent+(1-modAngle));
+            Logger.recordOutput("Turret/track/pathing/modAngle", modAngle);
+            Logger.recordOutput("Turret/track/pathing/modCurrent", modCurrent);
+            Logger.recordOutput("Turret/track/pathing/angle offset", offset);
+            Logger.recordOutput("Turret/track/pathing/angle offset A", modAngle-modCurrent);
+            Logger.recordOutput("Turret/track/pathing/angle offset B", 1+modAngle-modCurrent);
+            Logger.recordOutput("Turret/track/pathing/angle offset c", modAngle-modCurrent-1);
             Logger.recordOutput("Turret/track/angle targeted", finalAngle);
             Logger.recordOutput("Turret/track/lead time", Seconds.of(timeOfFlight));
             Logger.recordOutput("Turret/track/target pos", targ.get());
             Logger.recordOutput("Turret/track/virtual target pos", virtualTarg);
             
         }, this).finallyDo(() -> {
-            Logger.recordOutput("Turret/track/initial angle targeted", Double.NaN, Rotations);
-            Logger.recordOutput("Turret/track/angle offset", Double.NaN, Rotations);
+            Logger.recordOutput("Turret/track/pathing/modAngle", Double.NaN, Rotations);
+            Logger.recordOutput("Turret/track/pathing/modCurrent", Double.NaN, Rotations);
+            Logger.recordOutput("Turret/track/pathing/angle offset", Double.NaN, Rotations);
+            Logger.recordOutput("Turret/track/pathing/angle offset A", Double.NaN, Rotations);
+            Logger.recordOutput("Turret/track/pathing/angle offset B", Double.NaN, Rotations);
+            Logger.recordOutput("Turret/track/pathing/angle offset c", Double.NaN, Rotations);
             Logger.recordOutput("Turret/track/angle targeted", Double.NaN, Rotations);
             Logger.recordOutput("Turret/track/lead time", Double.NaN, Seconds);
             Logger.recordOutput("Turret/track/target pos", (Translation2d)null);
