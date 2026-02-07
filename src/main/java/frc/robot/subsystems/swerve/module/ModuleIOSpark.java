@@ -30,6 +30,8 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.constants.DriveConstants.module;
 import frc.utils.SparkOdometryThread;
+import frc.utils.UniversalMotorController;
+import frc.utils.UniversalMotorController.Encoder;
 import frc.utils.controlWrappers.ProfiledPID;
 import frc.utils.controlWrappers.SimpleFF;
 
@@ -44,9 +46,9 @@ import java.util.function.DoubleSupplier;
 public class ModuleIOSpark implements ModuleIO {
 
     // Hardware objects
-    private final SparkBase driveSpark;
+    private final UniversalMotorController driveSpark;
     private final SparkBase turnSpark;
-    private final RelativeEncoder driveEncoder;
+    private final Encoder driveEncoder;
     private final AbsoluteEncoder turnEncoder;
 
     // Closed loop controllers
@@ -77,7 +79,7 @@ public class ModuleIOSpark implements ModuleIO {
     private AngularVelocity turnVelocity = RadiansPerSecond.of(0.0);
 
 	public ModuleIOSpark(int IO) {
-        driveSpark = new SparkMax(
+        driveSpark = new UniversalMotorController(
                 switch (IO) {
                     case 0 -> module.FL_DRIVE_ID;
                     case 1 -> module.FR_DRIVE_ID;
@@ -127,11 +129,11 @@ public class ModuleIOSpark implements ModuleIO {
                 .busVoltagePeriodMs(20)
                 .outputCurrentPeriodMs(20);
         tryUntilOk(
-                driveSpark,
+                driveSpark.getSparkMax(),
                 5,
-                () -> driveSpark.configure(
+                () -> driveSpark.getSparkMax().configure(
                         driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
-        tryUntilOk(driveSpark, 5, () -> driveEncoder.setPosition(0.0));
+        tryUntilOk(driveSpark.getSparkMax(), 5, () -> driveEncoder.setPosition(0.0));
 
         // Configure turn motor
         var turnConfig = new SparkMaxConfig();
