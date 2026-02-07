@@ -42,7 +42,6 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.TurretConstants.*;
 
 import static frc.utils.ControllerMap.*;
@@ -267,7 +266,7 @@ public class RobotContainer {
         // );
 
         launcher.setDefaultCommand(
-            launcher.voltageControl(() -> Volts.of(0)) 
+            launcher.velocityControl(() -> RPM.of(0)) 
         );
     }
 
@@ -337,9 +336,9 @@ public class RobotContainer {
         new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.2).whileTrue(
             launcher.velocityControl(() -> RPM.of(launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[1]))
         );
-        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7).whileTrue(
-            null// TODO: feed to shooter while spun up
-        );
+        // new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7).whileTrue(
+        //     null// TODO: feed to shooter while spun up
+        // );
         //set turret to auto track mode
         new Trigger(() -> driverController.getRawButton(B)).onTrue(
             turret.track(() -> target)
@@ -349,13 +348,13 @@ public class RobotContainer {
             turret.manPos(() -> TURRET_LOCK_POS)
         );
         //intake
-        new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5).whileTrue(
-            null// TODO: intake
-        );
-        //lower hood for trench(should be auto also)(hold)
-        new Trigger(() -> driverController.getRawButton(X)).whileTrue(
-            null // TODO: lower hood for trench(should be auto also)(hold)
-        );
+        // new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5).whileTrue(
+        //     null// TODO: intake
+        // );
+        // //lower hood for trench(should be auto also)(hold)
+        // new Trigger(() -> driverController.getRawButton(X)).whileTrue(
+        //     null // TODO: lower hood for trench(should be auto also)(hold)
+        // );
 
         // ------------------------------------------------------------------------------
         // operator controls

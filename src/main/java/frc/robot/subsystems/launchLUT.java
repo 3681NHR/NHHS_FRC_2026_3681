@@ -6,22 +6,21 @@ import frc.utils.ExtraMath;
 public class launchLUT {
     public static final double[][] LUTGround = {
     //  dist, hood, speed, time
-        {0.0, 0.0, 1.0, 0.0},
-        {2.0, 1.0, 2.0, 2.0}
+        {0.0, 0.0, 0.0, 0.0},
+        {0.0, 0.0, 0.0, 0.0}
     };
     public static final double[][] LUTHub = {
     //  dist, hood, speed, time
-        {Units.feetToMeters(18), Units.degreesToRadians(45), 3857.0, 1.0},
-        {Units.feetToMeters(15), Units.degreesToRadians(35), 3857.0, 1.35},
-        {Units.feetToMeters(13), Units.degreesToRadians(30), 3750.0, 1.26},
-        {Units.feetToMeters(11.5), Units.degreesToRadians(30), 3500.0, 1.23},
-        {Units.feetToMeters(10), Units.degreesToRadians(30), 3250.0, 1.0},
-        {Units.feetToMeters(8.5), Units.degreesToRadians(30), 3190.0, 1.0},
-        {Units.feetToMeters(7.5), Units.degreesToRadians(20), 3321.0, 1.3},
-        {Units.feetToMeters(6), Units.degreesToRadians(20), 3178.0, 1.03},
-        {Units.feetToMeters(4), Units.degreesToRadians(20), 2928.0, 1.1},
-        {Units.feetToMeters(4), Units.degreesToRadians(20), 2928.0, 1.1},
-        {Units.feetToMeters(3.5), Units.degreesToRadians(20), 3107.0, 1.2},
+        {Units.feetToMeters(3.5), Units.degreesToRadians(20), 3107.0, 0.0},
+        {Units.feetToMeters(4), Units.degreesToRadians(20), 2928.0, 0.0},
+        {Units.feetToMeters(6), Units.degreesToRadians(20), 3178.0, 0.0},
+        {Units.feetToMeters(7.5), Units.degreesToRadians(20), 3321.0, 0.0},
+        {Units.feetToMeters(8.5), Units.degreesToRadians(30), 3190.0, 0.0},
+        {Units.feetToMeters(10), Units.degreesToRadians(30), 3250.0, 0.0},
+        {Units.feetToMeters(11.5), Units.degreesToRadians(30), 3500.0, 0.0},
+        {Units.feetToMeters(13), Units.degreesToRadians(30), 3750.0, 0.0},
+        {Units.feetToMeters(15), Units.degreesToRadians(35), 3857.0, 0.0},
+        {Units.feetToMeters(18), Units.degreesToRadians(45), 3857.0, 0.0},
     };
 
     /**
