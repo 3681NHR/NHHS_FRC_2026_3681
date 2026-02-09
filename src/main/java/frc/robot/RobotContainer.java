@@ -23,6 +23,7 @@ import frc.robot.subsystems.swerve.module.ModuleIOSim;
 import frc.robot.subsystems.swerve.module.ModuleIOSpark;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIO;
+import frc.robot.subsystems.turret.TurretIOMini;
 import frc.robot.subsystems.turret.TurretIOReal;
 import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.CameraIO;
@@ -37,6 +38,7 @@ import frc.utils.DisabledInstantCommand;
 import frc.utils.ExtraMath;
 import frc.utils.Joystick;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
@@ -189,7 +191,7 @@ public class RobotContainer {
                         vision,
                         driverSticks,
                         led);
-                turret = new Turret(new TurretIOReal(), drive);
+                turret = new Turret(new TurretIOMini(), drive);
                 launcher = new Launcher(new LauncherIOReal());
                 break;
 
@@ -304,28 +306,28 @@ public class RobotContainer {
         }));
         
         // TODO: placeholder binding to shooting in sim, remove before running on robot
-        new Trigger(() -> driverController.getRawButton(A)).whileTrue(new InstantCommand(() -> {
-                double launchvel = (launcher.getSpeed().in(RPM)-2500)*2*Math.PI*Units.inchesToMeters(2)/60;
-                double angle = launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[0];
-                GamePieceProjectile fuel = new GamePieceProjectile(
-                        RebuiltFuelOnField.REBUILT_FUEL_INFO,
-                        driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
-                                Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
-                                Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()
-                        )),
-                        new Translation2d(
-                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + Math.cos(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel,
-                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + Math.sin(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel
-                        ),
-                        Units.inchesToMeters(20),
-                        Math.sin(angle)*launchvel,
-                        new Rotation3d()
-                        );
+        // new Trigger(() -> driverController.getRawButton(A)).whileTrue(new InstantCommand(() -> {
+        //         double launchvel = (launcher.getSpeed().in(RPM)-2500)*2*Math.PI*Units.inchesToMeters(2)/60;
+        //         double angle = launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[0];
+        //         GamePieceProjectile fuel = new GamePieceProjectile(
+        //                 RebuiltFuelOnField.REBUILT_FUEL_INFO,
+        //                 driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
+        //                         Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
+        //                         Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()
+        //                 )),
+        //                 new Translation2d(
+        //                         ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + Math.cos(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel,
+        //                         ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + Math.sin(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel
+        //                 ),
+        //                 Units.inchesToMeters(20),
+        //                 Math.sin(angle)*launchvel,
+        //                 new Rotation3d()
+        //                 );
                 
-                fuel.withTouchGroundHeight(Inches.of(3).in(Meters));
-                fuel.enableBecomesGamePieceOnFieldAfterTouchGround();
-                SimulatedArena.getInstance().addGamePieceProjectile(fuel);
-        }).andThen(new WaitCommand(0.1)).repeatedly());
+        //         fuel.withTouchGroundHeight(Inches.of(3).in(Meters));
+        //         fuel.enableBecomesGamePieceOnFieldAfterTouchGround();
+        //         SimulatedArena.getInstance().addGamePieceProjectile(fuel);
+        // }).andThen(new WaitCommand(0.1)).repeatedly());
 
         // force teleop drive
         new Trigger(() -> driverController.getPOV() == 0).onTrue(drive.TeleopDrive());
@@ -343,7 +345,10 @@ public class RobotContainer {
         );
         //set turret to preset angle mode
         new Trigger(() -> driverController.getRawButton(A)).onTrue(
-            turret.manPos(() -> TURRET_LOCK_POS)
+            turret.manPos(() -> Degrees.of(0))
+        );
+        new Trigger(() -> driverController.getRawButton(Y)).onTrue(
+            turret.manPos(() -> Degrees.of(180))
         );
         //intake
         // new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5).whileTrue(

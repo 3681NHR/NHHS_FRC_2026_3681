@@ -79,7 +79,6 @@ public class Turret extends SubsystemBase {
         Logger.recordOutput("Turret/unwinding", unwinding);
 
         Logger.recordOutput("Turret/field angle", in.filteredAngle.plus(Radians.of(drive.getRotation().getRadians())).plus(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? Degrees.of(180) : Degrees.of(0)));
-
     }
 
     public Command manPos(Supplier<Angle> targ){

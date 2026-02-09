@@ -3,11 +3,12 @@ package frc.robot.subsystems.turret;
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.constants.TurretConstants.*;
 
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
+
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkBase;
-import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
 
@@ -19,19 +20,32 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.utils.Alert;
 import frc.utils.Alert.AlertType;
+import frc.utils.controlWrappers.ProfiledPID;
+import frc.utils.controlWrappers.SimpleFF;
 
 public class TurretIOMini implements TurretIO {
 
+    private LoggedNetworkNumber kp = new LoggedNetworkNumber("mini turret/gains/Kp", 0.0);
+    private LoggedNetworkNumber kd = new LoggedNetworkNumber("mini turret/gains/Kd", 0.0);
+
+    private LoggedNetworkNumber ks = new LoggedNetworkNumber("mini turret/gains/Ks", 0.0);
+    private LoggedNetworkNumber kv = new LoggedNetworkNumber("mini turret/gains/Kv", 0.0);
+    private LoggedNetworkNumber ka = new LoggedNetworkNumber("mini turret/gains/Ka", 0.0);
+    
+    private LoggedNetworkNumber ms = new LoggedNetworkNumber("mini turret/gains/max speed", 0.0);
+    private LoggedNetworkNumber ma = new LoggedNetworkNumber("mini turret/gains/max accel", 0.0);
+    
+    private LoggedNetworkBoolean enter = new LoggedNetworkBoolean("mini turret/gains/apply", false);
+
     private SparkMax motor = new SparkMax(TURRET_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
-    private SparkClosedLoopController controller = motor.getClosedLoopController();
     private CANcoder encoder = new CANcoder(TURRET_ENCODER_1_ID);
-    private RelativeEncoder builtinEncoder = motor.getEncoder();
     
     private Angle goal = Radians.of(0.0);
     private boolean openLoop = false;
@@ -39,42 +53,37 @@ public class TurretIOMini implements TurretIO {
     private Angle angle = Radians.of(0.0);
 
     private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(TURRET_ID_GAINS.kV(), TURRET_ID_GAINS.kA());
-    private final KalmanFilter<N2, N1, N2> filter = new KalmanFilter<N2, N1, N2>(Nat.N2(), Nat.N2(), model, VecBuilder.fill(0.2, 1.0), VecBuilder.fill(1.3, 0.7), 0.02);
+    private final KalmanFilter<N2, N1, N2> filter = new KalmanFilter<N2, N1, N2>(Nat.N2(), Nat.N2(), model, VecBuilder.fill(1, 1), VecBuilder.fill(0.001, 0.001), 0.02);
 
-    private Alert divergance = new Alert("", AlertType.kWarning);//dynamic text
+    private ProfiledPID pid = new ProfiledPID(TURRET_PID_GAINS);
+    private SimpleFF ff = new SimpleFF(TURRET_FF_GAINS);
+
     private Alert disconenct = new Alert("turret absolute encoder is disconnected", AlertType.kWarning);
     private Alert motorError = new Alert("", AlertType.kError);
-    private Alert lost = new Alert("turret internal encoder is not calibrated! \nusing rio control loop and absolute encoder as fallback", AlertType.kError);
-    private boolean sync = false;
 
     public TurretIOMini(){
-        if(encoder.isConnected()){
-            builtinEncoder.setPosition(encoder.getPosition().getValue().in(Radians));
-            sync = true;
-        } else {
-            lost.set(true);
-            disconenct.set(true);
-        }
     }
 
     @Override
     public void updateInputs(TurretIOInputs input){
-        disconenct.set(encoder.isConnected());
+        disconenct.set(!encoder.isConnected());
         motorError.set(motor.getLastError() != REVLibError.kOk);
         motorError.setText("turret motor error: " + motor.getLastError().toString());
 
-        //resync
-        if(!sync && encoder.isConnected() && motor.getLastError() != REVLibError.kOk && getSpeed().lt(DegreesPerSecond.of(90))){
-            builtinEncoder.setPosition(encoder.getPosition().getValue().in(Radians));
-            sync = true;
-            lost.set(false);
-        }
-
-        if(encoder.getPosition().getValue().isNear(Radians.of(builtinEncoder.getPosition()), TURRET_DIVERGANCE_THRESH)){
-            divergance.set(true);
-            divergance.setText("turret encoders are divergent by: "+encoder.getPosition().getValue().minus(Radians.of(builtinEncoder.getPosition())).in(Degrees)+" degrees");
-        } else {
-            divergance.set(false);
+        if(enter.get()){
+            enter.set(false);
+            pid.setPID(
+                kp.get(),
+                0,
+                kd.get()
+            );
+            pid.setConstraints(new Constraints(
+                ms.get(),
+                ma.get()
+            ));
+            ff.setKs(ks.get());
+            ff.setKv(kv.get());
+            ff.setKa(ka.get());
         }
 
         filter.predict(VecBuilder.fill(Vout.in(Volts) - Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout.in(Volts)))*Math.signum(getSpeed().magnitude())), 0.02);
@@ -82,10 +91,11 @@ public class TurretIOMini implements TurretIO {
         angle = Radians.of(filter.getXhat().get(0,0));
 
         if(!openLoop){
-            motor.getClosedLoopController().setSetpoint(goal.in(Radians), SparkBase.ControlType.kMAXMotionPositionControl);
-        } else {
-            motor.setVoltage(Vout);
+            Vout = Volts.of(pid.calculate(getAngle().in(Radians), goal.in(Radians)));
+            Vout = Vout.plus(Volts.of(ff.calculate(pid.getSetpoint().velocity)));
         }
+        motor.setVoltage(Vout);
+        
         if(!DriverStation.isEnabled()){
             motor.stopMotor();
         }
@@ -98,8 +108,8 @@ public class TurretIOMini implements TurretIO {
         input.motorVoltageOut = Vout;
 
         input.goal = goal;
-        input.setpointPos = Radians.of(controller.getMAXMotionSetpointPosition());
-        input.setpointVel = RadiansPerSecond.of(controller.getMAXMotionSetpointVelocity());
+        input.setpointPos = Radians.of(pid.getSetpoint().position);
+        input.setpointVel = RadiansPerSecond.of(pid.getSetpoint().velocity);
         input.atSetpoint = MathUtil.isNear(goal.in(Radians), angle.in(Radians), TURRET_SETPOINT_TOLERANCE.in(Radians));
     
         input.openLoop = openLoop;
@@ -121,19 +131,10 @@ public class TurretIOMini implements TurretIO {
     }
     
     private Angle getAngle(){
-        if(sync && !motorError.get()){
-            return Radians.of(builtinEncoder.getPosition());
-        } else if(!disconenct.get()){
             return encoder.getPosition().getValue();
-        } else {
-            return Radians.of(builtinEncoder.getPosition());
-        }
     }
     private AngularVelocity getSpeed(){
-        if(!motorError.get()){
-            return RadiansPerSecond.of(builtinEncoder.getVelocity());
-        } else {
             return encoder.getVelocity().getValue();
-        }
+        
     }
 }
