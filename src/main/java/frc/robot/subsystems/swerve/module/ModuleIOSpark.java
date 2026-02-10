@@ -188,6 +188,8 @@ public class ModuleIOSpark implements ModuleIO {
                 (values) -> inputs.driveAppliedVolts = Volts.of(values[0] * values[1]));
         ifOk(driveSpark, driveSpark::getOutputCurrent, (value) -> inputs.driveCurrent = Amps.of(value));
         inputs.driveConnected = driveConnectedDebounce.calculate(!sparkStickyFault);
+        inputs.driveGoal = driveGoal;
+        inputs.driveSetpoint = driveGoal;
 
         // Update turn inputs
         sparkStickyFault = false;
@@ -202,11 +204,13 @@ public class ModuleIOSpark implements ModuleIO {
                 (values) -> inputs.turnAppliedVolts = Volts.of(values[0] * values[1]));
         ifOk(turnSpark, turnSpark::getOutputCurrent, (value) -> inputs.turnCurrent = Amps.of(value));
         inputs.turnConnected = turnConnectedDebounce.calculate(!sparkStickyFault);
+        inputs.turnGoal = turnGoal;
+        inputs.turnSetpoint = Radians.of(turnPID.getSetpoint().position);
 
         // Update odometry inputs
         inputs.odometryTimestamps = timestampQueue.stream().mapToDouble(e -> e).toArray();
-        inputs.odometryDrivePositions = drivePositionQueue.stream().mapToDouble(e -> e).toArray();
-        inputs.odometryTurnPositions = turnPositionQueue.stream().mapToDouble(e -> e).toArray();
+        inputs.odometryDrivePositionsRad = drivePositionQueue.stream().mapToDouble(e -> e).toArray();
+        inputs.odometryTurnPositionsRad = turnPositionQueue.stream().mapToDouble(e -> e).toArray();
         timestampQueue.clear();
         drivePositionQueue.clear();
         turnPositionQueue.clear();

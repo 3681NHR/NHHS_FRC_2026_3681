@@ -1,6 +1,9 @@
 package frc.robot.autos;
 
+import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -12,8 +15,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.RobotContainer;
 import frc.utils.ExtraMath;
 import frc.utils.LoggedField2d;
-import frc.utils.Alert.AlertType;
-import frc.utils.Alert.SendableAlerts;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StringArraySubscriber;
 
 /**
  * A {@link edu.wpi.first.wpilibj.smartdashboard.SendableChooser} for selecting an autonomous program.
@@ -42,6 +45,7 @@ import frc.utils.Alert.SendableAlerts;
  * <br/><br/>
  * thanks to 2910 for half of this code
  */
+@SuppressWarnings("unchecked")
 public class AutoChooser {
 
     private AutoFactory factory;
@@ -49,8 +53,66 @@ public class AutoChooser {
 
     private LoggedField2d field = new LoggedField2d();
     private LoggedDashboardChooser<AutoProgram> chooser;
-    private LoggedNetworkNumber timeSelector = new LoggedNetworkNumber("auto/time", 0.0);
+    private LoggedNetworkNumber timeSelector = new LoggedNetworkNumber("SmartDashboard/Auto/Time select", 0.0);
 
+    private static Map<String, Object> groups = null;
+    private static Map<String, StringArraySubscriber> errorSubscribers = new HashMap<>();
+    private static Map<String, StringArraySubscriber> warningSubscribers = new HashMap<>();
+    private static Map<String, StringArraySubscriber> infoSubscribers = new HashMap<>();
+
+    private static String[] errors = {};
+    private static String[] warnings = {};
+    private static String[] infos = {};
+
+  static {
+    try {
+      Class<?> sendableAlertsClass = Class.forName("edu.wpi.first.wpilibj.Alert$SendableAlerts");
+      Field groupsField = sendableAlertsClass.getDeclaredField("groups");
+      groupsField.setAccessible(true);
+      groups = (Map<String, Object>) groupsField.get(null);
+    } catch (ClassNotFoundException
+        | IllegalArgumentException
+        | IllegalAccessException
+        | NoSuchFieldException
+        | SecurityException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /** Log the current state of all alerts as outputs. */
+  public static void getAlerts() {
+    if (groups == null) return;
+    for (String group : groups.keySet()) {
+
+      // Create NetworkTables subscribers
+      if (!errorSubscribers.containsKey(group)) {
+        errorSubscribers.put(
+            group,
+            NetworkTableInstance.getDefault()
+                .getStringArrayTopic("/SmartDashboard/" + group + "/errors")
+                .subscribe(new String[0]));
+      }
+      if (!warningSubscribers.containsKey(group)) {
+        warningSubscribers.put(
+            group,
+            NetworkTableInstance.getDefault()
+                .getStringArrayTopic("/SmartDashboard/" + group + "/warnings")
+                .subscribe(new String[0]));
+      }
+      if (!infoSubscribers.containsKey(group)) {
+        infoSubscribers.put(
+            group,
+            NetworkTableInstance.getDefault()
+                .getStringArrayTopic("/SmartDashboard/" + group + "/infos")
+                .subscribe(new String[0]));
+      }
+
+      // Get values
+      errors = errorSubscribers.get(group).get();
+      warnings = warningSubscribers.get(group).get();
+      infos = infoSubscribers.get(group).get();
+    }
+  }
     private final List<AutoProgram> AUTO_PROGRAMS = List.of(
         // new AutoProgram("example", AutoFactory::createExampleAuto),
             new AutoProgram("idle",  AutoFactory::createIdleAuto),
@@ -74,7 +136,7 @@ public class AutoChooser {
             program.update(factory);
         }
         
-        SmartDashboard.putData("auto/autoPath", field);
+        SmartDashboard.putData("Auto/Path", field);
     }
 
     public Command getSelected(){
@@ -89,21 +151,21 @@ public class AutoChooser {
             field.setRobotPose(container.getDrive().getPose());
             field.getObject("start").setPose(chooser.get().getPoseAtTime(factory, time));
             
-            Logger.recordOutput("auto/selected time", ExtraMath.roundToPoint(time, 3));
-            Logger.recordOutput("auto/total time"   , ExtraMath.roundToPoint(chooser.get().getPathLength(factory), 3));
+            Logger.recordOutput("Auto/Selected time", ExtraMath.roundToPoint(time, 3));
+            Logger.recordOutput("Auto/Total time"   , ExtraMath.roundToPoint(chooser.get().getPathLength(factory), 3));
             
-            Logger.recordOutput("auto/list/Auto selected", chooser.get() != null);
-            Logger.recordOutput("auto/list/Robot in position", ExtraMath.PoseWithinTolerance(container.getDrive().getPose(), chooser.get().getStartingPose(factory), 0.5, Math.toRadians(20)));
-            Logger.recordOutput("auto/list/FMS connected", DriverStation.isFMSAttached());
-            Logger.recordOutput("auto/list/Joysticks connected", DriverStation.isJoystickConnected(0) && DriverStation.isJoystickConnected(1));
-            Logger.recordOutput("auto/list/No alerts", 
-            SendableAlerts.forGroup("Alerts").getStrings(AlertType.kError).length == 0 &&
-            SendableAlerts.forGroup("Alerts").getStrings(AlertType.kWarning).length == 0 &&
-            SendableAlerts.forGroup("Alerts").getStrings(AlertType.kInfo).length == 0);
-            Logger.recordOutput("auto/list/Auto set", "set correct auto program");
-            Logger.recordOutput("auto/list/Odometry correct", "confirm odometry is same with real position");
-            Logger.recordOutput("auto/list/Controller ports", "confirm controllers are connected to right ports");
-            Logger.recordOutput("auto/list/DS secure", "confirm DS is securely attached to shelf");
+            Logger.recordOutput("Auto/Checklist/Auto selected", chooser.get() != null);
+            Logger.recordOutput("Auto/Checklist/Robot in position", ExtraMath.PoseWithinTolerance(container.getDrive().getPose(), chooser.get().getStartingPose(factory), 0.5, Math.toRadians(20)));
+            Logger.recordOutput("Auto/Checklist/FMS connected", DriverStation.isFMSAttached());
+            Logger.recordOutput("Auto/Checklist/Joysticks connected", DriverStation.isJoystickConnected(0) && DriverStation.isJoystickConnected(1));
+            Logger.recordOutput("Auto/Checklist/No alerts", 
+            errors.length == 0 &&
+            warnings.length == 0 &&
+            infos.length == 0);
+            Logger.recordOutput("Auto/Checklist/Auto set", "Set correct auto program");
+            Logger.recordOutput("Auto/Checklist/Odometry correct", "Confirm odometry is same with real position");
+            Logger.recordOutput("Auto/Checklist/Controller ports", "Confirm controllers are connected to right ports");
+            Logger.recordOutput("Auto/Checklist/DS secure", "Confirm DS is securely attached to shelf");
             // Logger.recordOutput("auto/list/", );
             // Logger.recordOutput("auto/list/Gamepiece loaded", );
         }

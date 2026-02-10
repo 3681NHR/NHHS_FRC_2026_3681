@@ -75,19 +75,19 @@ public class RumbleHandler {
         if(queue.size() >= 1){
             controller.setRumble(RumbleType.kLeftRumble, queue.get(0).powL);
             controller.setRumble(RumbleType.kRightRumble, queue.get(0).powR);
-            Logger.recordOutput("haptics/rumble: "+port+"/current Strength left", queue.get(0).powL);
-            Logger.recordOutput("haptics/rumble: "+port+"/current Strength right", queue.get(0).powR);
-            Logger.recordOutput("haptics/rumble: "+port+"/queue", getPows());
+            Logger.recordOutput("Utils/haptics/rumble: "+port+"/current Strength left", queue.get(0).powL);
+            Logger.recordOutput("Utils/haptics/rumble: "+port+"/current Strength right", queue.get(0).powR);
+            Logger.recordOutput("Utils/haptics/rumble: "+port+"/queue", getPows());
         } else {
             controller.setRumble(RumbleType.kBothRumble, 0);
-            Logger.recordOutput("haptics/rumble: "+port+"/current Strength left", 0.0);
-            Logger.recordOutput("haptics/rumble: "+port+"/current Strength right", 0.0);
-            Logger.recordOutput("haptics/rumble: "+port+"/queue", new double[0][0]);
+            Logger.recordOutput("Utils/haptics/rumble: "+port+"/current Strength left", 0.0);
+            Logger.recordOutput("Utils/haptics/rumble: "+port+"/current Strength right", 0.0);
+            Logger.recordOutput("Utils/haptics/rumble: "+port+"/queue", new double[0][0]);
         }
-        Logger.recordOutput("haptics/rumble: "+port+"/following", following);
+        Logger.recordOutput("Utils/haptics/rumble: "+port+"/following", following);
         
         if(following){
-            Logger.recordOutput("haptics/rumble: "+port+"/following rumble", lead.port);
+            Logger.recordOutput("Utils/haptics/rumble: "+port+"/following rumble", lead.port);
         }
     } 
     private double[][] getPows(){
