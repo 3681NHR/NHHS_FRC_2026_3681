@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
@@ -117,9 +118,9 @@ public class Turret extends SubsystemBase {
                 .minus(Radians.of(drive.getPose().getRotation().getRadians()))
                 .plus(Radians.of(TURRET_THETA_COMP_FACTOR*drive.getAngulerVelocity().in(RadiansPerSecond)));
                 
-            double modAngle = angle.in(Rotations)%1;
-            double modCurrent = in.goal.in(Rotations)%1;    
-            Angle offset = Rotations.of(ExtraMath.lesser(modAngle-modCurrent, modCurrent+(1-modAngle)));
+            double modAngle = MathUtil.inputModulus(angle.in(Rotations), 0, 1);
+            double modCurrent = MathUtil.inputModulus(in.goal.in(Rotations), 0, 1);
+            Angle offset = Rotations.of(ExtraMath.lesser(modAngle-modCurrent, 1+modAngle-modCurrent, modAngle-modCurrent-1));
 
             Angle finalAngle = in.goal.plus(offset); 
             finalAngle = Radians.of((finalAngle.in(Radians)%

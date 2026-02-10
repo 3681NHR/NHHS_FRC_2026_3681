@@ -1,0 +1,139 @@
+package frc.robot.subsystems.turret;
+
+import static edu.wpi.first.units.Units.*;
+import static frc.robot.constants.TurretConstants.*;
+
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
+
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.revrobotics.REVLibError;
+import com.revrobotics.spark.SparkLowLevel;
+import com.revrobotics.spark.SparkMax;
+
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Nat;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.estimator.KalmanFilter;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N2;
+import edu.wpi.first.math.system.LinearSystem;
+import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.DriverStation;
+import frc.utils.Alert;
+import frc.utils.Alert.AlertType;
+import frc.utils.controlWrappers.ProfiledPID;
+import frc.utils.controlWrappers.SimpleFF;
+
+public class TurretIOMini implements TurretIO {
+
+    private LoggedNetworkNumber kp = new LoggedNetworkNumber("mini turret/gains/Kp", 0.0);
+    private LoggedNetworkNumber kd = new LoggedNetworkNumber("mini turret/gains/Kd", 0.0);
+
+    private LoggedNetworkNumber ks = new LoggedNetworkNumber("mini turret/gains/Ks", 0.0);
+    private LoggedNetworkNumber kv = new LoggedNetworkNumber("mini turret/gains/Kv", 0.0);
+    private LoggedNetworkNumber ka = new LoggedNetworkNumber("mini turret/gains/Ka", 0.0);
+    
+    private LoggedNetworkNumber ms = new LoggedNetworkNumber("mini turret/gains/max speed", 0.0);
+    private LoggedNetworkNumber ma = new LoggedNetworkNumber("mini turret/gains/max accel", 0.0);
+    
+    private LoggedNetworkBoolean enter = new LoggedNetworkBoolean("mini turret/gains/apply", false);
+
+    private SparkMax motor = new SparkMax(TURRET_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
+    private CANcoder encoder = new CANcoder(TURRET_ENCODER_1_ID);
+    
+    private Angle goal = Radians.of(0.0);
+    private boolean openLoop = false;
+    private Voltage Vout = Volts.of(0.0);
+    private Angle angle = Radians.of(0.0);
+
+    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(TURRET_ID_GAINS.kV(), TURRET_ID_GAINS.kA());
+    private final KalmanFilter<N2, N1, N2> filter = new KalmanFilter<N2, N1, N2>(Nat.N2(), Nat.N2(), model, VecBuilder.fill(1, 1), VecBuilder.fill(0.001, 0.001), 0.02);
+
+    private ProfiledPID pid = new ProfiledPID(TURRET_PID_GAINS);
+    private SimpleFF ff = new SimpleFF(TURRET_FF_GAINS);
+
+    private Alert disconenct = new Alert("turret absolute encoder is disconnected", AlertType.kWarning);
+    private Alert motorError = new Alert("", AlertType.kError);
+
+    public TurretIOMini(){
+    }
+
+    @Override
+    public void updateInputs(TurretIOInputs input){
+        disconenct.set(!encoder.isConnected());
+        motorError.set(motor.getLastError() != REVLibError.kOk);
+        motorError.setText("turret motor error: " + motor.getLastError().toString());
+
+        if(enter.get()){
+            enter.set(false);
+            pid.setPID(
+                kp.get(),
+                0,
+                kd.get()
+            );
+            pid.setConstraints(new Constraints(
+                ms.get(),
+                ma.get()
+            ));
+            ff.setKs(ks.get());
+            ff.setKv(kv.get());
+            ff.setKa(ka.get());
+        }
+
+        filter.predict(VecBuilder.fill(Vout.in(Volts) - Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout.in(Volts)))*Math.signum(getSpeed().magnitude())), 0.02);
+        filter.correct(VecBuilder.fill(Vout.in(Volts) - Math.min(TURRET_ID_GAINS.kS(), Math.abs(Vout.in(Volts)))*Math.signum(getSpeed().magnitude())), VecBuilder.fill(getAngle().in(Radians), getSpeed().in(RadiansPerSecond)));
+        angle = Radians.of(filter.getXhat().get(0,0));
+
+        if(!openLoop){
+            Vout = Volts.of(pid.calculate(getAngle().in(Radians), goal.in(Radians)));
+            Vout = Vout.plus(Volts.of(ff.calculate(pid.getSetpoint().velocity)));
+        }
+        motor.setVoltage(Vout);
+        
+        if(!DriverStation.isEnabled()){
+            motor.stopMotor();
+        }
+        
+        input.filteredAngle = angle;
+        input.filteredSpeed = RadiansPerSecond.of(filter.getXhat(1));
+        input.rawAngle = getAngle();
+        input.rawSpeed = getSpeed();
+
+        input.motorVoltageOut = Vout;
+
+        input.goal = goal;
+        input.setpointPos = Radians.of(pid.getSetpoint().position);
+        input.setpointVel = RadiansPerSecond.of(pid.getSetpoint().velocity);
+        input.atSetpoint = MathUtil.isNear(goal.in(Radians), angle.in(Radians), TURRET_SETPOINT_TOLERANCE.in(Radians));
+    
+        input.openLoop = openLoop;
+    }
+
+    @Override
+    public void setGoal(Angle goal){
+        this.openLoop = false;
+        this.goal = goal;
+    }
+    @Override
+    public void setVout(Voltage vout){
+        this.openLoop = true;
+        Vout = vout;
+    }
+    @Override
+    public void setOpenLoop(boolean openLoop){
+        this.openLoop = openLoop;
+    }
+    
+    private Angle getAngle(){
+            return encoder.getPosition().getValue();
+    }
+    private AngularVelocity getSpeed(){
+            return encoder.getVelocity().getValue();
+        
+    }
+}

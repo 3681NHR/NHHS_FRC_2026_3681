@@ -16,9 +16,9 @@ import frc.utils.controlWrappers.PIDGains.SimpleFF;
 
 public final class TurretConstants {
     
-    public static final int TURRET_MOTOR_ID = -1;
-    public static final int TURRET_ENCODER_1_ID = -1;
-    public static final int TURRET_ENCODER_2_ID = -1;
+    public static final int TURRET_MOTOR_ID = 41;
+    public static final int TURRET_ENCODER_1_ID = 31;
+    public static final int TURRET_ENCODER_2_ID = 31;
 
     public static final int TURRET_MAIN_GEAR_TEETH = 200;
     public static final int TURRET_ENCODER_1_GEAR_TEETH = 35;
@@ -27,13 +27,14 @@ public final class TurretConstants {
     public static final Angle TURRET_ANGLE_OFFSET = Degrees.of(0);
     public static final Angle TURRET_ANGLE_LIM = Degrees.of(360);//soft limit before unwind(from center)
 
-    public static final SimpleFF TURRET_ID_GAINS = new SimpleFF(0.2,0.25,0.01);//gains from sysid for state space model
+    public static final SimpleFF TURRET_ID_GAINS = new SimpleFF(0.115,0.23, 0.001);//gains from sysid for state space model
 
-    public static final SimpleFF TURRET_FF_GAINS = TURRET_ID_GAINS;
-    public static final ProfiledPID TURRET_PID_GAINS = new ProfiledPID(3.0,0,1.0,20,100);
+    public static final SimpleFF TURRET_FF_GAINS = new SimpleFF(0.115,0.21, 0.0);
+    public static final ProfiledPID TURRET_PID_GAINS = new ProfiledPID(0.75,0,0.075,20,50);
     public static final double TURRET_THETA_COMP_FACTOR = -0.08;//offset target angle while robot is spinning
 
     public static final Angle TURRET_SETPOINT_TOLERANCE = Degrees.of(5);
+    public static final Angle TURRET_DIVERGANCE_THRESH = Degrees.of(5);
 
     public static final Translation2d RED_HUB = new Translation2d(11.915, 4.034);
     public static final Translation2d[] RED_PASS = new Translation2d[]{
