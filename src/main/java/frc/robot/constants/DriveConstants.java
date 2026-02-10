@@ -79,7 +79,7 @@ public class DriveConstants {
     public static final PIDGains.PID TRANS_PID_SIM = new PIDGains.PID(7, 1, 0.2);
 
     // kinematics
-    public static final LinearVelocity MAX_SPEED = MetersPerSecond.of(4.7);
+    // public static final LinearVelocity MAX_SPEED = MetersPerSecond.of(4.7);
     public static final Frequency ODOMETRY_FREQ = Hertz.of(100.0);
     public static final Distance WIDTH = Inches.of(22); // size between wheels
     public static final Distance LENGTH = Inches.of(25);// size between wheels
@@ -100,7 +100,7 @@ public class DriveConstants {
             MOI,
             new ModuleConfig(
                     module.WHEEL_RAD.in(Meters),
-                    MAX_SPEED.in(MetersPerSecond),
+                    MAX_SPEED_PP.in(MetersPerSecond),
                     COF,
                     module.DRIVE_GEARBOX.withReduction(module.DRIVE_REDUCTION),
                     module.DRIVE_MAX_CURRENT.in(Amps),
@@ -145,8 +145,8 @@ public class DriveConstants {
         public static final double DRIVE_ENCODER_VEL_FACTOR = (2 * Math.PI); // Mech RPS -> Wheel RAD/Sec
 
         // Drive PID configuration
-        public static final PIDGains.PID DRIVE_PID = new PIDGains.PID(0.01, 0.0, 0.0);// TODO should tune
-        public static final PIDGains.SimpleFF DRIVE_FF = new PIDGains.SimpleFF(0.11, 0.13, 0.1);// TODO needs sysid
+        public static final PIDGains.PID DRIVE_PID = new PIDGains.PID(0.0, 0.0, 0.0);// TODO should tune
+        public static final PIDGains.SimpleFF DRIVE_FF = new PIDGains.SimpleFF(0.15, 0.1, 0.0);// TODO sysid 0.11, 0.13, 0.1
         public static final PIDGains.PID DRIVE_PID_SIM = new PIDGains.PID(0.01, 0.0, 0.0);
         public static final PIDGains.SimpleFF DRIVE_FF_SIM = new PIDGains.SimpleFF(0.11, 0.13, 0.1);
 

@@ -94,6 +94,8 @@ public class ModuleIOSim implements ModuleIO {
         inputs.driveVelocity = moduleSim.getDriveWheelFinalSpeed();
         inputs.driveAppliedVolts = driveAppliedVolts;
         inputs.driveCurrent = Amps.of(Math.abs(moduleSim.getDriveMotorSupplyCurrent().in(Amps)));
+        inputs.driveGoal = driveGoal;
+        inputs.driveSetpoint = RadiansPerSecond.of(driveController.getSetpoint());
 
         // Update turn inputs
         inputs.turnConnected = true;
@@ -101,11 +103,13 @@ public class ModuleIOSim implements ModuleIO {
         inputs.turnVelocity = moduleSim.getSteerAbsoluteEncoderSpeed();
         inputs.turnAppliedVolts = turnAppliedVolts;
         inputs.turnCurrent = Amps.of(Math.abs(moduleSim.getSteerMotorSupplyCurrent().in(Amps)));
+        inputs.turnGoal = turnGoal;
+        inputs.turnSetpoint = Radians.of(turnController.getSetpoint().position);
 
         // Update odometry inputs
         inputs.odometryTimestamps = SparkUtil.getSimulationOdometryTimeStamps();
-        inputs.odometryDrivePositions = Arrays.stream(moduleSim.getCachedDriveWheelFinalPositions()).mapToDouble(r -> r.in(Radians)).toArray();
-        inputs.odometryTurnPositions = Arrays.stream(moduleSim.getCachedSteerAbsolutePositions()).mapToDouble(r -> r.getRadians()).toArray();
+        inputs.odometryDrivePositionsRad = Arrays.stream(moduleSim.getCachedDriveWheelFinalPositions()).mapToDouble(r -> r.in(Radians)).toArray();
+        inputs.odometryTurnPositionsRad = Arrays.stream(moduleSim.getCachedSteerAbsolutePositions()).mapToDouble(r -> r.getRadians()).toArray();
     }
 
     @Override
