@@ -7,8 +7,8 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Voltage;
-import frc.utils.Alert;
-import frc.utils.Alert.AlertType;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -40,14 +40,14 @@ public class Module {
 
     public void periodic() {
         io.updateInputs(inputs);
-        Logger.processInputs("Drive/Module" + Integer.toString(index), inputs);
+        Logger.processInputs("IO/Drive/Module" + Integer.toString(index), inputs);
 
         // Calculate positions for odometry
         int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
         odometryPositions = new SwerveModulePosition[sampleCount];
         for (int i = 0; i < sampleCount; i++) {
-            Distance positionMeters = module.WHEEL_RAD.times(inputs.odometryDrivePositions[i]);
-            Rotation2d angle = new Rotation2d(inputs.odometryTurnPositions[i]);
+            Distance positionMeters = module.WHEEL_RAD.times(inputs.odometryDrivePositionsRad[i]);
+            Rotation2d angle = new Rotation2d(inputs.odometryTurnPositionsRad[i]);
             odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
         }
 

@@ -3,8 +3,8 @@ package frc.robot.subsystems.vision;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose3d;
-import frc.utils.Alert;
-import frc.utils.Alert.AlertType;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.CameraIO.TargetObservation;
 
@@ -50,7 +50,7 @@ public class Vision extends SubsystemBase {
         }
         for (int i = 0; i < io.length; i++) {
             io[i].updateInputs(inputs[i]);
-            Logger.processInputs("Vision/" + CAMERA_CONFIGS[i].name, inputs[i]);
+            Logger.processInputs("IO/Vision/" + CAMERA_CONFIGS[i].name, inputs[i]);
         }
 
         // Initialize disconnected alerts
@@ -66,7 +66,7 @@ public class Vision extends SubsystemBase {
     public void periodic() {
         for (int i = 0; i < io.length; i++) {
             io[i].updateInputs(inputs[i]);
-            Logger.processInputs("Vision/" + CAMERA_CONFIGS[i].name, inputs[i]);
+            Logger.processInputs("IO/Vision/" + CAMERA_CONFIGS[i].name, inputs[i]);
         }
 
         // Initialize logging values
@@ -132,25 +132,25 @@ public class Vision extends SubsystemBase {
             // Log camera data
             if (tagPoses.size() > 0) {
                 Logger.recordOutput(
-                        "Vision/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
+                        "Subsystems/Vision/Cameras/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
                                 : inputs[cameraIndex].name) + "/TagPoses",
                         tagPoses.toArray(new Pose3d[0]));
             }
             if (robotPoses.size() > 0) {
                 Logger.recordOutput(
-                        "Vision/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
+                        "Subsystems/Vision/Cameras/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
                                 : inputs[cameraIndex].name) + "/AllRobotPoses",
                         robotPoses.toArray(new Pose3d[0]));
             }
             if (robotPosesAccepted.size() > 0) {
                 Logger.recordOutput(
-                        "Vision/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
+                        "Subsystems/Vision/Cameras/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
                                 : inputs[cameraIndex].name) + "/RobotPosesAccepted",
                         robotPosesAccepted.toArray(new Pose3d[0]));
             }
             if (robotPosesRejected.size() > 0) {
                 Logger.recordOutput(
-                        "Vision/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
+                        "Subsystems/Vision/Cameras/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
                                 : inputs[cameraIndex].name) + "/RobotPosesRejected",
                         robotPosesRejected.toArray(new Pose3d[0]));
             }
@@ -159,7 +159,7 @@ public class Vision extends SubsystemBase {
                 stdDevs[i] = estimates.get(i).visionMeasurementStdDevs.getData();
             }
             Logger.recordOutput(
-                    "Vision/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
+                    "Subsystems/Vision/Cameras/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
                             : inputs[cameraIndex].name) + "/stdDevs",
                     stdDevs);
 
@@ -177,23 +177,16 @@ public class Vision extends SubsystemBase {
         }
 
         // Log summary data
-        Logger.recordOutput(
-                "Vision/Summary/TagPoses", allTagPoses.toArray(new Pose3d[allTagPoses.size()]));
-        Logger.recordOutput(
-                "Vision/Summary/tags", allTagPoses.size());
-        Logger.recordOutput(
-                "Vision/Summary/RobotPoses", allRobotPoses.toArray(new Pose3d[allRobotPoses.size()]));
-        Logger.recordOutput(
-                "Vision/Summary/RobotPosesAccepted",
-                allRobotPosesAccepted.toArray(new Pose3d[allRobotPosesAccepted.size()]));
-        Logger.recordOutput(
-                "Vision/Summary/RobotPosesRejected",
-                allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
+        Logger.recordOutput("Subsystems/Vision/Summary/TagPoses", allTagPoses.toArray(new Pose3d[allTagPoses.size()]));
+        Logger.recordOutput("Subsystems/Vision/Summary/tags", allTagPoses.size());
+        Logger.recordOutput("Subsystems/Vision/Summary/RobotPoses", allRobotPoses.toArray(new Pose3d[allRobotPoses.size()]));
+        Logger.recordOutput("Subsystems/Vision/Summary/RobotPosesAccepted", allRobotPosesAccepted.toArray(new Pose3d[allRobotPosesAccepted.size()]));
+        Logger.recordOutput("Subsystems/Vision/Summary/RobotPosesRejected", allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
         double[][] stdDevs = new double[allEstimates.size()][3];
         for (int i = 0; i < stdDevs.length; i++) {
             stdDevs[i] = allEstimates.get(i).visionMeasurementStdDevs.getData();
         }
-        Logger.recordOutput("Vision/Summary/stdDevs", stdDevs);
+        Logger.recordOutput("Subsystems/Vision/Summary/stdDevs", stdDevs);
 
         latestEstimateRaw = allEstimates.stream().toArray(VisionEstimate[]::new);
         latestEstimateFinal = latestEstimateRaw;

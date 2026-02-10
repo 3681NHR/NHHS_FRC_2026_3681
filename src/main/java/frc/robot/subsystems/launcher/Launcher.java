@@ -10,8 +10,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.utils.Alert;
-import frc.utils.Alert.AlertType;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 
 import static frc.robot.constants.LauncherConstants.*;
 
@@ -32,8 +32,8 @@ public class Launcher extends SubsystemBase {
     @Override
     public void periodic() {
         io.updateInputs(in);
-        Logger.processInputs("Launcher", in);
-        Logger.recordOutput("Launcher/state", (getCurrentCommand() == null ? "none" : getCurrentCommand().getName()));
+        Logger.processInputs("IO/Launcher", in);
+        Logger.recordOutput("Subsystems/Launcher/state", (getCurrentCommand() == null ? "none" : getCurrentCommand().getName()));
 
     }
 
@@ -41,14 +41,14 @@ public class Launcher extends SubsystemBase {
         return Commands.run(() -> {
             io.setGoal(vel.get());
         }, this)
-        .withName("velocity control");
+        .withName("Velocity Control");
     }
 
     public Command voltageControl(Supplier<Voltage> volt){
         return Commands.run(() -> {
             io.setVout(volt.get());
         }, this)
-        .withName("voltage control");
+        .withName("Voltage Control");
     }
     
     public Command sysidQuasistatic(boolean reverse){
@@ -56,9 +56,9 @@ public class Launcher extends SubsystemBase {
         .raceWith(Commands.run(() -> {
             ready = false;
             runningSysid.set(true);
-            runningSysid.setText("Turret sysid running: dynamic: " + (reverse ? "reverse" : "forward"));
+            runningSysid.setText("Turret sysid running: Quasistatic, " + (reverse ? "reverse" : "forward"));
         }))
-        .withName("quasistatic sysid: " + (reverse ? "reverse" : "forward"));
+        .withName("Quasistatic sysid: " + (reverse ? "reverse" : "forward"));
     }
 
     public Command sysidDynamic(boolean reverse){
@@ -66,9 +66,9 @@ public class Launcher extends SubsystemBase {
         .raceWith(Commands.run(() -> {
             ready = false;
             runningSysid.set(true);
-            runningSysid.setText("Turret sysid running: quasistatic: " + (reverse ? "reverse" : "forward"));
+            runningSysid.setText("Turret sysid running: Dynamic, " + (reverse ? "reverse" : "forward"));
         }))
-        .withName("quasistatic sysid: " + (reverse ? "reverse" : "forward"));
+        .withName("Dynamic sysid: " + (reverse ? "reverse" : "forward"));
     }
 
     public boolean isReady(){

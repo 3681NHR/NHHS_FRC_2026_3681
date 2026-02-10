@@ -27,9 +27,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.launchLUT;
 import frc.robot.subsystems.swerve.Drive;
-import frc.utils.Alert;
 import frc.utils.ExtraMath;
-import frc.utils.Alert.AlertType;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 
 public class Turret extends SubsystemBase {
     
@@ -54,31 +54,31 @@ public class Turret extends SubsystemBase {
         this.drive = drive;
 
         //init log values
-        Logger.recordOutput("Turret/track/pathing/modAngle", Double.NaN, Rotations);
-        Logger.recordOutput("Turret/track/pathing/modCurrent", Double.NaN, Rotations);
-        Logger.recordOutput("Turret/track/pathing/angle offset", Double.NaN, Rotations);
-        Logger.recordOutput("Turret/track/pathing/angle offset A", Double.NaN, Rotations);
-        Logger.recordOutput("Turret/track/pathing/angle offset B", Double.NaN, Rotations);
-        Logger.recordOutput("Turret/track/pathing/angle offset c", Double.NaN, Rotations);
-        Logger.recordOutput("Turret/track/angle targeted", Double.NaN, Rotations);
-        Logger.recordOutput("Turret/track/lead time", Double.NaN, Seconds);
-        Logger.recordOutput("Turret/track/target pos", (Translation2d)null);
-        Logger.recordOutput("Turret/track/virtual target pos", (Translation2d)null);
+        Logger.recordOutput("Subsystems/Turret/track/pathing/modAngle", Double.NaN, Rotations);
+        Logger.recordOutput("Subsystems/Turret/track/pathing/modCurrent", Double.NaN, Rotations);
+        Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset", Double.NaN, Rotations);
+        Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset A", Double.NaN, Rotations);
+        Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset B", Double.NaN, Rotations);
+        Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset c", Double.NaN, Rotations);
+        Logger.recordOutput("Subsystems/Turret/track/angle targeted", Double.NaN, Rotations);
+        Logger.recordOutput("Subsystems/Turret/track/lead time", Double.NaN, Seconds);
+        Logger.recordOutput("Subsystems/Turret/track/target pos", (Translation2d)null);
+        Logger.recordOutput("Subsystems/Turret/track/virtual target pos", (Translation2d)null);
     
-        Logger.recordOutput("Turret/manual/target", Double.NaN, Rotations);
+        Logger.recordOutput("Subsystems/Turret/manual/target", Double.NaN, Rotations);
     }
 
     @Override
     public void periodic(){
         io.updateInputs(in);
-        Logger.processInputs("TurretIO", in);
+        Logger.processInputs("IO/Turret", in);
 
-        Logger.recordOutput("Turret/state", (getCurrentCommand() == null ? "none" :getCurrentCommand().getName()));
-        Logger.recordOutput("Turret/ready", ready);
-        Logger.recordOutput("Turret/unwind angle", unwindgoal);
-        Logger.recordOutput("Turret/unwinding", unwinding);
+        Logger.recordOutput("Subsystems/Turret/state", (getCurrentCommand() == null ? "none" :getCurrentCommand().getName()));
+        Logger.recordOutput("Subsystems/Turret/ready", ready);
+        Logger.recordOutput("Subsystems/Turret/unwind angle", unwindgoal);
+        Logger.recordOutput("Subsystems/Turret/unwinding", unwinding);
 
-        Logger.recordOutput("Turret/field angle", in.filteredAngle.plus(Radians.of(drive.getRotation().getRadians())).plus(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? Degrees.of(180) : Degrees.of(0)));
+        Logger.recordOutput("Subsystems/Turret/field angle", in.filteredAngle.plus(Radians.of(drive.getRotation().getRadians())).plus(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? Degrees.of(180) : Degrees.of(0)));
     }
 
     public Command manPos(Supplier<Angle> targ){
@@ -90,16 +90,16 @@ public class Turret extends SubsystemBase {
                 ready = false;
             }
             illegalTarg.set(targ.get().abs(Radian) > TURRET_ANGLE_LIM.in(Radians));
-            Logger.recordOutput("Turret/manual/target", targ.get());
+            Logger.recordOutput("Subsystems/Turret/manual/target", targ.get());
         }, this).finallyDo(() -> {
-            Logger.recordOutput("Turret/manual/target", Double.NaN);
+            Logger.recordOutput("Subsystems/Turret/manual/target", Double.NaN);
         }).withName("manual angle");
     }
 
     public Command track(Supplier<Translation2d> targ){
         return Commands.run(() -> {
             double dist = targ.get().getDistance(getFieldPos());
-            Logger.recordOutput("Turret/track/distance", dist);
+            Logger.recordOutput("Subsystems/Turret/track/distance", dist);
             double timeOfFlight = launchLUT.get(dist, true, launchLUT.LUTHub)[2];
 
             Translation2d virtualTarg = targ.get()
@@ -131,28 +131,28 @@ public class Turret extends SubsystemBase {
 
             ready = in.atSetpoint;
 
-            Logger.recordOutput("Turret/track/pathing/modAngle", modAngle);
-            Logger.recordOutput("Turret/track/pathing/modCurrent", modCurrent);
-            Logger.recordOutput("Turret/track/pathing/angle offset", offset);
-            Logger.recordOutput("Turret/track/pathing/angle offset A", modAngle-modCurrent);
-            Logger.recordOutput("Turret/track/pathing/angle offset B", 1+modAngle-modCurrent);
-            Logger.recordOutput("Turret/track/pathing/angle offset c", modAngle-modCurrent-1);
-            Logger.recordOutput("Turret/track/angle targeted", finalAngle);
-            Logger.recordOutput("Turret/track/lead time", Seconds.of(timeOfFlight));
-            Logger.recordOutput("Turret/track/target pos", targ.get());
-            Logger.recordOutput("Turret/track/virtual target pos", virtualTarg);
+            Logger.recordOutput("Subsystems/Turret/track/pathing/modAngle", modAngle);
+            Logger.recordOutput("Subsystems/Turret/track/pathing/modCurrent", modCurrent);
+            Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset", offset);
+            Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset A", modAngle-modCurrent);
+            Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset B", 1+modAngle-modCurrent);
+            Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset c", modAngle-modCurrent-1);
+            Logger.recordOutput("Subsystems/Turret/track/angle targeted", finalAngle);
+            Logger.recordOutput("Subsystems/Turret/track/lead time", Seconds.of(timeOfFlight));
+            Logger.recordOutput("Subsystems/Turret/track/target pos", targ.get());
+            Logger.recordOutput("Subsystems/Turret/track/virtual target pos", virtualTarg);
             
         }, this).finallyDo(() -> {
-            Logger.recordOutput("Turret/track/pathing/modAngle", Double.NaN, Rotations);
-            Logger.recordOutput("Turret/track/pathing/modCurrent", Double.NaN, Rotations);
-            Logger.recordOutput("Turret/track/pathing/angle offset", Double.NaN, Rotations);
-            Logger.recordOutput("Turret/track/pathing/angle offset A", Double.NaN, Rotations);
-            Logger.recordOutput("Turret/track/pathing/angle offset B", Double.NaN, Rotations);
-            Logger.recordOutput("Turret/track/pathing/angle offset c", Double.NaN, Rotations);
-            Logger.recordOutput("Turret/track/angle targeted", Double.NaN, Rotations);
-            Logger.recordOutput("Turret/track/lead time", Double.NaN, Seconds);
-            Logger.recordOutput("Turret/track/target pos", (Translation2d)null);
-            Logger.recordOutput("Turret/track/virtual target pos", (Translation2d)null);
+            Logger.recordOutput("Subsystems/Turret/track/pathing/modAngle", Double.NaN, Rotations);
+            Logger.recordOutput("Subsystems/Turret/track/pathing/modCurrent", Double.NaN, Rotations);
+            Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset", Double.NaN, Rotations);
+            Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset A", Double.NaN, Rotations);
+            Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset B", Double.NaN, Rotations);
+            Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset c", Double.NaN, Rotations);
+            Logger.recordOutput("Subsystems/Turret/track/angle targeted", Double.NaN, Rotations);
+            Logger.recordOutput("Subsystems/Turret/track/lead time", Double.NaN, Seconds);
+            Logger.recordOutput("Subsystems/Turret/track/target pos", (Translation2d)null);
+            Logger.recordOutput("Subsystems/Turret/track/virtual target pos", (Translation2d)null);
         }).withName("track position");
     }
 
@@ -162,12 +162,12 @@ public class Turret extends SubsystemBase {
         .raceWith(Commands.run(() -> {
             ready = false;
             runningSysid.set(true);
-            runningSysid.setText("Turret sysid running: dynamic: " + (reverse ? "reverse" : "forward"));
+            runningSysid.setText("Turret sysid running: Quasistatic, " + (reverse ? "reverse" : "forward"));
         }))
         .finallyDo(() -> {
             runningSysid.set(false);
         })
-        .withName("quasistatic sysid: " + (reverse ? "reverse" : "forward"));
+        .withName("Quasistatic sysid: " + (reverse ? "reverse" : "forward"));
     }
 
     public Command sysidDynamic(boolean reverse){
@@ -176,12 +176,12 @@ public class Turret extends SubsystemBase {
         .raceWith(Commands.run(() -> {
             ready = false;
             runningSysid.set(true);
-            runningSysid.setText("Turret sysid running: quasistatic: " + (reverse ? "reverse" : "forward"));
+            runningSysid.setText("Turret sysid running: Dynamic, " + (reverse ? "reverse" : "forward"));
         }))
         .finallyDo(() -> {
             runningSysid.set(false);
         })
-        .withName("quasistatic sysid: " + (reverse ? "reverse" : "forward"));
+        .withName("Dynamic sysid: " + (reverse ? "reverse" : "forward"));
     }
 
     public boolean isReady(){
