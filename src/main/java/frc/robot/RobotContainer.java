@@ -55,6 +55,7 @@ import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.ironmaple.simulation.gamepieces.GamePieceProjectile;
 import org.littletonrobotics.junction.LoggedPowerDistribution;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -78,10 +79,12 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import org.ironmaple.simulation.seasonspecific.rebuilt2026.*;
 
 public class RobotContainer {
+    private LoggedDashboardChooser<Command> sysidChooser = new LoggedDashboardChooser<Command>("sysid auto chooser");
 
     private DriveTrainSimulationConfig driveTrainSimulationConfig;
     private SwerveDriveSimulation driveSim;
@@ -256,6 +259,23 @@ public class RobotContainer {
         configureBindings();
 
         autoChooser = new AutoChooser(this);
+        sysidChooser.addDefaultOption("none", null);
+        sysidChooser.addOption("drive sysid quasistatic forward", drive.sysIdQuasistatic(Direction.kForward));
+        sysidChooser.addOption("drive sysid quasistatic reverse", drive.sysIdQuasistatic(Direction.kReverse));
+        sysidChooser.addOption("drive sysid dynamic forward",     drive.sysIdDynamic(Direction.kForward));
+        sysidChooser.addOption("drive sysid dynamic reverse",     drive.sysIdDynamic(Direction.kReverse));
+        sysidChooser.addOption("steer sysid quasistatic forward", drive.steerSysIdQuasistatic(Direction.kForward));
+        sysidChooser.addOption("steer sysid quasistatic reverse", drive.steerSysIdQuasistatic(Direction.kReverse));
+        sysidChooser.addOption("steer sysid dynamic forward",     drive.steerSysIdDynamic(Direction.kForward));
+        sysidChooser.addOption("steer sysid dynamic reverse",     drive.steerSysIdDynamic(Direction.kReverse));
+        sysidChooser.addOption("turret sysid quasistatic forward", turret.sysidQuasistatic(false));
+        sysidChooser.addOption("turret sysid quasistatic reverse", turret.sysidQuasistatic(true));
+        sysidChooser.addOption("turret sysid dynamic forward",     turret.sysidDynamic(false));
+        sysidChooser.addOption("turret sysid dynamic reverse",     turret.sysidDynamic(true));
+        sysidChooser.addOption("launcher sysid quasistatic forward", launcher.sysidQuasistatic(false));
+        sysidChooser.addOption("launcher sysid quasistatic reverse", launcher.sysidQuasistatic(true));
+        sysidChooser.addOption("launcher sysid dynamic forward",     launcher.sysidDynamic(false));
+        sysidChooser.addOption("launcher sysid dynamic reverse",     launcher.sysidDynamic(true));
 
         LoggedPowerDistribution.getInstance(pdp.getModule(), ModuleType.kRev);
 
@@ -397,8 +417,12 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        // Command auto = autoChooser.get();
-        Command auto = autoChooser.getSelected();
+        Command auto;
+        if(sysidChooser.get() == null || DriverStation.isFMSAttached()){
+            auto = autoChooser.getSelected();
+        } else {
+            auto = sysidChooser.get();
+        }
         return auto;
     }
 
