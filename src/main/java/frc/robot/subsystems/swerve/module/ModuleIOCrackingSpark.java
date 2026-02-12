@@ -24,6 +24,7 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.hardware.core.CoreTalonFX;
@@ -63,8 +64,9 @@ public class ModuleIOCrackingSpark implements ModuleIO {
     private final SparkBase turnSpark;
     private final AbsoluteEncoder turnEncoder;
 
+    private final VoltageOut driveOpenLoopOut = new VoltageOut(0);
     // Closed loop controllers
-    private final MotionMagicVelocityVoltage driveController = new MotionMagicVelocityVoltage(RPM.of(0));
+    private final VelocityVoltage driveController = new VelocityVoltage(RPM.of(0));
     private final ProfiledPID turnPID = new ProfiledPID(module.TURN_PID);
     private final SimpleFF turnFF = new SimpleFF(module.TURN_FF);
     // private final SimpleFF driveFF = new SimpleFF(module.DRIVE_FF);
@@ -89,6 +91,9 @@ public class ModuleIOCrackingSpark implements ModuleIO {
 
     private AngularVelocity driveVelocity = RadiansPerSecond.of(0.0);
     private AngularVelocity turnVelocity = RadiansPerSecond.of(0.0);
+
+    private Voltage driveOpenLoopVout = Volts.of(0);
+    private Voltage turnOpenLoopVout = Volts.of(0);
 
 	public ModuleIOCrackingSpark(int IO) {
         driveTalon = new TalonFX(
@@ -132,9 +137,9 @@ public class ModuleIOCrackingSpark implements ModuleIO {
                         .withRotorToSensorRatio(1)
                         );
         driveTalon.getConfigurator().apply(driveConfig);
-        driveTalon.getConfigurator().apply(new MotionMagicConfigs().withMotionMagicAcceleration(Double.MAX_VALUE));
+        // driveTalon.getConfigurator().apply(new MotionMagicConfigs().withMotionMagicAcceleration(Double.MAX_VALUE));
 
-        Symphony.getSymphony().registerInstrument(driveTalon);
+        // Symphony.getSymphony().registerInstrument(driveTalon);
 
         // Configure turn motor
         var turnConfig = new SparkMaxConfig();
@@ -185,7 +190,7 @@ public class ModuleIOCrackingSpark implements ModuleIO {
         // Update drive inputs
         inputs.drivePosition = drivePosition;
         inputs.driveVelocity = driveVelocity;
-        inputs.driveAppliedVolts = Volts.of(driveTalon.getDutyCycle().getValue()*driveTalon.getSupplyVoltage().getValue().in(Volts));
+        inputs.driveAppliedVolts = driveTalon.getMotorVoltage().getValue();
         inputs.driveConnected = driveConnectedDebounce.calculate(driveTalon.isConnected());
         inputs.driveGoal = driveGoal;
         inputs.driveSetpoint = Rotations.per(Second).of(driveTalon.getClosedLoopReference().getValue());//FIXME might be wrong units
@@ -218,10 +223,14 @@ public class ModuleIOCrackingSpark implements ModuleIO {
 
         if (driveClosedLoop) {
             driveTalon.setControl(driveController.withVelocity(driveGoal.plus(RadiansPerSecond.of(getDriveOffsetVelocity()))));
+        } else {
+            driveTalon.setControl(driveOpenLoopOut.withOutput(driveOpenLoopVout));
         }
         if (turnClosedLoop) {
             double ffVolts = turnFF.calculate(turnPID.getSetpoint().velocity);
             turnSpark.setVoltage(ffVolts + turnPID.calculate(turnEncoder.getPosition(), turnGoal.in(Radians)));
+        } else {
+            turnSpark.setVoltage(turnOpenLoopVout.in(Volts));
         }
 
     }
@@ -231,13 +240,13 @@ public class ModuleIOCrackingSpark implements ModuleIO {
 
     @Override
     public void setDriveOpenLoop(Voltage output) {
-        driveTalon.setControl(new VoltageOut(output));
+        driveOpenLoopVout = output;
         driveClosedLoop = false;
     }
 
     @Override
     public void setTurnOpenLoop(Voltage output) {
-        turnSpark.setVoltage(output);
+        turnOpenLoopVout = output;
         turnClosedLoop = false;
     }
 
