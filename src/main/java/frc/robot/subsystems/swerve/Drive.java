@@ -29,8 +29,8 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
-import frc.utils.Alert;
-import frc.utils.Alert.AlertType;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -149,7 +149,7 @@ public class Drive extends SubsystemBase {
         PathPlannerLogging.setLogActivePathCallback(
                 (activePath) -> {
                     Logger.recordOutput(
-                            "Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
+                            "Subsystems/Swerve/Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
                     field.getObject("PP/activePath").setPoses(activePath);
                 });
 
@@ -159,7 +159,7 @@ public class Drive extends SubsystemBase {
                         DRIVE_SYSID_VRAMP,
                         DRIVE_SYSID_VSTEP,
                         DRIVE_SYSID_TIMEOUT,
-                        (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
+                        (state) -> Logger.recordOutput("Subsystems/Swerve/Drive/SysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
                         (voltage) -> runCharacterization(voltage), null, this));
         steerSysId = new SysIdRoutine(
@@ -167,7 +167,7 @@ public class Drive extends SubsystemBase {
                         TURN_SYSID_VRAMP,
                         TURN_SYSID_VSTEP,
                         TURN_SYSID_TIMEOUT,
-                        (state) -> Logger.recordOutput("Drive/SteerSysIdState", state.toString())),
+                        (state) -> Logger.recordOutput("Subsystems/Swerve/Drive/SteerSysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
                         (voltage) -> runSteerCharacterization(voltage), null, this));
         angleSysId = new SysIdRoutine(
@@ -175,7 +175,7 @@ public class Drive extends SubsystemBase {
                         null,
                         null,
                         Seconds.of(10),
-                        (state) -> Logger.recordOutput("Drive/AngleSysIdState", state.toString())),
+                        (state) -> Logger.recordOutput("Subsystems/Swerve/AngleSysIdState", state.toString())),
                 new SysIdRoutine.Mechanism(
                         (voltage) -> runAngleCharacterization(voltage.in(Volts)), null, this));
 
@@ -197,7 +197,7 @@ public class Drive extends SubsystemBase {
     public void setCallback(){
         PathPlannerLogging.setLogTargetPoseCallback(
                 (targetPose) -> {
-                    Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
+                    Logger.recordOutput("Subsystems/Swerve/Odometry/TrajectorySetpoint", targetPose);
                     field.getObject("PP/targetpose").setPoses(targetPose);
                 });
     }
@@ -207,7 +207,7 @@ public class Drive extends SubsystemBase {
         odometryLock.lock(); // Prevents odometry updates while reading data
         //update and log gyro and module IOs
         gyroIO.updateInputs(gyroInputs);
-        Logger.processInputs("Drive/Gyro", gyroInputs);
+        Logger.processInputs("IO/Drive/Gyro", gyroInputs);
         for (var module : modules) {
             module.periodic();
         }
@@ -219,9 +219,9 @@ public class Drive extends SubsystemBase {
         }
         odometryLock.unlock();
 
-        Logger.recordOutput("Drive/tilt", ExtraMath.getTip(gyroInputs.angle));
+        Logger.recordOutput("Subsystems/Swerve/tilt", ExtraMath.getTip(gyroInputs.angle));
 
-        Logger.recordOutput("Drive/CurrentCommand",
+        Logger.recordOutput("Subsystems/Swerve/CurrentCommand",
                 getCurrentCommand() != null ? getCurrentCommand().getName() : "none");
 
         // Stop moving when disabled
@@ -334,16 +334,16 @@ public class Drive extends SubsystemBase {
                 MathUtil.clamp(angleController.calculate(getRotation().getRadians(), headingRad.getAsDouble()),
                         -ANGLE_MAX_VELOCITY.in(RadiansPerSecond), ANGLE_MAX_VELOCITY.in(RadiansPerSecond)));
 
-            Logger.recordOutput("Drive/Rotation lock/Target angle", headingRad.getAsDouble());
-            Logger.recordOutput("Drive/Rotation lock/Angle PID out", speeds.omegaRadiansPerSecond);
+            Logger.recordOutput("Subsystems/Swerve/Rotation lock/Target angle", headingRad.getAsDouble());
+            Logger.recordOutput("Subsystems/Swerve/Rotation lock/Angle PID out", speeds.omegaRadiansPerSecond);
 
             runVelocity(speeds);
 
         }, this))
         .until(() -> angleController.atSetpoint())
         .finallyDo(() -> {
-            Logger.recordOutput("Drive/Rotation lock/Target angle", Double.NaN);
-            Logger.recordOutput("Drive/Rotation lock/Angle PID out", Double.NaN);
+            Logger.recordOutput("Subsystems/Swerve/Rotation lock/Target angle", Double.NaN);
+            Logger.recordOutput("Subsystems/Swerve/Rotation lock/Angle PID out", Double.NaN);
             led.rotLock = false;
         })
         .withName("Rotation lock");
@@ -385,13 +385,13 @@ public class Drive extends SubsystemBase {
         // Calculate module setpoints
         ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
         SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(discreteSpeeds);
-        SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, MAX_SPEED);
+        SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, getMaxLinearSpeedMetersPerSec());
 
         YAGSLWidget.desiredChassisSpeedsObj = discreteSpeeds;
         // Log unoptimized setpoints
-        Logger.recordOutput("Drive/SwerveStates/Setpoints", setpointStates);
-        Logger.recordOutput("Drive/SwerveChassisSpeeds/Setpoints", discreteSpeeds);
-        Logger.recordOutput("Drive/SwerveChassisSpeeds/SetpointAngularVel", discreteSpeeds.omegaRadiansPerSecond);
+        Logger.recordOutput("Subsystems/Swerve/Drive/SwerveStates/Setpoints", setpointStates);
+        Logger.recordOutput("Subsystems/Swerve/Drive/SwerveChassisSpeeds/Setpoints", discreteSpeeds);
+        Logger.recordOutput("Subsystems/Swerve/Drive/SwerveChassisSpeeds/SetpointAngularVel", discreteSpeeds.omegaRadiansPerSecond);
 
         // Send setpoints to modules
         for (int i = 0; i < 4; i++) {
@@ -400,7 +400,7 @@ public class Drive extends SubsystemBase {
 
         YAGSLWidget.desiredStatesObj = setpointStates;
         // Log optimized setpoints (runSetpoint mutates each state)
-        Logger.recordOutput("Drive/SwerveStates/SetpointsOptimized", setpointStates);
+        Logger.recordOutput("Subsystems/Swerve/Drive/SwerveStates/SetpointsOptimized", setpointStates);
     }
 
 
@@ -467,22 +467,22 @@ public class Drive extends SubsystemBase {
      */
     private Rotation2d getPathVelocityHeading(ChassisSpeeds cs, Pose2d target) {
         if (getSpeed() < 0.25) {
-            Logger.recordOutput("Drive/Align/approach", "straight line");
+            Logger.recordOutput("Subsystems/Swerve/Align/approach", "straight line");
             var diff = target.getTranslation().minus(getPose().getTranslation());
-            Logger.recordOutput("Drive/Align/Calc/x", diff.getX());
-            Logger.recordOutput("Drive/Align/Calc/y", diff.getY());
-            Logger.recordOutput("Drive/Align/Calc/dir", diff.getAngle());
+            Logger.recordOutput("Subsystems/Swerve/Align/Calc/x", diff.getX());
+            Logger.recordOutput("Subsystems/Swerve/Align/Calc/y", diff.getY());
+            Logger.recordOutput("Subsystems/Swerve/Align/Calc/dir", diff.getAngle());
 
             return (diff.getNorm() < 0.01) ? target.getRotation() : diff.getAngle();
         }
 
-        Logger.recordOutput("Drive/Align/approach", "velocity comp");
+        Logger.recordOutput("Subsystems/Swerve/Align/approach", "velocity comp");
 
         var rotation = new Rotation2d(cs.vxMetersPerSecond, cs.vyMetersPerSecond);
 
-        Logger.recordOutput("Drive/Align/Calc/x", cs.vxMetersPerSecond);
-        Logger.recordOutput("Drive/Align/Calc/y", cs.vyMetersPerSecond);
-        Logger.recordOutput("Drive/Align/Calc/dir", rotation);
+        Logger.recordOutput("Subsystems/Swerve/Align/Calc/x", cs.vxMetersPerSecond);
+        Logger.recordOutput("Subsystems/Swerve/Align/Calc/y", cs.vyMetersPerSecond);
+        Logger.recordOutput("Subsystems/Swerve/Align/Calc/dir", rotation);
 
         return rotation;
     }
@@ -491,7 +491,7 @@ public class Drive extends SubsystemBase {
         return gyroInputs.yawVelocity;
     }
 
-    @AutoLogOutput(key = "Drive/speed")
+    @AutoLogOutput(key = "Subsystems/Swerve/Speed")
     public double getSpeed() {
         return new Translation2d(getChassisSpeeds().vxMetersPerSecond, getChassisSpeeds().vyMetersPerSecond).getNorm();
     }
@@ -539,7 +539,7 @@ public class Drive extends SubsystemBase {
      * Returns the module states (turn angles and drive velocities) for all of the
      * modules.
      */
-    @AutoLogOutput(key = "SwerveStates/Measured")
+    @AutoLogOutput(key = "Subsystems/Swerve/Drive/SwerveStates/Measured")
     private SwerveModuleState[] getModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
         for (int i = 0; i < 4; i++) {
@@ -562,19 +562,19 @@ public class Drive extends SubsystemBase {
     }
 
     /** Returns the measured chassis speeds of the robot. */
-    @AutoLogOutput(key = "SwerveChassisSpeeds/Measured")
+    @AutoLogOutput(key = "Subsystems/Swerve/ChassisSpeeds/Measured")
     public ChassisSpeeds getChassisSpeeds() {
         return kinematics.toChassisSpeeds(getModuleStates());
     }
 
     /** Returns the measured chassis speeds of the robot. */
-    @AutoLogOutput(key = "SwerveChassisSpeeds/Measured Field Relitive")
+    @AutoLogOutput(key = "Subsystems/Swerve/ChassisSpeeds/Field Relative")
     private ChassisSpeeds getFieldChassisSpeeds() {
         return ChassisSpeeds.fromRobotRelativeSpeeds(kinematics.toChassisSpeeds(getModuleStates()), getRotation());
     }
 
     /** Returns the current odometry pose. */
-    @AutoLogOutput(key = "Odometry/Robot")
+    @AutoLogOutput(key = "Subsystems/Swerve/Odometry/Robot Pose")
     public Pose2d getPose() {
         return poseEstimator.getEstimatedPosition();
     }
@@ -591,12 +591,12 @@ public class Drive extends SubsystemBase {
 
     /** Returns the maximum linear speed in meters per sec. */
     public double getMaxLinearSpeedMetersPerSec() {
-        return MAX_SPEED.in(MetersPerSecond);
+        return MAX_SPEED_PP.in(MetersPerSecond);
     }
 
     /** Returns the maximum angular speed in radians per sec. */
     public double getMaxAngularSpeedRadPerSec() {
-        return MAX_SPEED.in(MetersPerSecond) / RADIUS.in(Meters);
+        return MAX_SPEED_PP.in(MetersPerSecond) / RADIUS.in(Meters);
     }
 
     /** Runs the drive in a straight line with the specified drive output. */

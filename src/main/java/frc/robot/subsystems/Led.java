@@ -27,7 +27,7 @@ public class Led extends SubsystemBase {
     private AddressableLED led = new AddressableLED(0);
     private AddressableLEDBuffer buffer = new AddressableLEDBuffer(50);
 
-    private LoggedNetworkBoolean rainbow = new LoggedNetworkBoolean("LED override", false);
+    private LoggedNetworkBoolean rainbow = new LoggedNetworkBoolean("Debug/LED override", false);
 
     private LEDAnim b = new RainbowAnim(50);
 
@@ -105,22 +105,22 @@ public class Led extends SubsystemBase {
 
         led.setData(buffer);
 
-        Logger.recordOutput("led status", buffer.getLED(0).toHexString());
-        Logger.recordOutput("led state", buffer.getLED(49).toHexString());
+        Logger.recordOutput("Subsystems/led/status", buffer.getLED(0).toHexString());
+        Logger.recordOutput("Subsystems/led/state", buffer.getLED(49).toHexString());
 
-        Logger.recordOutput("led/hasCoral", hasCoral);
-        Logger.recordOutput("led/rotLock", rotLock);
-        Logger.recordOutput("led/aligningReef", aligningReef);
-        Logger.recordOutput("led/homing", homing);
-        Logger.recordOutput("led/climbing", climbMode);
-        Logger.recordOutput("led/homed", homed);
-        Logger.recordOutput("led/affectorInPos", affectorInPos);
-        Logger.recordOutput("led/alignInPos", alignInPos);
-        Logger.recordOutput("led/intakerunning", intakeRunning);
-        Logger.recordOutput("led/Sensor fault", intakeSensorFault);
+        Logger.recordOutput("Subsystems/led/hasCoral", hasCoral);
+        Logger.recordOutput("Subsystems/led/rotLock", rotLock);
+        Logger.recordOutput("Subsystems/led/aligningReef", aligningReef);
+        Logger.recordOutput("Subsystems/led/homing", homing);
+        Logger.recordOutput("Subsystems/led/climbing", climbMode);
+        Logger.recordOutput("Subsystems/led/homed", homed);
+        Logger.recordOutput("Subsystems/led/affectorInPos", affectorInPos);
+        Logger.recordOutput("Subsystems/led/alignInPos", alignInPos);
+        Logger.recordOutput("Subsystems/led/intakerunning", intakeRunning);
+        Logger.recordOutput("Subsystems/led/Sensor fault", intakeSensorFault);
 
         for (int i = 0; i < buffer.getLength(); i++) {
-            Logger.recordOutput("leds/" + i, buffer.getLED(i).toHexString());
+            Logger.recordOutput("Subsystems/led/leds/" + i, buffer.getLED(i).toHexString());
         }
     }
 

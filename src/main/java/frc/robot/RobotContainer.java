@@ -19,8 +19,8 @@ import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOPigeon2;
 import frc.robot.subsystems.swerve.gyro.GyroIOSim;
 import frc.robot.subsystems.swerve.module.ModuleIO;
+import frc.robot.subsystems.swerve.module.ModuleIOCrackingSpark;
 import frc.robot.subsystems.swerve.module.ModuleIOSim;
-import frc.robot.subsystems.swerve.module.ModuleIOSpark;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOMini;
@@ -37,6 +37,7 @@ import frc.utils.BatteryVoltageSim;
 import frc.utils.DisabledInstantCommand;
 import frc.utils.ExtraMath;
 import frc.utils.Joystick;
+import frc.utils.Symphony;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
@@ -66,8 +67,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import frc.utils.Alert;
-import frc.utils.Alert.AlertType;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -99,7 +100,7 @@ public class RobotContainer {
     private final XboxController driverController = new XboxController(OperatorConstants.DRIVER_CONTROLLER_PORT);
     private final XboxController operatorController = new XboxController(OperatorConstants.OPERATOR_CONTROLLER_PORT);
 
-    private LoggedNetworkBoolean resetOdometry = new LoggedNetworkBoolean("resetOdometry", false);
+    private LoggedNetworkBoolean resetOdometry = new LoggedNetworkBoolean("Debug/Reset Odometry", false);
     private AutoChooser autoChooser;
 
     private RumbleHandler rumbler = new RumbleHandler(driverController);
@@ -116,6 +117,8 @@ public class RobotContainer {
             AlertType.kWarning);
 
     private duelJoystickAxis driverSticks;
+
+    private Symphony symphony = Symphony.getSymphony();
 
     public RobotContainer() {
 
@@ -187,10 +190,10 @@ public class RobotContainer {
                         new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3]));
                 drive = new Drive(
                         new GyroIOPigeon2(),
-                        new ModuleIOSpark(0),
-                        new ModuleIOSpark(1),
-                        new ModuleIOSpark(2),
-                        new ModuleIOSpark(3),
+                        new ModuleIOCrackingSpark(0),
+                        new ModuleIOCrackingSpark(1),
+                        new ModuleIOCrackingSpark(2),
+                        new ModuleIOCrackingSpark(3),
                         vision,
                         driverSticks,
                         led);
@@ -393,13 +396,12 @@ public class RobotContainer {
         Translation2d hub = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? TurretConstants.RED_HUB : TurretConstants.BLUE_HUB;
         Translation2d pass = drive.getPose().getTranslation().nearest(Arrays.asList(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? RED_PASS : BLUE_PASS));
         boolean hubTrack = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? drive.getPose().getX()>12 : drive.getPose().getX()<4.5);
-        Logger.recordOutput("tracking hub", hubTrack);
+        Logger.recordOutput("Subsystems/Turret/track/tracking hub", hubTrack);
         target = hubTrack ? hub : pass;
     
         autoChooser.update();
 
-        Logger.recordOutput("zeroPose", new Pose3d());
-        Logger.recordOutput("Components", new Pose3d[]{
+        Logger.recordOutput("AScope/Components", new Pose3d[]{
                 new Pose3d(TURRET_OFFSET, new Rotation3d(0,0,turret.getAngle().in(Radians)-Math.PI/2)),
                 new Pose3d(TURRET_OFFSET.getX()+Math.cos(turret.getAngle().in(Radians))*HOOD_TO_TURRET_OFFSET.getX(),TURRET_OFFSET.getY()+(Math.sin(turret.getAngle().in(Radians))*HOOD_TO_TURRET_OFFSET.getX()), TURRET_OFFSET.getZ()+HOOD_TO_TURRET_OFFSET.getZ(),new Rotation3d(Units.degreesToRadians(0),0,turret.getAngle().in(Radians)-Math.PI/2)),
         });
@@ -409,10 +411,10 @@ public class RobotContainer {
 
         SimulatedArena.getInstance().simulationPeriodic();
 
-        Logger.recordOutput("simulatedVoltage", BatteryVoltageSim.getInstance().calculateVoltage());
-        Logger.recordOutput("FieldSimulation/RobotPose", driveSim.getSimulatedDriveTrainPose());
+        Logger.recordOutput("Sim/simulatedVoltage", BatteryVoltageSim.getInstance().calculateVoltage());
+        Logger.recordOutput("Sim/FieldSimulation/RobotPose", driveSim.getSimulatedDriveTrainPose());
 
-        Logger.recordOutput("FieldSimulation/Fuel",
+        Logger.recordOutput("Sim/FieldSimulation/Fuel",
                 SimulatedArena.getInstance().getGamePiecesArrayByType("Fuel"));
     }
 
@@ -432,6 +434,8 @@ public class RobotContainer {
 
     public void enableTeleop() {
         CommandScheduler.getInstance().schedule(drive.TeleopDrive());
+        // symphony.loadSong("music/the-trout.chrp");
+        // symphony.play();
         drive.setCallback();
     }
 
