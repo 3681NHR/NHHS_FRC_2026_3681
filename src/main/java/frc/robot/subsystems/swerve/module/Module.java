@@ -4,6 +4,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Voltage;
@@ -87,6 +88,13 @@ public class Module {
     public void runCharacterization(Voltage output) {
         io.setDriveOpenLoop(output);
         io.setTurnPosition(Radians.of(0));
+    }
+    /**
+     * Runs the module with the specified output while controlling to zero degrees.
+     */
+    public void runCharacterization(Voltage output, Angle angle) {
+        io.setDriveOpenLoop(output);
+        io.setTurnPosition(angle);
     }
 
     /** spin with no drive speed */

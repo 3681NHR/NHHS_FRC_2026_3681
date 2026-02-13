@@ -617,6 +617,11 @@ public class Drive extends SubsystemBase {
 
     /** spins robot */
     public void runAngleCharacterization(double output) {
-        runVelocity(new ChassisSpeeds(0, 0, output));
+        ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(new ChassisSpeeds(0, 0, output), 0.02);
+        SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(discreteSpeeds);
+        
+        for (int i = 0; i < 4; i++) {
+            modules[i].runCharacterization(Volts.of(output), Radians.of(setpointStates[i].angle.getRadians()));
+        }
     }
 }
