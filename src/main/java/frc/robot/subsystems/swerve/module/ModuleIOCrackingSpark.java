@@ -28,7 +28,6 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.AbsoluteEncoder;
@@ -51,7 +50,6 @@ import edu.wpi.first.units.measure.Voltage;
 import frc.robot.constants.DriveConstants;
 import frc.robot.constants.DriveConstants.module;
 import frc.utils.PhoenixOdometryThread;
-import frc.utils.SparkOdometryThread;
 import frc.utils.controlWrappers.ProfiledPID;
 import frc.utils.controlWrappers.SimpleFF;
 
@@ -204,9 +202,9 @@ public class ModuleIOCrackingSpark implements ModuleIO {
 
         turnPID.enableContinuousInput(module.TURN_MIN_POS.in(Radians), module.TURN_MAX_POS.in(Radians));
         // Create odometry queues
-        timestampQueue = SparkOdometryThread.getInstance().makeTimestampQueue();
+        timestampQueue = PhoenixOdometryThread.getInstance().makeTimestampQueue();
         drivePositionQueue = PhoenixOdometryThread.getInstance().registerSignal(drivePosition.clone());
-        turnPositionQueue = SparkOdometryThread.getInstance().registerSignal(turnSpark, turnEncoder::getPosition);
+        turnPositionQueue = PhoenixOdometryThread.getInstance().registerSignal(turnEncoder::getPosition);
 
         
         BaseStatusSignal.setUpdateFrequencyForAll(
