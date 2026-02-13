@@ -74,8 +74,7 @@ public class ModuleIOCrackingSpark implements ModuleIO {
     private final SimpleFF turnFF = new SimpleFF(module.TURN_FF);
 
     // Queue inputs from odometry thread
-    private final Queue<Double> turnTimestampQueue;
-    private final Queue<Double> driveTimestampQueue;
+    private final Queue<Double> timestampQueue;
     private final Queue<Double> drivePositionQueue;
     private final Queue<Double> turnPositionQueue;
 
@@ -181,8 +180,7 @@ public class ModuleIOCrackingSpark implements ModuleIO {
 
         turnPID.enableContinuousInput(module.TURN_MIN_POS.in(Radians), module.TURN_MAX_POS.in(Radians));
         // Create odometry queues
-        turnTimestampQueue = SparkOdometryThread.getInstance().makeTimestampQueue();
-        driveTimestampQueue = PhoenixOdometryThread.getInstance().makeTimestampQueue();
+        timestampQueue = SparkOdometryThread.getInstance().makeTimestampQueue();
         drivePositionQueue = PhoenixOdometryThread.getInstance().registerSignal(drivePosition.clone());
         turnPositionQueue = SparkOdometryThread.getInstance().registerSignal(turnSpark, turnEncoder::getPosition);
 
@@ -236,14 +234,13 @@ public class ModuleIOCrackingSpark implements ModuleIO {
         inputs.turnOpenLoop = !turnClosedLoop;
         
         // Update odometry inputs
-        inputs.odometryTurnTimestamps = turnTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
-        inputs.odometryDriveTimestamps = driveTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+        inputs.odometryTimestamps = timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
         inputs.odometryDrivePositionsRad = drivePositionQueue.stream().mapToDouble((Double value) -> value).toArray();
+        
         inputs.odometryTurnPositionsRad = turnPositionQueue.stream()
                 .mapToDouble((Double value) -> value)
                 .toArray();
-        turnTimestampQueue.clear();
-        driveTimestampQueue.clear();
+        timestampQueue.clear();
         drivePositionQueue.clear();
         turnPositionQueue.clear();
 
