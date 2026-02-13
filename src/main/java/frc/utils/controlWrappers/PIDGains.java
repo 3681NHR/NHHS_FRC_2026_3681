@@ -1,5 +1,7 @@
 package frc.utils.controlWrappers;
 
+import java.util.ArrayList;
+
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
@@ -9,14 +11,14 @@ public class PIDGains {
     public static class Gains {
         String key;
         LoggedNetworkBoolean apply;
-        Runnable applyCallback = ()->{};
+        ArrayList<Runnable> applyCallback = new ArrayList<Runnable>();
 
         public void update() {
         }
 
         public Gains makeTunable(String key) {
             this.key = key;
-            apply = new LoggedNetworkBoolean(key + "apply", false);
+            apply = new LoggedNetworkBoolean(key + "/apply", false);
             PIDTuner.tunableGains.add(this);
             return this;
         }
@@ -26,7 +28,7 @@ public class PIDGains {
          * @return 
          */
         public Gains withCallback(Runnable onApply){
-            this.applyCallback = onApply;
+            this.applyCallback.add(onApply);
             return this;
         }
     }
@@ -52,7 +54,7 @@ public class PIDGains {
         }
 
         @Override
-        public Gains makeTunable(String key){
+        public PID makeTunable(String key){
             super.makeTunable(key);
 
             setkP = new LoggedNetworkNumber(key + "/kp", kP);
@@ -71,7 +73,9 @@ public class PIDGains {
                     kD = setkD.get();   
 
                     apply.set(false);
-                    applyCallback.run();
+                    for(Runnable a : applyCallback){
+                        a.run();
+                    }
                 }
             }
         }
@@ -109,7 +113,7 @@ public class PIDGains {
         
 
         @Override
-        public Gains makeTunable(String key){
+        public ProfiledPID makeTunable(String key){
             super.makeTunable(key);
 
             setkP = new LoggedNetworkNumber(key + "/kp", kP);
@@ -132,7 +136,10 @@ public class PIDGains {
                     maxAccel = setmaxAccel.get();   
                 
                     apply.set(false);
-                    applyCallback.run();
+                    
+                    for(Runnable a : applyCallback){
+                        a.run();
+                    }
                 }
             }
         }
@@ -159,7 +166,7 @@ public class PIDGains {
         }
 
         @Override
-        public Gains makeTunable(String key){
+        public SimpleFF makeTunable(String key){
             super.makeTunable(key);
 
             setkS = new LoggedNetworkNumber(key + "/ks", kS);
@@ -178,7 +185,10 @@ public class PIDGains {
                     kA = setkA.get();   
 
                     apply.set(false);
-                    applyCallback.run();
+                    
+                    for(Runnable a : applyCallback){
+                        a.run();
+                    }
                 }
             }
         }
@@ -210,7 +220,7 @@ public class PIDGains {
         
 
         @Override
-        public Gains makeTunable(String key){
+        public GravityFF makeTunable(String key){
             super.makeTunable(key);
 
             setkS = new LoggedNetworkNumber(key + "/ks", kS);
@@ -231,7 +241,10 @@ public class PIDGains {
                     kG = setkG.get();   
 
                     apply.set(false);
-                    applyCallback.run();
+                    
+                    for(Runnable a : applyCallback){
+                        a.run();
+         }
                 }
             }
         }

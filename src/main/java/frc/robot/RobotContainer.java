@@ -24,7 +24,6 @@ import frc.robot.subsystems.swerve.module.ModuleIOSim;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOMini;
-import frc.robot.subsystems.turret.TurretIOReal;
 import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.CameraIO;
 import frc.robot.subsystems.vision.CameraIOPhoton;
@@ -34,15 +33,12 @@ import frc.utils.rumble.*;
 import frc.utils.Joystick.duelJoystickAxis;
 import frc.utils.TimerHandler;
 import frc.utils.BatteryVoltageSim;
-import frc.utils.DisabledInstantCommand;
 import frc.utils.ExtraMath;
 import frc.utils.Joystick;
-import frc.utils.PhoenixOdometryThread;
-import frc.utils.Symphony;
+import frc.utils.PIDTuner;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static frc.robot.constants.TurretConstants.*;
@@ -54,7 +50,6 @@ import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
-import org.ironmaple.simulation.gamepieces.GamePieceProjectile;
 import org.littletonrobotics.junction.LoggedPowerDistribution;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -65,7 +60,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
@@ -115,8 +109,6 @@ public class RobotContainer {
             AlertType.kWarning);
 
     private duelJoystickAxis driverSticks;
-
-    private Symphony symphony = Symphony.getSymphony();
 
     public RobotContainer() {
 
@@ -388,6 +380,7 @@ public class RobotContainer {
 
     public void Periodic() {
         rumbler.update(0.02);
+        PIDTuner.updateTunables();
         driverDisconnected.set(!driverController.isConnected());
         operatorDisconnected.set(!operatorController.isConnected());
         

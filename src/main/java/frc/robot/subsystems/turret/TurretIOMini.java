@@ -22,7 +22,6 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
-import frc.utils.PIDTuner;
 import frc.utils.controlWrappers.ProfiledPID;
 import frc.utils.controlWrappers.SimpleFF;
 
@@ -45,8 +44,6 @@ public class TurretIOMini implements TurretIO {
     private Alert disconenct = new Alert("turret absolute encoder is disconnected", AlertType.kWarning);
     private Alert motorError = new Alert("", AlertType.kError);
 
-    private PIDTuner tuner = new PIDTuner(pid, "tuning/mini turret").withFF(ff);
-
     public TurretIOMini(){
     }
 
@@ -55,8 +52,6 @@ public class TurretIOMini implements TurretIO {
         disconenct.set(!encoder.isConnected());
         motorError.set(motor.getLastError() != REVLibError.kOk);
         motorError.setText("turret motor error: " + motor.getLastError().toString());
-        tuner.update(0.02);
-
 
         filter.predict(VecBuilder.fill(Vout.in(Volts) - Math.min(TURRET_ID_GAINS.kS, Math.abs(Vout.in(Volts)))*Math.signum(getSpeed().magnitude())), 0.02);
         filter.correct(VecBuilder.fill(Vout.in(Volts) - Math.min(TURRET_ID_GAINS.kS, Math.abs(Vout.in(Volts)))*Math.signum(getSpeed().magnitude())), VecBuilder.fill(getAngle().in(Radians), getSpeed().in(RadiansPerSecond)));

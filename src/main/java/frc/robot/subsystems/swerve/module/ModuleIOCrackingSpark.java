@@ -63,7 +63,7 @@ import frc.utils.controlWrappers.SimpleFF;
 public class ModuleIOCrackingSpark implements ModuleIO {
 
     // Hardware objects
-    private final CoreTalonFX driveTalon;
+    private final TalonFX driveTalon;
     private final SparkBase turnSpark;
     private final AbsoluteEncoder turnEncoder;
 
@@ -144,6 +144,29 @@ public class ModuleIOCrackingSpark implements ModuleIO {
                         );
         driveTalon.getConfigurator().apply(driveConfig);
 
+        module.DRIVE_PID.withCallback(() -> {
+            driveTalon.getConfigurator().apply(new Slot0Configs()
+                        .withKP(module.DRIVE_PID.kP)
+                        .withKI(module.DRIVE_PID.kI)
+                        .withKD(module.DRIVE_PID.kD)
+                        .withKS(module.DRIVE_FF.kS)
+                        .withKV(module.DRIVE_FF.kV)
+                        .withKA(module.DRIVE_FF.kA)
+                        .withKG(0)
+                        );
+        });
+        module.DRIVE_FF.withCallback(() -> {
+            driveTalon.getConfigurator().apply(new Slot0Configs()
+                        .withKP(module.DRIVE_PID.kP)
+                        .withKI(module.DRIVE_PID.kI)
+                        .withKD(module.DRIVE_PID.kD)
+                        .withKS(module.DRIVE_FF.kS)
+                        .withKV(module.DRIVE_FF.kV)
+                        .withKA(module.DRIVE_FF.kA)
+                        .withKG(0)
+                        );
+        });
+
         driveAppliedVolts = driveTalon.getMotorVoltage();
         drivePosition = driveTalon.getPosition();
         driveVelocity = driveTalon.getVelocity();
@@ -192,7 +215,8 @@ public class ModuleIOCrackingSpark implements ModuleIO {
             driveVelocity,
             driveAppliedVolts,
             driveTemp,
-            driveSupplyCurrent
+            driveSupplyCurrent,
+            driveTalon.getClosedLoopReference()
             );
         ParentDevice.optimizeBusUtilizationForAll(driveTalon);
 
@@ -204,14 +228,14 @@ public class ModuleIOCrackingSpark implements ModuleIO {
         turnVelocity = RPM.of(turnEncoder.getVelocity());
 
         // Update drive inputs
-        inputs.driveTemp = driveTemp.getValue();
-        inputs.drivePosition = drivePosition.getValue();
-        inputs.driveVelocity = driveVelocity.getValue();
-        inputs.driveAppliedVolts = driveAppliedVolts.getValue();
+        inputs.driveTemp = driveTemp.refresh().getValue();
+        inputs.drivePosition = drivePosition.refresh().getValue();
+        inputs.driveVelocity = driveVelocity.refresh().getValue();
+        inputs.driveAppliedVolts = driveAppliedVolts.refresh().getValue();
         inputs.driveConnected = driveConnectedDebounce.calculate(driveTalon.isConnected());
         inputs.driveGoal = driveGoal;
         inputs.driveSetpoint = Rotations.per(Second).of(driveTalon.getClosedLoopReference().getValue());//FIXME might be wrong units
-        inputs.driveCurrent = driveSupplyCurrent.getValue();
+        inputs.driveCurrent = driveSupplyCurrent.refresh().getValue();
         inputs.driveOpenLoop = !driveClosedLoop;
 
         // Update turn inputs

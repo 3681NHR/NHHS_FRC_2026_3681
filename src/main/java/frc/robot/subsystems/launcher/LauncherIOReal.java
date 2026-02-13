@@ -29,7 +29,7 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 
 public class LauncherIOReal implements LauncherIO {
 
-    TalonFX motor = new TalonFX(LAUNCHER_MOTOR_ID);
+    // TalonFX motor = new TalonFX(LAUNCHER_MOTOR_ID);
 
     VoltageOut openLoopRequest = new VoltageOut(0);
     VelocityVoltage closedLoopRequest = new VelocityVoltage(0);
@@ -46,54 +46,54 @@ public class LauncherIOReal implements LauncherIO {
     private final KalmanFilter<N2, N1, N2> filter = new KalmanFilter<N2, N1, N2>(Nat.N2(), Nat.N2(), model, VecBuilder.fill(0.2, 1.0), VecBuilder.fill(1.3, 0.7), 0.02);
     
     public LauncherIOReal(){
-        motor.getConfigurator()
-        .apply(new Slot0Configs()
-            .withKP(LAUNCHER_PID_GAINS.kP)
-            .withKI(LAUNCHER_PID_GAINS.kI)
-            .withKD(LAUNCHER_PID_GAINS.kD)
-            .withKS(LAUNCHER_FF_GAINS.kS)
-            .withKV(LAUNCHER_FF_GAINS.kV)
-            .withKA(LAUNCHER_FF_GAINS.kA)
-        );
-        motor.getConfigurator().apply(new VoltageConfigs().withPeakReverseVoltage(0));
+        // motor.getConfigurator()
+        // .apply(new Slot0Configs()
+        //     .withKP(LAUNCHER_PID_GAINS.kP)
+        //     .withKI(LAUNCHER_PID_GAINS.kI)
+        //     .withKD(LAUNCHER_PID_GAINS.kD)
+        //     .withKS(LAUNCHER_FF_GAINS.kS)
+        //     .withKV(LAUNCHER_FF_GAINS.kV)
+        //     .withKA(LAUNCHER_FF_GAINS.kA)
+        // );
+        // motor.getConfigurator().apply(new VoltageConfigs().withPeakReverseVoltage(0));
     }
 
     @Override
     public void updateInputs(LauncherIOInputs input){
-        filter.predict(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS, Math.abs(vout.in(Volts)))*Math.signum(motor.getVelocity().getValue().in(RadiansPerSecond))), 0.02);
-        filter.correct(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS, Math.abs(vout.in(Volts)))*Math.signum(motor.getVelocity().getValue().in(RadiansPerSecond))), VecBuilder.fill(motor.getPosition().getValue().in(Radians), motor.getVelocity().getValue().in(RadiansPerSecond)));
-        speed = RadiansPerSecond.of(filter.getXhat().get(1,0));
+        // filter.predict(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS, Math.abs(vout.in(Volts)))*Math.signum(motor.getVelocity().getValue().in(RadiansPerSecond))), 0.02);
+        // filter.correct(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS, Math.abs(vout.in(Volts)))*Math.signum(motor.getVelocity().getValue().in(RadiansPerSecond))), VecBuilder.fill(motor.getPosition().getValue().in(Radians), motor.getVelocity().getValue().in(RadiansPerSecond)));
+        // speed = RadiansPerSecond.of(filter.getXhat().get(1,0));
 
-        if(DriverStation.isEnabled()){
-            if(!openLoop){
-                motor.setControl(closedLoopRequest.withVelocity(goal));
-            } else{
-                motor.setControl(openLoopRequest.withOutput(vout));
-            }
-        } else {
-            motor.stopMotor();
-        }
-        if(motor.getDeviceTemp().getValue().magnitude() > LAUNCHER_MAX_TEMP.magnitude()){
-            overheat.set(true);
-            overheat.setText("Launcher motor overheat! ("+motor.getDeviceTemp().getValue().in(Celsius)+"C)");
-        } else {
-            overheat.set(false);
-        }
-        disconnect.set(motor.isConnected());
+        // if(DriverStation.isEnabled()){
+        //     if(!openLoop){
+        //         motor.setControl(closedLoopRequest.withVelocity(goal));
+        //     } else{
+        //         motor.setControl(openLoopRequest.withOutput(vout));
+        //     }
+        // } else {
+        //     motor.stopMotor();
+        // }
+        // if(motor.getDeviceTemp().getValue().magnitude() > LAUNCHER_MAX_TEMP.magnitude()){
+        //     overheat.set(true);
+        //     overheat.setText("Launcher motor overheat! ("+motor.getDeviceTemp().getValue().in(Celsius)+"C)");
+        // } else {
+        //     overheat.set(false);
+        // }
+        // disconnect.set(motor.isConnected());
         
-        input.filteredAngle = Radians.of(filter.getXhat(0));
-        input.filteredSpeed = speed;
-        input.rawAngle = motor.getPosition().getValue();
-        input.rawSpeed = motor.getVelocity().getValue();
+        // input.filteredAngle = Radians.of(filter.getXhat(0));
+        // input.filteredSpeed = speed;
+        // input.rawAngle = motor.getPosition().getValue();
+        // input.rawSpeed = motor.getVelocity().getValue();
 
-        input.motorCurrentOut = motor.getStatorCurrent().getValue();
-        input.motorTemp = motor.getDeviceTemp().getValue();
-        input.motorVoltageOut = vout;
+        // input.motorCurrentOut = motor.getStatorCurrent().getValue();
+        // input.motorTemp = motor.getDeviceTemp().getValue();
+        // input.motorVoltageOut = vout;
 
-        input.goal = goal;
-        input.atSetpoint = MathUtil.isNear(goal.in(RPM), speed.in(RPM), LAUNCHER_SETPOINT_TOLERANCE.in(RPM));
+        // input.goal = goal;
+        // input.atSetpoint = MathUtil.isNear(goal.in(RPM), speed.in(RPM), LAUNCHER_SETPOINT_TOLERANCE.in(RPM));
     
-        input.openLoop = openLoop;
+        // input.openLoop = openLoop;
     }
 
     @Override
