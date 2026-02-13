@@ -14,6 +14,6 @@ public class PID extends PIDController{
         super(kP, kI, kD, period);
     }
     public PID(PIDGains.PID gains){
-        super(gains.kP(), gains.kI(), gains.kD());
+        super(gains.kP, gains.kI, gains.kD);
     }
 }

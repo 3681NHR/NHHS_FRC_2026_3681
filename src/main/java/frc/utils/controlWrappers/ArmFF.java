@@ -13,6 +13,6 @@ public class ArmFF extends ArmFeedforward{
         super(kS, kG, kV, kA, dt);
     }
     public ArmFF(PIDGains.GravityFF gains){
-        super(gains.kS(), gains.kG(), gains.kV(), gains.kA());
+        super(gains.kS, gains.kG, gains.kV, gains.kA);
     }
 }

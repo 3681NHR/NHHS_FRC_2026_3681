@@ -33,7 +33,8 @@ public interface ModuleIO {
         public Current turnCurrent = Amps.of(0);
         public Temperature turnTemp = Celsius.of(0);
 
-        public double[] odometryTimestamps = new double[] {};
+        public double[] odometryTurnTimestamps = new double[] {};
+        public double[] odometryDriveTimestamps = new double[] {};
         public double[] odometryDrivePositionsRad = new double[] {};
         public double[] odometryTurnPositionsRad = new double[] {};
     }

@@ -1,22 +1,20 @@
 package frc.utils;
 
+import java.util.ArrayList;
+import java.util.function.DoubleConsumer;
+
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
-import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.utils.controlWrappers.ArmFF;
 import frc.utils.controlWrappers.ElevatorFF;
 import frc.utils.controlWrappers.PID;
+import frc.utils.controlWrappers.PIDGains.Gains;
 import frc.utils.controlWrappers.ProfiledPID;
 import frc.utils.controlWrappers.SimpleFF;
 
 public class PIDTuner {
-    private PID pid;
-    private ProfiledPID ppid;
-    private SimpleFF ff;
-    private ElevatorFF eff;
-    private ArmFF aff;
 
     private LoggedNetworkNumber p;
     private LoggedNetworkNumber i;
@@ -28,6 +26,16 @@ public class PIDTuner {
     private LoggedNetworkNumber a;
     private LoggedNetworkNumber g;
 
+    private DoubleConsumer setp;
+    private DoubleConsumer seti;
+    private DoubleConsumer setd;
+    private DoubleConsumer setspeed;
+    private DoubleConsumer setaccel;
+    private DoubleConsumer sets;
+    private DoubleConsumer setv;
+    private DoubleConsumer seta;
+    private DoubleConsumer setg;
+
     private LoggedNetworkBoolean apply;
 
     private String key = "";
@@ -38,13 +46,16 @@ public class PIDTuner {
      * @param key NT4 key for tuner data and controls
      */
     public PIDTuner(PID controller, String key){
-        this.pid = controller;
         this.key = key;
 
         p = new LoggedNetworkNumber(key + "/gains/Kp", 0);
         i = new LoggedNetworkNumber(key + "/gains/Ki", 0);
         d = new LoggedNetworkNumber(key + "/gains/Kd", 0);
         apply = new LoggedNetworkBoolean(key + "/gains/set", false);
+
+        setp = controller::setP;
+        seti = controller::setI;
+        setd = controller::setD;
     }
     /**
      * contructs a PIDTuner
@@ -52,7 +63,6 @@ public class PIDTuner {
      * @param key NT4 key for tuner data and controls
      */
     public PIDTuner(ProfiledPID controller, String key){
-        this.ppid = controller;
         this.key = key;
 
         p = new LoggedNetworkNumber(key + "/gains/Kp", 0);
@@ -60,35 +70,114 @@ public class PIDTuner {
         d = new LoggedNetworkNumber(key + "/gains/Kd", 0);
         speed = new LoggedNetworkNumber(key + "/gains/max speed", 0);
         accel = new LoggedNetworkNumber(key + "/gains/max accel", 0);
+
         apply = new LoggedNetworkBoolean(key + "/gains/set", false);
+        
+        setp = controller::setP;
+        seti = controller::setI;
+        setd = controller::setD;
+        setspeed = (speed) -> controller.setSpeed(speed);
+        setaccel = (accel) -> controller.setAccel(accel);
+    }
+    public PIDTuner(DoubleConsumer p,DoubleConsumer i,DoubleConsumer d,DoubleConsumer speed, DoubleConsumer accel, String key){
+        this.key = key;
+
+        this.p = new LoggedNetworkNumber(key + "/gains/Kp", 0);
+        this.i = new LoggedNetworkNumber(key + "/gains/Ki", 0);
+        this.d = new LoggedNetworkNumber(key + "/gains/Kd", 0);
+        this.speed = new LoggedNetworkNumber(key + "/gains/max speed", 0);
+        this.accel = new LoggedNetworkNumber(key + "/gains/max accel", 0);
+
+        apply = new LoggedNetworkBoolean(key + "/gains/set", false);
+        
+        setp = p;
+        seti = i;
+        setd = d;
+        setspeed = speed;
+        setaccel = accel;
+    }
+    public PIDTuner(DoubleConsumer p,DoubleConsumer i,DoubleConsumer d, String key){
+        this.key = key;
+
+        this.p = new LoggedNetworkNumber(key + "/gains/Kp", 0);
+        this.i = new LoggedNetworkNumber(key + "/gains/Ki", 0);
+        this.d = new LoggedNetworkNumber(key + "/gains/Kd", 0);
+
+        apply = new LoggedNetworkBoolean(key + "/gains/set", false);
+        
+        setp = p;
+        seti = i;
+        setd = d;
     }
 
     public PIDTuner withFF(ArmFF ff){
-        this.aff = ff;
         
         s = new LoggedNetworkNumber(key + "/gains/Ks", 0);
         v = new LoggedNetworkNumber(key + "/gains/Kv", 0);
         a = new LoggedNetworkNumber(key + "/gains/Ka", 0);
         g = new LoggedNetworkNumber(key + "/gains/Kg", 0);
+        apply = new LoggedNetworkBoolean(key + "/gains/set", false);
+
+        sets = ff::setKs;
+        setv = ff::setKv;
+        seta = ff::setKa;
+        setg = ff::setKg;
 
         return this;
     }
     public PIDTuner withFF(ElevatorFF ff){
-        this.eff = ff;
         
         s = new LoggedNetworkNumber(key + "/gains/Ks", 0);
         v = new LoggedNetworkNumber(key + "/gains/Kv", 0);
         a = new LoggedNetworkNumber(key + "/gains/Ka", 0);
         g = new LoggedNetworkNumber(key + "/gains/Kg", 0);
+        apply = new LoggedNetworkBoolean(key + "/gains/set", false);
+
+        sets = ff::setKs;
+        setv = ff::setKv;
+        seta = ff::setKa;
+        setg = ff::setKg;
 
         return this;
     }
     public PIDTuner withFF(SimpleFF ff){
-        this.ff = ff;
         
         s = new LoggedNetworkNumber(key + "/gains/Ks", 0);
         v = new LoggedNetworkNumber(key + "/gains/Kv", 0);
         a = new LoggedNetworkNumber(key + "/gains/Ka", 0);
+        apply = new LoggedNetworkBoolean(key + "/gains/set", false);
+        
+        sets = ff::setKs;
+        setv = ff::setKv;
+        seta = ff::setKa;
+
+        return this;
+    }
+    public PIDTuner withFF(DoubleConsumer s,DoubleConsumer v,DoubleConsumer a){
+        
+        this.s = new LoggedNetworkNumber(key + "/gains/Ks", 0);
+        this.v = new LoggedNetworkNumber(key + "/gains/Kv", 0);
+        this.a = new LoggedNetworkNumber(key + "/gains/Ka", 0);
+        apply = new LoggedNetworkBoolean(key + "/gains/set", false);
+
+        sets = s;
+        setv = v;
+        seta = a;
+
+        return this;
+    }
+    public PIDTuner withFF(DoubleConsumer s,DoubleConsumer v,DoubleConsumer a,DoubleConsumer g){
+        
+        this.s = new LoggedNetworkNumber(key + "/gains/Ks", 0);
+        this.v = new LoggedNetworkNumber(key + "/gains/Kv", 0);
+        this.a = new LoggedNetworkNumber(key + "/gains/Ka", 0);
+        this.g = new LoggedNetworkNumber(key + "/gains/Kg", 0);
+        apply = new LoggedNetworkBoolean(key + "/gains/set", false);
+
+        sets = s;
+        setv = v;
+        seta = a;
+        setg = g;
 
         return this;
     }
@@ -96,40 +185,26 @@ public class PIDTuner {
     public void update(double dt){
         if(DriverStation.isTest()){
             if(apply.get()){
-                if(pid != null){
-                    pid.setPID(
-                        p.get(),
-                        i.get(),
-                        d.get()
-                    );
-                }
-                if(ppid != null){
-                    ppid.setPID(
-                        p.get(),
-                        i.get(),
-                        d.get()
-                    );
-                    ppid.setConstraints(new Constraints(speed.get(), accel.get()));
-                }
-                if(ff != null){
-                    ff.setKs(s.get());
-                    ff.setKv(v.get());
-                    ff.setKa(a.get());
-                }
-                if(aff != null){
-                    aff.setKs(s.get());
-                    aff.setKv(v.get());
-                    aff.setKa(a.get());
-                    aff.setKg(g.get());
-                }
-                if(eff != null){
-                    eff.setKs(s.get());
-                    eff.setKv(v.get());
-                    eff.setKa(a.get());
-                    eff.setKg(g.get());
-                }
+                if(setp != null) setp.accept(p.get());
+                if(seti != null) seti.accept(i.get());
+                if(setd != null) setd.accept(d.get());
+
+                if(setspeed != null) setspeed.accept(speed.get());
+                if(setaccel != null) setaccel.accept(accel.get());
+
+                if(sets != null) sets.accept(s.get());
+                if(setv != null) setv.accept(v.get());
+                if(seta != null) seta.accept(a.get());
+                if(setg != null) setg.accept(g.get());
                 apply.set(false);
             }
+        }
+    }
+
+    public static ArrayList<Gains> tunableGains = new ArrayList<Gains>();
+    public static void updateTunables(){
+        for(Gains g : tunableGains){
+            g.update();
         }
     }
 }

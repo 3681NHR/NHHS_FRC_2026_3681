@@ -54,6 +54,7 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionEstimate;
 import frc.utils.ExtraMath;
 import frc.utils.LoggedField2d;
+import frc.utils.PhoenixOdometryThread;
 import frc.utils.SparkOdometryThread;
 import frc.utils.Joystick.duelJoystickAxis;
 import frc.utils.controlWrappers.PID;
@@ -82,8 +83,8 @@ public class Drive extends SubsystemBase {
             RobotBase.isReal() ? ANGLE_PID : ANGLE_PID_SIM);
 
     public PPHolonomicDriveController autoController = new PPHolonomicDriveController(
-            new PIDConstants(TRANS_PID.kP(), TRANS_PID.kI(), TRANS_PID.kD()),
-            new PIDConstants(AUTO_ANGLE_PID.kP(), AUTO_ANGLE_PID.kI(), AUTO_ANGLE_PID.kD()));
+            new PIDConstants(TRANS_PID.kP, TRANS_PID.kI, TRANS_PID.kD),
+            new PIDConstants(AUTO_ANGLE_PID.kP, AUTO_ANGLE_PID.kI, AUTO_ANGLE_PID.kD));
 
     public static final Lock odometryLock = new ReentrantLock();
     private final GyroIO gyroIO;
@@ -135,6 +136,7 @@ public class Drive extends SubsystemBase {
 
         // Start odometry thread
         SparkOdometryThread.getInstance().start();
+        PhoenixOdometryThread.getInstance().start();
 
         // Configure AutoBuilder for PathPlanner
         AutoBuilder.configure(

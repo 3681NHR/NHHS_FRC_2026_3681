@@ -42,26 +42,26 @@ public class LauncherIOReal implements LauncherIO {
     Alert overheat = new Alert("", AlertType.kError);//dynamic text, dont set here
     Alert disconnect = new Alert("Launcher motor disconnected!", AlertType.kError);
     
-    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(LAUNCHER_ID_GAINS.kV(), LAUNCHER_ID_GAINS.kA());
+    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(LAUNCHER_ID_GAINS.kV, LAUNCHER_ID_GAINS.kA);
     private final KalmanFilter<N2, N1, N2> filter = new KalmanFilter<N2, N1, N2>(Nat.N2(), Nat.N2(), model, VecBuilder.fill(0.2, 1.0), VecBuilder.fill(1.3, 0.7), 0.02);
     
     public LauncherIOReal(){
         motor.getConfigurator()
         .apply(new Slot0Configs()
-            .withKP(LAUNCHER_PID_GAINS.kP())
-            .withKI(LAUNCHER_PID_GAINS.kI())
-            .withKD(LAUNCHER_PID_GAINS.kD())
-            .withKS(LAUNCHER_FF_GAINS.kS())
-            .withKV(LAUNCHER_FF_GAINS.kV())
-            .withKA(LAUNCHER_FF_GAINS.kA())
+            .withKP(LAUNCHER_PID_GAINS.kP)
+            .withKI(LAUNCHER_PID_GAINS.kI)
+            .withKD(LAUNCHER_PID_GAINS.kD)
+            .withKS(LAUNCHER_FF_GAINS.kS)
+            .withKV(LAUNCHER_FF_GAINS.kV)
+            .withKA(LAUNCHER_FF_GAINS.kA)
         );
         motor.getConfigurator().apply(new VoltageConfigs().withPeakReverseVoltage(0));
     }
 
     @Override
     public void updateInputs(LauncherIOInputs input){
-        filter.predict(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout.in(Volts)))*Math.signum(motor.getVelocity().getValue().in(RadiansPerSecond))), 0.02);
-        filter.correct(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout.in(Volts)))*Math.signum(motor.getVelocity().getValue().in(RadiansPerSecond))), VecBuilder.fill(motor.getPosition().getValue().in(Radians), motor.getVelocity().getValue().in(RadiansPerSecond)));
+        filter.predict(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS, Math.abs(vout.in(Volts)))*Math.signum(motor.getVelocity().getValue().in(RadiansPerSecond))), 0.02);
+        filter.correct(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS, Math.abs(vout.in(Volts)))*Math.signum(motor.getVelocity().getValue().in(RadiansPerSecond))), VecBuilder.fill(motor.getPosition().getValue().in(Radians), motor.getVelocity().getValue().in(RadiansPerSecond)));
         speed = RadiansPerSecond.of(filter.getXhat().get(1,0));
 
         if(DriverStation.isEnabled()){

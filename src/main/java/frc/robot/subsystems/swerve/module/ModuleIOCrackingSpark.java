@@ -72,10 +72,10 @@ public class ModuleIOCrackingSpark implements ModuleIO {
     private final VelocityVoltage driveController = new VelocityVoltage(RPM.of(0));
     private final ProfiledPID turnPID = new ProfiledPID(module.TURN_PID);
     private final SimpleFF turnFF = new SimpleFF(module.TURN_FF);
-    // private final SimpleFF driveFF = new SimpleFF(module.DRIVE_FF);
 
     // Queue inputs from odometry thread
-    private final Queue<Double> timestampQueue;
+    private final Queue<Double> turnTimestampQueue;
+    private final Queue<Double> driveTimestampQueue;
     private final Queue<Double> drivePositionQueue;
     private final Queue<Double> turnPositionQueue;
 
@@ -131,12 +131,12 @@ public class ModuleIOCrackingSpark implements ModuleIO {
                         .withSupplyCurrentLimit(module.DRIVE_MAX_CURRENT)
                         )
                 .withSlot0(new Slot0Configs()
-                        .withKP(module.DRIVE_PID.kP())
-                        .withKI(module.DRIVE_PID.kI())
-                        .withKD(module.DRIVE_PID.kD())
-                        .withKS(module.DRIVE_FF.kS())
-                        .withKV(module.DRIVE_FF.kV())
-                        .withKA(module.DRIVE_FF.kA())
+                        .withKP(module.DRIVE_PID.kP)
+                        .withKI(module.DRIVE_PID.kI)
+                        .withKD(module.DRIVE_PID.kD)
+                        .withKS(module.DRIVE_FF.kS)
+                        .withKV(module.DRIVE_FF.kV)
+                        .withKA(module.DRIVE_FF.kA)
                         .withKG(0)
                         )
                 .withFeedback(new FeedbackConfigs()
@@ -181,7 +181,8 @@ public class ModuleIOCrackingSpark implements ModuleIO {
 
         turnPID.enableContinuousInput(module.TURN_MIN_POS.in(Radians), module.TURN_MAX_POS.in(Radians));
         // Create odometry queues
-        timestampQueue = SparkOdometryThread.getInstance().makeTimestampQueue();
+        turnTimestampQueue = SparkOdometryThread.getInstance().makeTimestampQueue();
+        driveTimestampQueue = PhoenixOdometryThread.getInstance().makeTimestampQueue();
         drivePositionQueue = PhoenixOdometryThread.getInstance().registerSignal(drivePosition.clone());
         turnPositionQueue = SparkOdometryThread.getInstance().registerSignal(turnSpark, turnEncoder::getPosition);
 
@@ -196,6 +197,7 @@ public class ModuleIOCrackingSpark implements ModuleIO {
             driveSupplyCurrent
             );
         ParentDevice.optimizeBusUtilizationForAll(driveTalon);
+
     }
 
     @Override
@@ -234,12 +236,14 @@ public class ModuleIOCrackingSpark implements ModuleIO {
         inputs.turnOpenLoop = !turnClosedLoop;
         
         // Update odometry inputs
-        inputs.odometryTimestamps = timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+        inputs.odometryTurnTimestamps = turnTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+        inputs.odometryDriveTimestamps = driveTimestampQueue.stream().mapToDouble((Double value) -> value).toArray();
         inputs.odometryDrivePositionsRad = drivePositionQueue.stream().mapToDouble((Double value) -> value).toArray();
         inputs.odometryTurnPositionsRad = turnPositionQueue.stream()
                 .mapToDouble((Double value) -> value)
                 .toArray();
-        timestampQueue.clear();
+        turnTimestampQueue.clear();
+        driveTimestampQueue.clear();
         drivePositionQueue.clear();
         turnPositionQueue.clear();
 

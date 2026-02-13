@@ -37,6 +37,7 @@ import frc.utils.BatteryVoltageSim;
 import frc.utils.DisabledInstantCommand;
 import frc.utils.ExtraMath;
 import frc.utils.Joystick;
+import frc.utils.PhoenixOdometryThread;
 import frc.utils.Symphony;
 
 import static edu.wpi.first.units.Units.Degrees;
@@ -78,18 +79,15 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
-import org.ironmaple.simulation.seasonspecific.rebuilt2026.*;
 
 public class RobotContainer {
     private LoggedDashboardChooser<Command> sysidChooser = new LoggedDashboardChooser<Command>("sysid auto chooser");
 
     private DriveTrainSimulationConfig driveTrainSimulationConfig;
     private SwerveDriveSimulation driveSim;
-
     private Drive drive;
     private Vision vision;
     private Turret turret;

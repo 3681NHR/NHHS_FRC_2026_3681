@@ -115,9 +115,9 @@ public class ModuleIOSpark implements ModuleIO {
         driveConfig.closedLoop
                 .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                 .pid(
-                        module.DRIVE_PID.kP(),
-                        module.DRIVE_PID.kI(),
-                        module.DRIVE_PID.kD());
+                        module.DRIVE_PID.kP,
+                        module.DRIVE_PID.kI,
+                        module.DRIVE_PID.kD);
         driveConfig.signals
                 .primaryEncoderPositionAlwaysOn(true)
                 .primaryEncoderPositionPeriodMs((int)(1000 / ODOMETRY_FREQ.in(Hertz)))
