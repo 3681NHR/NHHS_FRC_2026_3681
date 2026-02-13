@@ -128,6 +128,7 @@ public class ModuleIOCrackingSpark implements ModuleIO {
                         )
                 .withCurrentLimits(new CurrentLimitsConfigs()
                         .withSupplyCurrentLimit(module.DRIVE_MAX_CURRENT)
+                        .withStatorCurrentLimit(module.DRIVE_SLIP_CURRENT)
                         )
                 .withSlot0(new Slot0Configs()
                         .withKP(module.DRIVE_PID.kP)
