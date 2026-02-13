@@ -134,7 +134,8 @@ public class DriveConstants {
 
         // Drive motor configuration
         public static final boolean DRIVE_INVERT = true;
-        public static final Current DRIVE_MAX_CURRENT = Amps.of(30);
+        public static final Current DRIVE_MAX_CURRENT = Amps.of(50);
+        public static final Current DRIVE_SLIP_CURRENT = Amps.of(50);
         public static final double DRIVE_REDUCTION = 6.75;
         public static final Distance WHEEL_RAD = Inches.of(2);
         public static final DCMotor DRIVE_GEARBOX = DCMotor.getNEO(1);
@@ -146,8 +147,8 @@ public class DriveConstants {
         public static final double DRIVE_ENCODER_VEL_FACTOR = (2 * Math.PI); // Mech RPS -> Wheel RAD/Sec
 
         // Drive PID configuration
-        public static final PIDGains.PID DRIVE_PID = new PIDGains.PID(0.0, 0.0, 0.0).makeTunable("Drive PID");
-        public static final PIDGains.SimpleFF DRIVE_FF = new PIDGains.SimpleFF(0.15, 0.1, 0.0).makeTunable("Drive FF");// TODO sysid 0.11, 0.13, 0.1
+        public static final PIDGains.PID DRIVE_PID = new PIDGains.PID(0.015895, 0.0, 0.0).makeTunable("Drive PID");
+        public static final PIDGains.SimpleFF DRIVE_FF = new PIDGains.SimpleFF(0.16, 0.76217, 0.016315).makeTunable("Drive FF");//TODO test new gains
         public static final PIDGains.PID DRIVE_PID_SIM = new PIDGains.PID(0.01, 0.0, 0.0);
         public static final PIDGains.SimpleFF DRIVE_FF_SIM = new PIDGains.SimpleFF(0.11, 0.13, 0.1);
 
