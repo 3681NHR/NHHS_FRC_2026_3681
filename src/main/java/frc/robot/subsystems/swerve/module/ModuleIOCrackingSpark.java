@@ -42,6 +42,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
@@ -219,6 +220,7 @@ public class ModuleIOCrackingSpark implements ModuleIO {
             );
         ParentDevice.optimizeBusUtilizationForAll(driveTalon);
 
+        driveTalon.setPosition(0);
     }
 
     @Override
@@ -233,7 +235,7 @@ public class ModuleIOCrackingSpark implements ModuleIO {
         inputs.driveAppliedVolts = driveAppliedVolts.refresh().getValue();
         inputs.driveConnected = driveConnectedDebounce.calculate(driveTalon.isConnected());
         inputs.driveGoal = driveGoal;
-        inputs.driveSetpoint = Rotations.per(Second).of(driveTalon.getClosedLoopReference().getValue());//FIXME might be wrong units
+        inputs.driveSetpoint = Rotations.per(Second).of(driveTalon.getClosedLoopReference().getValue());
         inputs.driveCurrent = driveSupplyCurrent.refresh().getValue();
         inputs.driveOpenLoop = !driveClosedLoop;
 
@@ -258,7 +260,7 @@ public class ModuleIOCrackingSpark implements ModuleIO {
         
         // Update odometry inputs
         inputs.odometryTimestamps = timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
-        inputs.odometryDrivePositionsRad = drivePositionQueue.stream().mapToDouble((Double value) -> value).toArray();
+        inputs.odometryDrivePositionsRad = drivePositionQueue.stream().mapToDouble((Double value) -> Units.rotationsToRadians(value)).toArray();
         
         inputs.odometryTurnPositionsRad = turnPositionQueue.stream()
                 .mapToDouble((Double value) -> value)

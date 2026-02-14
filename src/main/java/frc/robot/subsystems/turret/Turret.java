@@ -158,7 +158,7 @@ public class Turret extends SubsystemBase {
 
     public Command sysidQuasistatic(boolean reverse){
         return sysid.quasistatic(reverse ? SysIdRoutine.Direction.kReverse : SysIdRoutine.Direction.kForward)
-        .until( () -> in.filteredAngle.abs(Radians) > TURRET_ANGLE_LIM.in(Radians))
+        // .until( () -> in.filteredAngle.abs(Radians) > TURRET_ANGLE_LIM.in(Radians))
         .raceWith(Commands.run(() -> {
             ready = false;
             runningSysid.set(true);
@@ -172,7 +172,7 @@ public class Turret extends SubsystemBase {
 
     public Command sysidDynamic(boolean reverse){
         return sysid.dynamic(reverse ? SysIdRoutine.Direction.kReverse : SysIdRoutine.Direction.kForward)
-        .until( () -> in.filteredAngle.abs(Radians) > TURRET_ANGLE_LIM.in(Radians))
+        // .until( () -> in.filteredAngle.abs(Radians) > TURRET_ANGLE_LIM.in(Radians))
         .raceWith(Commands.run(() -> {
             ready = false;
             runningSysid.set(true);

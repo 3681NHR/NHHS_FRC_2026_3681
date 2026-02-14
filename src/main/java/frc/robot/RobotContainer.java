@@ -3,6 +3,7 @@
 package frc.robot;
 
 import frc.robot.autos.AutoChooser;
+import frc.robot.commands.SwerveWheelCharacterization;
 import frc.robot.constants.Constants;
 import frc.robot.constants.DriveConstants;
 import frc.robot.constants.TurretConstants;
@@ -173,11 +174,12 @@ public class RobotContainer {
             case REAL:
                 // Real robot, instantiate hardware IO implementations
                 vision = new Vision(
-                        apriltagLayout,
-                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
-                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1]),
-                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2]),
-                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3]));
+                        apriltagLayout
+                        // new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
+                        // new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1]),
+                        // new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2]),
+                        // new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3])
+                        );
                 drive = new Drive(
                         new GyroIOPigeon2(),
                         new ModuleIOCrackingSpark(0),
@@ -261,6 +263,11 @@ public class RobotContainer {
         sysidChooser.addOption("steer sysid quasistatic reverse", drive.steerSysIdQuasistatic(Direction.kReverse));
         sysidChooser.addOption("steer sysid dynamic forward",     drive.steerSysIdDynamic(Direction.kForward));
         sysidChooser.addOption("steer sysid dynamic reverse",     drive.steerSysIdDynamic(Direction.kReverse));
+        sysidChooser.addOption("angle sysid quasistatic forward", drive.angleSysIdQuasistatic(Direction.kForward));
+        sysidChooser.addOption("angle sysid quasistatic reverse", drive.angleSysIdQuasistatic(Direction.kReverse));
+        sysidChooser.addOption("angle sysid dynamic forward",     drive.angleSysIdDynamic(Direction.kForward));
+        sysidChooser.addOption("angle sysid dynamic reverse",     drive.angleSysIdDynamic(Direction.kReverse));
+        sysidChooser.addOption("swerve wheel radius char",     new SwerveWheelCharacterization(drive));
         sysidChooser.addOption("turret sysid quasistatic forward", turret.sysidQuasistatic(false));
         sysidChooser.addOption("turret sysid quasistatic reverse", turret.sysidQuasistatic(true));
         sysidChooser.addOption("turret sysid dynamic forward",     turret.sysidDynamic(false));
@@ -279,6 +286,8 @@ public class RobotContainer {
         launcher.setDefaultCommand(
             launcher.velocityControl(() -> RPM.of(0)).ignoringDisable(true)
         );
+
+        drive.setDefaultCommand(drive.TeleopDrive());
     }
 
     private void configureBindings() {

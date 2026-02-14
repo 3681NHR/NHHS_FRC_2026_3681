@@ -45,6 +45,9 @@ public class TurretIOMini implements TurretIO {
     private Alert motorError = new Alert("", AlertType.kError);
 
     public TurretIOMini(){
+        TURRET_PID_GAINS.withCallback(() -> {
+            pid.setGains(TURRET_PID_GAINS);
+        });
     }
 
     @Override

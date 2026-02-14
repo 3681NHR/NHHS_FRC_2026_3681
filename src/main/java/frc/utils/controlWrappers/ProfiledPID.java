@@ -29,4 +29,8 @@ public class ProfiledPID extends ProfiledPIDController{
     public double getMaxAccel(){
         return super.getConstraints().maxAcceleration;
     }
+    public void setGains(PIDGains.ProfiledPID gains){
+        setPID(gains.kP, gains.kI, gains.kD);
+        setConstraints(new Constraints(gains.maxSpeed, gains.maxAccel));
+    }
 }
