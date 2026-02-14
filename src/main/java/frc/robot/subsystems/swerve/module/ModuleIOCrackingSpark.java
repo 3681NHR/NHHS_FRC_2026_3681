@@ -17,16 +17,17 @@ import static frc.utils.SparkUtil.tryUntilOk;
 import java.util.Queue;
 import java.util.function.DoubleSupplier;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
-import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.AbsoluteEncoder;
@@ -41,13 +42,15 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.constants.DriveConstants;
 import frc.robot.constants.DriveConstants.module;
-import frc.utils.SparkOdometryThread;
-import frc.utils.Symphony;
+import frc.utils.PhoenixOdometryThread;
 import frc.utils.controlWrappers.ProfiledPID;
 import frc.utils.controlWrappers.SimpleFF;
 
@@ -59,15 +62,15 @@ import frc.utils.controlWrappers.SimpleFF;
 public class ModuleIOCrackingSpark implements ModuleIO {
 
     // Hardware objects
-    private final CoreTalonFX driveTalon;
+    private final TalonFX driveTalon;
     private final SparkBase turnSpark;
     private final AbsoluteEncoder turnEncoder;
 
+    private final VoltageOut driveOpenLoopOut = new VoltageOut(0);
     // Closed loop controllers
-    private final MotionMagicVelocityVoltage driveController = new MotionMagicVelocityVoltage(RPM.of(0));
+    private final VelocityVoltage driveController = new VelocityVoltage(RPM.of(0));
     private final ProfiledPID turnPID = new ProfiledPID(module.TURN_PID);
     private final SimpleFF turnFF = new SimpleFF(module.TURN_FF);
-    // private final SimpleFF driveFF = new SimpleFF(module.DRIVE_FF);
 
     // Queue inputs from odometry thread
     private final Queue<Double> timestampQueue;
@@ -84,11 +87,17 @@ public class ModuleIOCrackingSpark implements ModuleIO {
     private boolean driveClosedLoop = true;
     private boolean turnClosedLoop = true;
 
-    private Angle drivePosition = Radians.of(0.0);
+    private StatusSignal<Angle> drivePosition;
+    private StatusSignal<AngularVelocity> driveVelocity;
+    private StatusSignal<Temperature> driveTemp;
+    private StatusSignal<Current> driveSupplyCurrent;
+    private StatusSignal<Voltage> driveAppliedVolts;
+    
     private Angle turnPosition = Radians.of(0.0);
-
-    private AngularVelocity driveVelocity = RadiansPerSecond.of(0.0);
     private AngularVelocity turnVelocity = RadiansPerSecond.of(0.0);
+
+    private Voltage driveOpenLoopVout = Volts.of(0);
+    private Voltage turnOpenLoopVout = Volts.of(0);
 
 	public ModuleIOCrackingSpark(int IO) {
         driveTalon = new TalonFX(
@@ -114,17 +123,19 @@ public class ModuleIOCrackingSpark implements ModuleIO {
         var driveConfig = new TalonFXConfiguration()
                 .withMotorOutput(new MotorOutputConfigs()
                         .withNeutralMode(NeutralModeValue.Brake)
-                        .withInverted(module.DRIVE_INVERT ? InvertedValue.CounterClockwise_Positive : InvertedValue.Clockwise_Positive))
+                        .withInverted(module.DRIVE_INVERT ? InvertedValue.CounterClockwise_Positive : InvertedValue.Clockwise_Positive)
+                        )
                 .withCurrentLimits(new CurrentLimitsConfigs()
                         .withSupplyCurrentLimit(module.DRIVE_MAX_CURRENT)
+                        .withStatorCurrentLimit(module.DRIVE_SLIP_CURRENT)
                         )
                 .withSlot0(new Slot0Configs()
-                        .withKP(module.DRIVE_PID.kP())
-                        .withKI(module.DRIVE_PID.kI())
-                        .withKD(module.DRIVE_PID.kD())
-                        .withKS(module.DRIVE_FF.kS())
-                        .withKV(module.DRIVE_FF.kV())
-                        .withKA(module.DRIVE_FF.kA())
+                        .withKP(module.DRIVE_PID.kP)
+                        .withKI(module.DRIVE_PID.kI)
+                        .withKD(module.DRIVE_PID.kD)
+                        .withKS(module.DRIVE_FF.kS)
+                        .withKV(module.DRIVE_FF.kV)
+                        .withKA(module.DRIVE_FF.kA)
                         .withKG(0)
                         )
                 .withFeedback(new FeedbackConfigs()
@@ -132,9 +143,35 @@ public class ModuleIOCrackingSpark implements ModuleIO {
                         .withRotorToSensorRatio(1)
                         );
         driveTalon.getConfigurator().apply(driveConfig);
-        driveTalon.getConfigurator().apply(new MotionMagicConfigs().withMotionMagicAcceleration(Double.MAX_VALUE));
 
-        Symphony.getSymphony().registerInstrument(driveTalon);
+        module.DRIVE_PID.withCallback(() -> {
+            driveTalon.getConfigurator().apply(new Slot0Configs()
+                        .withKP(module.DRIVE_PID.kP)
+                        .withKI(module.DRIVE_PID.kI)
+                        .withKD(module.DRIVE_PID.kD)
+                        .withKS(module.DRIVE_FF.kS)
+                        .withKV(module.DRIVE_FF.kV)
+                        .withKA(module.DRIVE_FF.kA)
+                        .withKG(0)
+                        );
+        });
+        module.DRIVE_FF.withCallback(() -> {
+            driveTalon.getConfigurator().apply(new Slot0Configs()
+                        .withKP(module.DRIVE_PID.kP)
+                        .withKI(module.DRIVE_PID.kI)
+                        .withKD(module.DRIVE_PID.kD)
+                        .withKS(module.DRIVE_FF.kS)
+                        .withKV(module.DRIVE_FF.kV)
+                        .withKA(module.DRIVE_FF.kA)
+                        .withKG(0)
+                        );
+        });
+
+        driveAppliedVolts = driveTalon.getMotorVoltage();
+        drivePosition = driveTalon.getPosition();
+        driveVelocity = driveTalon.getVelocity();
+        driveTemp = driveTalon.getDeviceTemp();
+        driveSupplyCurrent = driveTalon.getSupplyCurrent();
 
         // Configure turn motor
         var turnConfig = new SparkMaxConfig();
@@ -166,29 +203,41 @@ public class ModuleIOCrackingSpark implements ModuleIO {
 
         turnPID.enableContinuousInput(module.TURN_MIN_POS.in(Radians), module.TURN_MAX_POS.in(Radians));
         // Create odometry queues
-        timestampQueue = SparkOdometryThread.getInstance().makeTimestampQueue();
-        drivePositionQueue = SparkOdometryThread.getInstance().registerSignal(() -> driveTalon.getPosition().getValue().in(Radians));
-        turnPositionQueue = SparkOdometryThread.getInstance().registerSignal(turnSpark, turnEncoder::getPosition);
+        timestampQueue = PhoenixOdometryThread.getInstance().makeTimestampQueue();
+        drivePositionQueue = PhoenixOdometryThread.getInstance().registerSignal(drivePosition.clone());
+        turnPositionQueue = PhoenixOdometryThread.getInstance().registerSignal(turnEncoder::getPosition);
+
+        
+        BaseStatusSignal.setUpdateFrequencyForAll(
+            DriveConstants.ODOMETRY_FREQ.in(Hertz), drivePosition);
+        BaseStatusSignal.setUpdateFrequencyForAll(
+            50.0,
+            driveVelocity,
+            driveAppliedVolts,
+            driveTemp,
+            driveSupplyCurrent,
+            driveTalon.getClosedLoopReference()
+            );
+        ParentDevice.optimizeBusUtilizationForAll(driveTalon);
+
+        driveTalon.setPosition(0);
     }
 
     @Override
     public void updateInputs(ModuleIOInputs inputs) {
-        drivePosition = driveTalon.getPosition().getValue();
         turnPosition = Radians.of(turnEncoder.getPosition());
-
-        driveVelocity = driveTalon.getVelocity().getValue();
         turnVelocity = RPM.of(turnEncoder.getVelocity());
 
-        inputs.turnTemp = Temperature.ofBaseUnits(turnSpark.getMotorTemperature(), Celsius);
-        inputs.driveTemp = driveTalon.getDeviceTemp().getValue();
-
         // Update drive inputs
-        inputs.drivePosition = drivePosition;
-        inputs.driveVelocity = driveVelocity;
-        inputs.driveAppliedVolts = Volts.of(driveTalon.getDutyCycle().getValue()*driveTalon.getSupplyVoltage().getValue().in(Volts));
+        inputs.driveTemp = driveTemp.refresh().getValue();
+        inputs.drivePosition = drivePosition.refresh().getValue();
+        inputs.driveVelocity = driveVelocity.refresh().getValue();
+        inputs.driveAppliedVolts = driveAppliedVolts.refresh().getValue();
         inputs.driveConnected = driveConnectedDebounce.calculate(driveTalon.isConnected());
         inputs.driveGoal = driveGoal;
-        inputs.driveSetpoint = Rotations.per(Second).of(driveTalon.getClosedLoopReference().getValue());//FIXME might be wrong units
+        inputs.driveSetpoint = Rotations.per(Second).of(driveTalon.getClosedLoopReference().getValue());
+        inputs.driveCurrent = driveSupplyCurrent.refresh().getValue();
+        inputs.driveOpenLoop = !driveClosedLoop;
 
         // Update turn inputs
         sparkStickyFault = false;
@@ -205,10 +254,14 @@ public class ModuleIOCrackingSpark implements ModuleIO {
         inputs.turnConnected = turnConnectedDebounce.calculate(!sparkStickyFault);
         inputs.turnGoal = turnGoal;
         inputs.turnSetpoint = Radians.of(turnPID.getSetpoint().position);
-
+        inputs.turnTemp = Temperature.ofBaseUnits(turnSpark.getMotorTemperature(), Celsius);
+        inputs.turnCurrent = Amps.of(turnSpark.getOutputCurrent());
+        inputs.turnOpenLoop = !turnClosedLoop;
+        
         // Update odometry inputs
         inputs.odometryTimestamps = timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
-        inputs.odometryDrivePositionsRad = drivePositionQueue.stream().mapToDouble((Double value) -> value).toArray();
+        inputs.odometryDrivePositionsRad = drivePositionQueue.stream().mapToDouble((Double value) -> Units.rotationsToRadians(value)).toArray();
+        
         inputs.odometryTurnPositionsRad = turnPositionQueue.stream()
                 .mapToDouble((Double value) -> value)
                 .toArray();
@@ -218,10 +271,14 @@ public class ModuleIOCrackingSpark implements ModuleIO {
 
         if (driveClosedLoop) {
             driveTalon.setControl(driveController.withVelocity(driveGoal.plus(RadiansPerSecond.of(getDriveOffsetVelocity()))));
+        } else {
+            driveTalon.setControl(driveOpenLoopOut.withOutput(driveOpenLoopVout));
         }
         if (turnClosedLoop) {
             double ffVolts = turnFF.calculate(turnPID.getSetpoint().velocity);
             turnSpark.setVoltage(ffVolts + turnPID.calculate(turnEncoder.getPosition(), turnGoal.in(Radians)));
+        } else {
+            turnSpark.setVoltage(turnOpenLoopVout.in(Volts));
         }
 
     }
@@ -231,13 +288,13 @@ public class ModuleIOCrackingSpark implements ModuleIO {
 
     @Override
     public void setDriveOpenLoop(Voltage output) {
-        driveTalon.setControl(new VoltageOut(output));
+        driveOpenLoopVout = output;
         driveClosedLoop = false;
     }
 
     @Override
     public void setTurnOpenLoop(Voltage output) {
-        turnSpark.setVoltage(output);
+        turnOpenLoopVout = output;
         turnClosedLoop = false;
     }
 

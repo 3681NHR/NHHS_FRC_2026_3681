@@ -13,6 +13,6 @@ public class SimpleFF extends SimpleMotorFeedforward{
         super(kS, kV, kA, dt);
     }
     public SimpleFF(PIDGains.SimpleFF gains){
-        super(gains.kS(), gains.kV(), gains.kA());
+        super(gains.kS, gains.kV, gains.kA);
     }
 }

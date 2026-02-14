@@ -54,6 +54,7 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionEstimate;
 import frc.utils.ExtraMath;
 import frc.utils.LoggedField2d;
+import frc.utils.PhoenixOdometryThread;
 import frc.utils.SparkOdometryThread;
 import frc.utils.Joystick.duelJoystickAxis;
 import frc.utils.controlWrappers.PID;
@@ -82,8 +83,8 @@ public class Drive extends SubsystemBase {
             RobotBase.isReal() ? ANGLE_PID : ANGLE_PID_SIM);
 
     public PPHolonomicDriveController autoController = new PPHolonomicDriveController(
-            new PIDConstants(TRANS_PID.kP(), TRANS_PID.kI(), TRANS_PID.kD()),
-            new PIDConstants(AUTO_ANGLE_PID.kP(), AUTO_ANGLE_PID.kI(), AUTO_ANGLE_PID.kD()));
+            new PIDConstants(TRANS_PID.kP, TRANS_PID.kI, TRANS_PID.kD),
+            new PIDConstants(AUTO_ANGLE_PID.kP, AUTO_ANGLE_PID.kI, AUTO_ANGLE_PID.kD));
 
     public static final Lock odometryLock = new ReentrantLock();
     private final GyroIO gyroIO;
@@ -135,6 +136,7 @@ public class Drive extends SubsystemBase {
 
         // Start odometry thread
         SparkOdometryThread.getInstance().start();
+        PhoenixOdometryThread.getInstance().start();
 
         // Configure AutoBuilder for PathPlanner
         AutoBuilder.configure(
@@ -256,6 +258,8 @@ public class Drive extends SubsystemBase {
                 Twist2d twist = kinematics.toTwist2d(moduleDeltas);
                 rawGyroRotation = rawGyroRotation.plus(Radians.of(twist.dtheta));
             }
+            Logger.recordOutput("Subsystems/Swerve/Odometry/timestamp", sampleTimestamps[i]);
+            Logger.recordOutput("Subsystems/Swerve/Odometry/position", modulePositions);
 
             // Apply update
             poseEstimator.updateWithTime(sampleTimestamps[i], new Rotation2d(rawGyroRotation.in(Radians)), modulePositions);
@@ -424,6 +428,7 @@ public class Drive extends SubsystemBase {
         }
         kinematics.resetHeadings(headings);
         stop();
+        runVelocity(new ChassisSpeeds());
     }
 
 
@@ -540,7 +545,7 @@ public class Drive extends SubsystemBase {
      * modules.
      */
     @AutoLogOutput(key = "Subsystems/Swerve/Drive/SwerveStates/Measured")
-    private SwerveModuleState[] getModuleStates() {
+    public SwerveModuleState[] getModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
         for (int i = 0; i < 4; i++) {
             states[i] = modules[i].getState();
@@ -615,6 +620,11 @@ public class Drive extends SubsystemBase {
 
     /** spins robot */
     public void runAngleCharacterization(double output) {
-        runVelocity(new ChassisSpeeds(0, 0, output));
+        ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(new ChassisSpeeds(0, 0, 1), 0.02);
+        SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(discreteSpeeds);
+        
+        for (int i = 0; i < 4; i++) {
+            modules[i].runCharacterization(Volts.of(output), Radians.of(setpointStates[i].angle.getRadians()));
+        }
     }
 }

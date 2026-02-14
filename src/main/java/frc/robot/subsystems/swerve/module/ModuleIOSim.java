@@ -76,7 +76,7 @@ public class ModuleIOSim implements ModuleIO {
             driveController.reset();
         }
         if (turnClosedLoop) {
-            turnAppliedVolts = Volts.of(module.TURN_FF_SIM.kS() * Math.signum(turnController.getSetpoint().position)
+            turnAppliedVolts = Volts.of(module.TURN_FF_SIM.kS * Math.signum(turnController.getSetpoint().position)
                     + turnController.calculate(turnPos.in(Radians), turnGoal.in(Radians)));
         } else {
             turnController.reset(turnPos.in(Radians));

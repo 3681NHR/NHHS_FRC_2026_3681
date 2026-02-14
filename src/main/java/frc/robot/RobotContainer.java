@@ -3,6 +3,7 @@
 package frc.robot;
 
 import frc.robot.autos.AutoChooser;
+import frc.robot.commands.SwerveWheelCharacterization;
 import frc.robot.constants.Constants;
 import frc.robot.constants.DriveConstants;
 import frc.robot.constants.TurretConstants;
@@ -24,7 +25,6 @@ import frc.robot.subsystems.swerve.module.ModuleIOSim;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOMini;
-import frc.robot.subsystems.turret.TurretIOReal;
 import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.CameraIO;
 import frc.robot.subsystems.vision.CameraIOPhoton;
@@ -34,14 +34,12 @@ import frc.utils.rumble.*;
 import frc.utils.Joystick.duelJoystickAxis;
 import frc.utils.TimerHandler;
 import frc.utils.BatteryVoltageSim;
-import frc.utils.DisabledInstantCommand;
 import frc.utils.ExtraMath;
 import frc.utils.Joystick;
-import frc.utils.Symphony;
+import frc.utils.PIDTuner;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static frc.robot.constants.TurretConstants.*;
@@ -53,9 +51,9 @@ import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
-import org.ironmaple.simulation.gamepieces.GamePieceProjectile;
 import org.littletonrobotics.junction.LoggedPowerDistribution;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -63,7 +61,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
@@ -77,16 +74,15 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
-import org.ironmaple.simulation.seasonspecific.rebuilt2026.*;
 
 public class RobotContainer {
+    private LoggedDashboardChooser<Command> sysidChooser = new LoggedDashboardChooser<Command>("sysid auto chooser");
 
     private DriveTrainSimulationConfig driveTrainSimulationConfig;
     private SwerveDriveSimulation driveSim;
-
     private Drive drive;
     private Vision vision;
     private Turret turret;
@@ -114,8 +110,6 @@ public class RobotContainer {
             AlertType.kWarning);
 
     private duelJoystickAxis driverSticks;
-
-    private Symphony symphony = Symphony.getSymphony();
 
     public RobotContainer() {
 
@@ -180,11 +174,12 @@ public class RobotContainer {
             case REAL:
                 // Real robot, instantiate hardware IO implementations
                 vision = new Vision(
-                        apriltagLayout,
-                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
-                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1]),
-                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2]),
-                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3]));
+                        apriltagLayout
+                        // new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
+                        // new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1]),
+                        // new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2]),
+                        // new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3])
+                        );
                 drive = new Drive(
                         new GyroIOPigeon2(),
                         new ModuleIOCrackingSpark(0),
@@ -259,6 +254,28 @@ public class RobotContainer {
         configureBindings();
 
         autoChooser = new AutoChooser(this);
+        sysidChooser.addDefaultOption("none", null);
+        sysidChooser.addOption("drive sysid quasistatic forward", drive.sysIdQuasistatic(Direction.kForward));
+        sysidChooser.addOption("drive sysid quasistatic reverse", drive.sysIdQuasistatic(Direction.kReverse));
+        sysidChooser.addOption("drive sysid dynamic forward",     drive.sysIdDynamic(Direction.kForward));
+        sysidChooser.addOption("drive sysid dynamic reverse",     drive.sysIdDynamic(Direction.kReverse));
+        sysidChooser.addOption("steer sysid quasistatic forward", drive.steerSysIdQuasistatic(Direction.kForward));
+        sysidChooser.addOption("steer sysid quasistatic reverse", drive.steerSysIdQuasistatic(Direction.kReverse));
+        sysidChooser.addOption("steer sysid dynamic forward",     drive.steerSysIdDynamic(Direction.kForward));
+        sysidChooser.addOption("steer sysid dynamic reverse",     drive.steerSysIdDynamic(Direction.kReverse));
+        sysidChooser.addOption("angle sysid quasistatic forward", drive.angleSysIdQuasistatic(Direction.kForward));
+        sysidChooser.addOption("angle sysid quasistatic reverse", drive.angleSysIdQuasistatic(Direction.kReverse));
+        sysidChooser.addOption("angle sysid dynamic forward",     drive.angleSysIdDynamic(Direction.kForward));
+        sysidChooser.addOption("angle sysid dynamic reverse",     drive.angleSysIdDynamic(Direction.kReverse));
+        sysidChooser.addOption("swerve wheel radius char",     new SwerveWheelCharacterization(drive));
+        sysidChooser.addOption("turret sysid quasistatic forward", turret.sysidQuasistatic(false));
+        sysidChooser.addOption("turret sysid quasistatic reverse", turret.sysidQuasistatic(true));
+        sysidChooser.addOption("turret sysid dynamic forward",     turret.sysidDynamic(false));
+        sysidChooser.addOption("turret sysid dynamic reverse",     turret.sysidDynamic(true));
+        sysidChooser.addOption("launcher sysid quasistatic forward", launcher.sysidQuasistatic(false));
+        sysidChooser.addOption("launcher sysid quasistatic reverse", launcher.sysidQuasistatic(true));
+        sysidChooser.addOption("launcher sysid dynamic forward",     launcher.sysidDynamic(false));
+        sysidChooser.addOption("launcher sysid dynamic reverse",     launcher.sysidDynamic(true));
 
         LoggedPowerDistribution.getInstance(pdp.getModule(), ModuleType.kRev);
 
@@ -269,6 +286,8 @@ public class RobotContainer {
         launcher.setDefaultCommand(
             launcher.velocityControl(() -> RPM.of(0)).ignoringDisable(true)
         );
+
+        drive.setDefaultCommand(drive.TeleopDrive());
     }
 
     private void configureBindings() {
@@ -370,6 +389,7 @@ public class RobotContainer {
 
     public void Periodic() {
         rumbler.update(0.02);
+        PIDTuner.updateTunables();
         driverDisconnected.set(!driverController.isConnected());
         operatorDisconnected.set(!operatorController.isConnected());
         
@@ -399,8 +419,12 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        // Command auto = autoChooser.get();
-        Command auto = autoChooser.getSelected();
+        Command auto;
+        if(sysidChooser.get() == null || DriverStation.isFMSAttached()){
+            auto = autoChooser.getSelected();
+        } else {
+            auto = sysidChooser.get();
+        }
         return auto;
     }
 

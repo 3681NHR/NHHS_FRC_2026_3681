@@ -15,6 +15,13 @@ import java.util.ArrayList;
  */
 public final class ExtraMath {
 
+    public static double mean(double... in){
+        double sum = 0;
+        for(double i : in){
+            sum += i;
+        }
+        return sum/in.length;
+    }
     /**
      * @param in values to compare
      * @return value with smallest absolute value
