@@ -11,6 +11,8 @@ import frc.robot.constants.Constants.OperatorConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.subsystems.Led;
 import frc.robot.subsystems.launchLUT;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIOReal;
 import frc.robot.subsystems.launcher.Launcher;
 import frc.robot.subsystems.launcher.LauncherIO;
 import frc.robot.subsystems.launcher.LauncherIOReal;
@@ -27,7 +29,6 @@ import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOMini;
 import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.CameraIO;
-import frc.robot.subsystems.vision.CameraIOPhoton;
 import frc.robot.subsystems.vision.CameraIOPhotonSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.utils.rumble.*;
@@ -87,6 +88,7 @@ public class RobotContainer {
     private Vision vision;
     private Turret turret;
     private Launcher launcher;
+    private Intake intake;
 
     private Led led = new Led();
 
@@ -100,6 +102,7 @@ public class RobotContainer {
     private RumbleHandler opRumbler = new RumbleHandler(operatorController);
 
     private PowerDistribution pdp = new PowerDistribution(1, ModuleType.kRev);
+
 
     private Translation2d target = new Translation2d();
 
@@ -190,6 +193,7 @@ public class RobotContainer {
                         driverSticks,
                         led);
                 turret = new Turret(new TurretIOMini(), drive);
+                intake = new Intake(new IntakeIOReal());
                 launcher = new Launcher(new LauncherIOReal());
                 break;
 
@@ -320,13 +324,20 @@ public class RobotContainer {
             drive.resetGyro(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? Math.PI : 0);
             rumbler.overrideQue(RumblePreset.TAP.load());
         }));
-
+        
         // toggle field oriented driving
         new Trigger(() -> driverController.getRawButton(LEFT_STICK_BUTTON)).onTrue(new InstantCommand(() -> {
             drive.setFOD(!drive.getFOD());
             rumbler.overrideQue(RumblePreset.TAP.load());
         }));
         
+        // intake :3
+        new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5).whileTrue(
+            new InstantCommand(() -> {
+                intake.voltageControl(12.0);
+            })
+        );
+
         // TODO: placeholder binding to shooting in sim, remove before running on robot
         // new Trigger(() -> driverController.getRawButton(A)).whileTrue(new InstantCommand(() -> {
         //         double launchvel = (launcher.getSpeed().in(RPM)-2500)*2*Math.PI*Units.inchesToMeters(2)/60;

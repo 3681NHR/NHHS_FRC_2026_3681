@@ -8,6 +8,7 @@ public interface IntakeIO {
     
     @AutoLog
     public class IntakeIOInputs{
-
+        public double appliedVoltage;
     }
+    public void setVout(double volt);
 }
