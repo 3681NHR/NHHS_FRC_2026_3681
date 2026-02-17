@@ -75,7 +75,7 @@ public class Module {
     public static SwerveModuleState newCosineScale(SwerveModuleState state, Rotation2d currentAngle) {
         double angleDiff = state.angle.minus(currentAngle).getRadians();
         //use cos()^3 to reduce motion untill closer aligned
-        double scale = Math.pow(Math.abs(Math.cos(angleDiff))+0.004, 3);//|cos(angleDiff)|^3
+        double scale = Math.pow(Math.abs(Math.cos(angleDiff))+0.004, 2);//|cos(angleDiff)|^3
         scale = MathUtil.clamp(scale, -1, 1);//mult is negitive when angleDiff is > 90 degrees
 
         double scaledSpeed = state.speedMetersPerSecond * scale;

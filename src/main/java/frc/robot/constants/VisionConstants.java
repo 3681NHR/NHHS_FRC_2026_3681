@@ -45,13 +45,13 @@ public class VisionConstants {
             1.0,
             1.0,
             new Transform3d(
-                Units.inchesToMeters(11.4),
-                Units.inchesToMeters(11.4),
-                Units.inchesToMeters(8),
+                Units.inchesToMeters(8.063547),
+                Units.inchesToMeters(11.370765),
+                Units.inchesToMeters(6.837248),
                 new Rotation3d(
                     Units.degreesToRadians(0),
-                    Units.degreesToRadians(-20),
-                    Units.degreesToRadians(45)
+                    Units.degreesToRadians(-30),
+                    Units.degreesToRadians(-137.8-90)
                 )
             )
         ),
@@ -61,13 +61,13 @@ public class VisionConstants {
             1.0,
             1.0,
             new Transform3d(
-                Units.inchesToMeters(11.4),
-                Units.inchesToMeters(11.4),
-                Units.inchesToMeters(8),
+                Units.inchesToMeters(11.370765),
+                Units.inchesToMeters(-8.063547),
+                Units.inchesToMeters(6.837248),
                 new Rotation3d(
                     Units.degreesToRadians(0),
-                    Units.degreesToRadians(-20),
-                    Units.degreesToRadians(315)
+                    Units.degreesToRadians(-30),
+                    Units.degreesToRadians(-138.81+180)
                 )
             )
         ),
@@ -77,13 +77,13 @@ public class VisionConstants {
             1.0,
             1.0,
             new Transform3d(
-                Units.inchesToMeters(-11.4),
-                Units.inchesToMeters(11.4),
-                Units.inchesToMeters(8),
+                Units.inchesToMeters(-11.370765),
+                Units.inchesToMeters(8.063547),
+                Units.inchesToMeters(6.837248),
                 new Rotation3d(
                     Units.degreesToRadians(0),
-                    Units.degreesToRadians(-20),
-                    Units.degreesToRadians(135)
+                    Units.degreesToRadians(-30),
+                    Units.degreesToRadians(-134.75967341477)
                 )
             )
         ),
@@ -93,13 +93,13 @@ public class VisionConstants {
             1.0,
             1.0,
             new Transform3d(
-                Units.inchesToMeters(-11.4),
-                Units.inchesToMeters(-11.4),
-                Units.inchesToMeters(8),
+                Units.inchesToMeters(-8.063547),
+                Units.inchesToMeters(-11.370765),
+                Units.inchesToMeters(6.837248),
                 new Rotation3d(
                     Units.degreesToRadians(0),
-                    Units.degreesToRadians(-20),
-                    Units.degreesToRadians(225)
+                    Units.degreesToRadians(-30),
+                    Units.degreesToRadians(138.15-180)
                 )
             )
         )

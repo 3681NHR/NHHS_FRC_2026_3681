@@ -174,11 +174,11 @@ public class RobotContainer {
             case REAL:
                 // Real robot, instantiate hardware IO implementations
                 vision = new Vision(
-                        apriltagLayout
-                        // new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
-                        // new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1]),
-                        // new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2]),
-                        // new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3])
+                        apriltagLayout,
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1]),
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2]),
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3])
                         );
                 drive = new Drive(
                         new GyroIOPigeon2(),
