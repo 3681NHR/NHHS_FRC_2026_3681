@@ -22,6 +22,7 @@ public class Vision extends SubsystemBase {
     private final CameraIO[] io;
     private final CameraIOInputsAutoLogged[] inputs;
     private final Alert[] disconnectedAlerts;
+    private final Alert[] disabledAlerts;
     private final LoggedNetworkBoolean[] disableCams;
 
     private VisionEstimate[] latestEstimateRaw;
@@ -48,6 +49,7 @@ public class Vision extends SubsystemBase {
         // Initialize inputs
         this.inputs = new CameraIOInputsAutoLogged[io.length];
         this.disconnectedAlerts = new Alert[io.length];
+        this.disabledAlerts = new Alert[io.length];
         this.disableCams = new LoggedNetworkBoolean[io.length];
         for (int i = 0; i < io.length; i++) {
             inputs[i] = new CameraIOInputsAutoLogged();
@@ -56,6 +58,9 @@ public class Vision extends SubsystemBase {
             // Initialize disconnected alerts
             disconnectedAlerts[i] = new Alert(
                     "Camera: " + inputs[i].name == null ? Integer.toString(i) : inputs[i].name + " is disconnected.",
+                    AlertType.kError);
+            disabledAlerts[i] = new Alert(
+                    "Camera: " + inputs[i].name == null ? Integer.toString(i) : inputs[i].name + " is disabled.",
                     AlertType.kError);
             
             disableCams[i] = new LoggedNetworkBoolean(
@@ -72,15 +77,13 @@ public class Vision extends SubsystemBase {
             Logger.processInputs("IO/Vision/" + CAMERA_CONFIGS[i].name, inputs[i]);
         }
 
-        // Initialize logging values
-
         // Loop over cameras
         for (int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
             if(!disableCams[cameraIndex].get()){
-                // Initialize logging values
-
+                
                 // Update disconnected alert
                 disconnectedAlerts[cameraIndex].set(!inputs[cameraIndex].connected);
+                disabledAlerts[cameraIndex].set(false);
 
                 // Add tag poses
                 for (int tagId : inputs[cameraIndex].tagIds) {
@@ -179,6 +182,8 @@ public class Vision extends SubsystemBase {
                 estimates.clear();
 
                 
+            } else {
+                disabledAlerts[cameraIndex].set(true);
             }
         }
 
