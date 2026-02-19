@@ -12,13 +12,10 @@ public interface FuelVisionIO {
 
     @AutoLog
     class FuelVisionIOInputs{
-        public fuelObservation[] observations = {new fuelObservation(new Translation2d(), new Translation2d(), 0.0, 0.0, 0.0)};
+        public FuelObservation[] observations = {new FuelObservation(new Translation2d(), 0.0, 0.0, 0.0)};
         public Translation3d[] radialEstimates = new Translation3d[0];//estimates using estimated distance and angle to robot
         public Translation3d[] intersectionEstimates = new Translation3d[0];//estimates based on spherecast from cam to fuel
         public boolean connected = false;
-
-        public Transform3d robotToCamera = new Transform3d();
-        public String name = "";
     }
 }
-record fuelObservation(Translation2d screenPos, Translation2d screensize, double area, double confidance, double stdDev){}
+record FuelObservation(Translation2d screenPos, double area, double confidance, double dist){}

@@ -6,11 +6,14 @@ import frc.robot.autos.AutoChooser;
 import frc.robot.commands.SwerveWheelCharacterization;
 import frc.robot.constants.Constants;
 import frc.robot.constants.DriveConstants;
+import frc.robot.constants.FuelVisionConstants;
 import frc.robot.constants.TurretConstants;
 import frc.robot.constants.Constants.OperatorConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.subsystems.Led;
 import frc.robot.subsystems.launchLUT;
+import frc.robot.subsystems.fuelVision.FuelVision;
+import frc.robot.subsystems.fuelVision.FuelVisionIOPhoton;
 import frc.robot.subsystems.launcher.Launcher;
 import frc.robot.subsystems.launcher.LauncherIO;
 import frc.robot.subsystems.launcher.LauncherIOReal;
@@ -85,6 +88,7 @@ public class RobotContainer {
     private SwerveDriveSimulation driveSim;
     private Drive drive;
     private Vision vision;
+    private FuelVision fuelVision;
     private Turret turret;
     private Launcher launcher;
 
@@ -189,6 +193,8 @@ public class RobotContainer {
                         vision,
                         driverSticks,
                         led);
+                fuelVision = new FuelVision(new FuelVisionIOPhoton(FuelVisionConstants.CAMERA_CONFIG, drive::getPose));
+                
                 turret = new Turret(new TurretIOMini(), drive);
                 launcher = new Launcher(new LauncherIOReal());
                 break;
