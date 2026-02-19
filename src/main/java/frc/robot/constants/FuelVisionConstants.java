@@ -19,13 +19,13 @@ public class FuelVisionConstants {
             1.0,
             1.0,
             new Transform3d(
-                Units.inchesToMeters(-12),
                 Units.inchesToMeters(5),
+                Units.inchesToMeters(-12),
                 Units.inchesToMeters(11),
                 new Rotation3d(
                     Units.degreesToRadians(0),
                     Units.degreesToRadians(10),
-                    Units.degreesToRadians(180)
+                    Units.degreesToRadians(0)
                 )
             )
         );
@@ -34,7 +34,7 @@ public class FuelVisionConstants {
 
     public static final Distance FUEL_RADIUS = Inches.of(3);
 
-    //area of fuel on screen at 1 meter
-    public static final double FUEL_SIZE_BASELINE = 3.4;
+    //area of fuel on screen where area=dist(idfk why this works)
+    public static final double FUEL_SIZE_BASELINE = 2.8;
 
 }

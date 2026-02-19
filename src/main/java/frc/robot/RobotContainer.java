@@ -14,6 +14,7 @@ import frc.robot.subsystems.Led;
 import frc.robot.subsystems.launchLUT;
 import frc.robot.subsystems.fuelVision.FuelVision;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhoton;
+import frc.robot.subsystems.fuelVision.FuelVisionIOPhotonSim;
 import frc.robot.subsystems.launcher.Launcher;
 import frc.robot.subsystems.launcher.LauncherIO;
 import frc.robot.subsystems.launcher.LauncherIOReal;
@@ -43,6 +44,7 @@ import frc.utils.PIDTuner;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static frc.robot.constants.TurretConstants.*;
@@ -54,6 +56,8 @@ import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
+import org.ironmaple.simulation.gamepieces.GamePieceProjectile;
+import org.ironmaple.simulation.seasonspecific.rebuilt2026.RebuiltFuelOnField;
 import org.littletonrobotics.junction.LoggedPowerDistribution;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -64,6 +68,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
@@ -77,6 +82,7 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
@@ -134,7 +140,7 @@ public class RobotContainer {
             driveTrainSimulationConfig = DriveTrainSimulationConfig.Default()
                     .withGyro(COTS.ofPigeon2())
                     .withSwerveModule(COTS.ofMark4i(
-                            DCMotor.getNEO(1),
+                            DCMotor.getKrakenX60(1),
                             DCMotor.getNEO(1),
                             COTS.WHEELS.DEFAULT_NEOPRENE_TREAD.cof,
                             2))
@@ -193,7 +199,7 @@ public class RobotContainer {
                         vision,
                         driverSticks,
                         led);
-                fuelVision = new FuelVision(new FuelVisionIOPhoton(FuelVisionConstants.CAMERA_CONFIG, drive::getPose));
+                fuelVision = new FuelVision(new FuelVisionIOPhoton(FuelVisionConstants.CAMERA_CONFIG), drive::getPose);
                 
                 turret = new Turret(new TurretIOMini(), drive);
                 launcher = new Launcher(new LauncherIOReal());
@@ -218,6 +224,7 @@ public class RobotContainer {
                             vision,
                             driverSticks,
                             led);
+                fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG, driveSim::getSimulatedDriveTrainPose), drive::getPose);
                 turret = new Turret(new TurretIOSim(), drive);
                 launcher = new Launcher(new LauncherIOSim());
                 }
@@ -334,28 +341,28 @@ public class RobotContainer {
         }));
         
         // TODO: placeholder binding to shooting in sim, remove before running on robot
-        // new Trigger(() -> driverController.getRawButton(A)).whileTrue(new InstantCommand(() -> {
-        //         double launchvel = (launcher.getSpeed().in(RPM)-2500)*2*Math.PI*Units.inchesToMeters(2)/60;
-        //         double angle = launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[0];
-        //         GamePieceProjectile fuel = new GamePieceProjectile(
-        //                 RebuiltFuelOnField.REBUILT_FUEL_INFO,
-        //                 driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
-        //                         Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
-        //                         Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()
-        //                 )),
-        //                 new Translation2d(
-        //                         ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + Math.cos(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel,
-        //                         ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + Math.sin(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel
-        //                 ),
-        //                 Units.inchesToMeters(20),
-        //                 Math.sin(angle)*launchvel,
-        //                 new Rotation3d()
-        //                 );
+        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7).whileTrue(new InstantCommand(() -> {
+                double launchvel = (launcher.getSpeed().in(RPM)-2500)*2*Math.PI*Units.inchesToMeters(2)/60;
+                double angle = launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[0];
+                GamePieceProjectile fuel = new GamePieceProjectile(
+                        RebuiltFuelOnField.REBUILT_FUEL_INFO,
+                        driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
+                                Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
+                                Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()
+                        )),
+                        new Translation2d(
+                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + Math.cos(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel,
+                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + Math.sin(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel
+                        ),
+                        Units.inchesToMeters(20),
+                        Math.sin(angle)*launchvel,
+                        new Rotation3d()
+                        );
                 
-        //         fuel.withTouchGroundHeight(Inches.of(3).in(Meters));
-        //         fuel.enableBecomesGamePieceOnFieldAfterTouchGround();
-        //         SimulatedArena.getInstance().addGamePieceProjectile(fuel);
-        // }).andThen(new WaitCommand(0.1)).repeatedly());
+                fuel.withTouchGroundHeight(Inches.of(3).in(Meters));
+                fuel.enableBecomesGamePieceOnFieldAfterTouchGround();
+                SimulatedArena.getInstance().addGamePieceProjectile(fuel);
+        }).andThen(new WaitCommand(0.1)).repeatedly());
 
         // force teleop drive
         new Trigger(() -> driverController.getPOV() == 0).onTrue(drive.TeleopDrive());
