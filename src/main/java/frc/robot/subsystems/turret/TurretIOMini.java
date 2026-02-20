@@ -33,10 +33,6 @@ public class TurretIOMini implements TurretIO {
     private Angle goal = Radians.of(0.0);
     private boolean openLoop = false;
     private Voltage Vout = Volts.of(0.0);
-    private Angle angle = Radians.of(0.0);
-
-    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(TURRET_ID_GAINS.kV, TURRET_ID_GAINS.kA);
-    private final KalmanFilter<N2, N1, N2> filter = new KalmanFilter<N2, N1, N2>(Nat.N2(), Nat.N2(), model, VecBuilder.fill(1, 1), VecBuilder.fill(0.001, 0.001), 0.02);
 
     private ProfiledPID pid = new ProfiledPID(TURRET_PID_GAINS);
     private SimpleFF ff = new SimpleFF(TURRET_FF_GAINS);
@@ -61,10 +57,6 @@ public class TurretIOMini implements TurretIO {
         motorError.set(motor.getLastError() != REVLibError.kOk);
         motorError.setText("turret motor error: " + motor.getLastError().toString());
 
-        filter.predict(VecBuilder.fill(Vout.in(Volts) - Math.min(TURRET_ID_GAINS.kS, Math.abs(Vout.in(Volts)))*Math.signum(getSpeed().magnitude())), 0.02);
-        filter.correct(VecBuilder.fill(Vout.in(Volts) - Math.min(TURRET_ID_GAINS.kS, Math.abs(Vout.in(Volts)))*Math.signum(getSpeed().magnitude())), VecBuilder.fill(getAngle().in(Radians), getSpeed().in(RadiansPerSecond)));
-        angle = getAngle();
-
         if(!openLoop){
             Vout = Volts.of(pid.calculate(getAngle().in(Radians), goal.in(Radians)));
             Vout = Vout.plus(Volts.of(ff.calculate(pid.getSetpoint().velocity)));
@@ -75,8 +67,8 @@ public class TurretIOMini implements TurretIO {
             motor.stopMotor();
         }
         
-        input.filteredAngle = angle;
-        input.filteredSpeed = RadiansPerSecond.of(filter.getXhat(1));
+        input.filteredAngle = getAngle();
+        input.filteredSpeed = getSpeed();
         input.rawAngle = getAngle();
         input.rawSpeed = getSpeed();
 
@@ -85,7 +77,7 @@ public class TurretIOMini implements TurretIO {
         input.goal = goal;
         input.setpointPos = Radians.of(pid.getSetpoint().position);
         input.setpointVel = RadiansPerSecond.of(pid.getSetpoint().velocity);
-        input.atSetpoint = MathUtil.isNear(goal.in(Radians), angle.in(Radians), TURRET_SETPOINT_TOLERANCE.in(Radians));
+        input.atSetpoint = MathUtil.isNear(goal.in(Radians), getAngle().in(Radians), TURRET_SETPOINT_TOLERANCE.in(Radians));
     
         input.openLoop = openLoop;
     }
