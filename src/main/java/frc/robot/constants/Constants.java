@@ -22,15 +22,14 @@ public final class Constants {
     public static RobotMode SIM_MODE = RobotMode.SIM;// set to REPLAY to replay log files
     public static RobotMode MODE = RobotBase.isReal() ? RobotMode.REAL : SIM_MODE;
 
-    //FIXME: add new times
     public static final Time AUTO_TIME = Seconds.of(20);
-    public static final Time TELEOP_TIME = Seconds.of(135);// 2:15
+    public static final Time TELEOP_TIME = Seconds.of(140);// 2:20
     public static final Time ENDGAME_TIME = Seconds.of(30);// time remaining in teleop when endgame starts
 
     // default robot pose
     public static final Pose2d STARTING_POSE = new Pose2d(new Translation2d(8.75, 4), Rotation2d.fromDegrees(0));
 
-    public static final Mass ROBOT_MASS = Pounds.of(100);
+    public static final Mass ROBOT_MASS = Pounds.of(115);
     public static final Time LOOP_TIME = Milliseconds.of(0.13); // 20ms + 110ms spark max velocity lag
 
     public static class OperatorConstants {
@@ -39,8 +38,8 @@ public final class Constants {
         public static final double RIGHT_DEADBAND = 0.15;
 
         // stick curvature
-        public static final double TRANSLATION_CURVE = 1.5;
-        public static final double ROTATION_CURVE = 1.5;
+        public static final double TRANSLATION_CURVE = 2;
+        public static final double ROTATION_CURVE = 2;
 
         // usb ports of controllers, remember to assign controllers to their respective
         // ports in driverstation

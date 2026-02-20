@@ -13,6 +13,6 @@ public class ElevatorFF extends ElevatorFeedforward{
         super(kS, kG, kV, kA, dt);
     }
     public ElevatorFF(PIDGains.GravityFF gains){
-        super(gains.kS(), gains.kG(), gains.kV(), gains.kA());
+        super(gains.kS, gains.kG, gains.kV, gains.kA);
     }
 }

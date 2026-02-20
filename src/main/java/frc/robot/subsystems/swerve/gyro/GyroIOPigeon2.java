@@ -9,7 +9,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
-import frc.utils.SparkOdometryThread;
+import frc.utils.PhoenixOdometryThread;
 
 import static edu.wpi.first.units.Units.Radian;
 import static frc.robot.constants.DriveConstants.*;
@@ -30,8 +30,8 @@ public class GyroIOPigeon2 implements GyroIO {
         yaw.setUpdateFrequency(ODOMETRY_FREQ);
         yawVelocity.setUpdateFrequency(50.0);
         pigeon.optimizeBusUtilization();
-        yawTimestampQueue = SparkOdometryThread.getInstance().makeTimestampQueue();
-        yawPositionQueue = SparkOdometryThread.getInstance().registerSignal(yaw::getValueAsDouble);
+        yawTimestampQueue = PhoenixOdometryThread.getInstance().makeTimestampQueue();
+        yawPositionQueue = PhoenixOdometryThread.getInstance().registerSignal(yaw.clone());
     }
 
     @Override

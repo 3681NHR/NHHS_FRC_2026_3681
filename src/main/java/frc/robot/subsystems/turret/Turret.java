@@ -15,9 +15,10 @@ import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -27,7 +28,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.launchLUT;
 import frc.robot.subsystems.swerve.Drive;
-import frc.utils.ExtraMath;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 
@@ -54,13 +54,8 @@ public class Turret extends SubsystemBase {
         this.drive = drive;
 
         //init log values
-        Logger.recordOutput("Subsystems/Turret/track/pathing/modAngle", Double.NaN, Rotations);
-        Logger.recordOutput("Subsystems/Turret/track/pathing/modCurrent", Double.NaN, Rotations);
-        Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset", Double.NaN, Rotations);
-        Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset A", Double.NaN, Rotations);
-        Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset B", Double.NaN, Rotations);
-        Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset c", Double.NaN, Rotations);
         Logger.recordOutput("Subsystems/Turret/track/angle targeted", Double.NaN, Rotations);
+        Logger.recordOutput("Subsystems/Turret/track/init angle targeted", Double.NaN, Rotations);
         Logger.recordOutput("Subsystems/Turret/track/lead time", Double.NaN, Seconds);
         Logger.recordOutput("Subsystems/Turret/track/target pos", (Translation2d)null);
         Logger.recordOutput("Subsystems/Turret/track/virtual target pos", (Translation2d)null);
@@ -118,38 +113,20 @@ public class Turret extends SubsystemBase {
                 .minus(Radians.of(drive.getPose().getRotation().getRadians()))
                 .plus(Radians.of(TURRET_THETA_COMP_FACTOR*drive.getAngulerVelocity().in(RadiansPerSecond)));
                 
-            double modAngle = MathUtil.inputModulus(angle.in(Rotations), 0, 1);
-            double modCurrent = MathUtil.inputModulus(in.goal.in(Rotations), 0, 1);
-            Angle offset = Rotations.of(ExtraMath.lesser(modAngle-modCurrent, 1+modAngle-modCurrent, modAngle-modCurrent-1));
-
-            Angle finalAngle = in.goal.plus(offset); 
-            finalAngle = Radians.of((finalAngle.in(Radians)%
-                (TURRET_ANGLE_LIM.in(Radians)*Math.signum(finalAngle.in(Radians)))
-                ));
-        
+            Angle finalAngle = Degrees.of(convertToClosestBoundedTurretAngleDegrees(angle.in(Degrees), new Rotation2d(in.filteredAngle.in(Radians)), TURRET_ANGLE_LIM.in(Degrees), -TURRET_ANGLE_LIM.in(Degrees)));
             io.setGoal(finalAngle);
 
             ready = in.atSetpoint;
 
-            Logger.recordOutput("Subsystems/Turret/track/pathing/modAngle", modAngle);
-            Logger.recordOutput("Subsystems/Turret/track/pathing/modCurrent", modCurrent);
-            Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset", offset);
-            Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset A", modAngle-modCurrent);
-            Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset B", 1+modAngle-modCurrent);
-            Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset c", modAngle-modCurrent-1);
             Logger.recordOutput("Subsystems/Turret/track/angle targeted", finalAngle);
+            Logger.recordOutput("Subsystems/Turret/track/init angle targeted", angle);
             Logger.recordOutput("Subsystems/Turret/track/lead time", Seconds.of(timeOfFlight));
             Logger.recordOutput("Subsystems/Turret/track/target pos", targ.get());
             Logger.recordOutput("Subsystems/Turret/track/virtual target pos", virtualTarg);
             
         }, this).finallyDo(() -> {
-            Logger.recordOutput("Subsystems/Turret/track/pathing/modAngle", Double.NaN, Rotations);
-            Logger.recordOutput("Subsystems/Turret/track/pathing/modCurrent", Double.NaN, Rotations);
-            Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset", Double.NaN, Rotations);
-            Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset A", Double.NaN, Rotations);
-            Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset B", Double.NaN, Rotations);
-            Logger.recordOutput("Subsystems/Turret/track/pathing/angle offset c", Double.NaN, Rotations);
             Logger.recordOutput("Subsystems/Turret/track/angle targeted", Double.NaN, Rotations);
+            Logger.recordOutput("Subsystems/Turret/track/init angle targeted", Double.NaN, Rotations);
             Logger.recordOutput("Subsystems/Turret/track/lead time", Double.NaN, Seconds);
             Logger.recordOutput("Subsystems/Turret/track/target pos", (Translation2d)null);
             Logger.recordOutput("Subsystems/Turret/track/virtual target pos", (Translation2d)null);
@@ -158,7 +135,7 @@ public class Turret extends SubsystemBase {
 
     public Command sysidQuasistatic(boolean reverse){
         return sysid.quasistatic(reverse ? SysIdRoutine.Direction.kReverse : SysIdRoutine.Direction.kForward)
-        .until( () -> in.filteredAngle.abs(Radians) > TURRET_ANGLE_LIM.in(Radians))
+        // .until( () -> in.filteredAngle.abs(Radians) > TURRET_ANGLE_LIM.in(Radians))
         .raceWith(Commands.run(() -> {
             ready = false;
             runningSysid.set(true);
@@ -172,7 +149,7 @@ public class Turret extends SubsystemBase {
 
     public Command sysidDynamic(boolean reverse){
         return sysid.dynamic(reverse ? SysIdRoutine.Direction.kReverse : SysIdRoutine.Direction.kForward)
-        .until( () -> in.filteredAngle.abs(Radians) > TURRET_ANGLE_LIM.in(Radians))
+        // .until( () -> in.filteredAngle.abs(Radians) > TURRET_ANGLE_LIM.in(Radians))
         .raceWith(Commands.run(() -> {
             ready = false;
             runningSysid.set(true);
@@ -203,4 +180,47 @@ public class Turret extends SubsystemBase {
                 Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()));
     }
 
+    
+    /**
+     * Sets the robot-relative target angle for the turret.
+     * First the closest path from current turret angle to the target angle is calculated.
+     * If the path is found to be move outside the bounds, the path will adjust to follow the next closest path.
+     *
+     * @param targetAngleDegrees Target angle in degrees
+     * @param current Current turret angle
+     *
+     * @return next absolute angle in degrees for the robot to move to
+     * 
+     * (thanks 2910)
+     */
+    public static double convertToClosestBoundedTurretAngleDegrees(
+            double targetAngleDegrees, Rotation2d current, double forwardLimitDegrees, double reverseLimitDegrees) {
+        double currentTotalRadians = (current.getRotations() * 2 * Math.PI);
+        double closestOffset = Units.degreesToRadians(targetAngleDegrees) - current.getRadians();
+        if (closestOffset > Math.PI) {
+
+            closestOffset -= 2 * Math.PI;
+
+        } else if (closestOffset < -Math.PI) {
+            closestOffset += 2 * Math.PI;
+        }
+
+        double finalOffset = currentTotalRadians + closestOffset;
+        if ((currentTotalRadians + closestOffset) % (2 * Math.PI)
+                == (currentTotalRadians - closestOffset)
+                        % (2 * Math.PI)) { // If the offset can go either way, go closer to zero
+            if (finalOffset > 0) {
+                finalOffset = currentTotalRadians - Math.abs(closestOffset);
+            } else {
+                finalOffset = currentTotalRadians + Math.abs(closestOffset);
+            }
+        }
+        // if (finalOffset > Units.degreesToRadians(forwardLimitDegrees)) { // if past upper rotation limit
+        //     finalOffset -= (2 * Math.PI);
+        // } else if (finalOffset < Units.degreesToRadians(reverseLimitDegrees)) { // if below lower rotation limit
+        //     finalOffset += (2 * Math.PI);
+        // }
+
+        return Units.radiansToDegrees(finalOffset);
+    }
 }

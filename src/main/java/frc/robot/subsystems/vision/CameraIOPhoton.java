@@ -8,7 +8,6 @@ import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
-import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
@@ -35,7 +34,7 @@ public class CameraIOPhoton implements CameraIO {
         camera = new PhotonCamera(config.name);
         this.robotToCamera = config.robotToCam;
 
-        this.poseEstimator = new PhotonPoseEstimator(layout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCamera);
+        this.poseEstimator = new PhotonPoseEstimator(layout, robotToCamera);
     }
 
     @Override
@@ -43,7 +42,10 @@ public class CameraIOPhoton implements CameraIO {
         ArrayList<PoseObservation> observations = new ArrayList<>();
 
         for (PhotonPipelineResult result : camera.getAllUnreadResults()) {
-            Optional<EstimatedRobotPose> estimate = poseEstimator.update(result);
+            Optional<EstimatedRobotPose> estimate = poseEstimator.estimateCoprocMultiTagPose(result);
+            if (!estimate.isPresent()) {
+                estimate = poseEstimator.estimateLowestAmbiguityPose(result);
+            }
             if (estimate.isPresent()) {
                 observations.add(new PoseObservation(
                         estimate.get().timestampSeconds,

@@ -31,15 +31,15 @@ public class LauncherIOSim implements LauncherIO {
     private PID pid = new PID(LAUNCHER_PID_GAINS);
     private SimpleFF ff = new SimpleFF(LAUNCHER_FF_GAINS);
     
-    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(LAUNCHER_ID_GAINS.kV(), LAUNCHER_ID_GAINS.kA());
+    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(LAUNCHER_ID_GAINS.kV, LAUNCHER_ID_GAINS.kA);
     private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.01, 0.1);
     private final KalmanFilter<N2, N1, N2> filter = new KalmanFilter<N2, N1, N2>(Nat.N2(), Nat.N2(), model, VecBuilder.fill(0.2, 1.0), VecBuilder.fill(1.3, 0.7), 0.02);
     
     @Override
     public void updateInputs(LauncherIOInputs input){
         sim.update(0.02);
-        filter.predict(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0))), 0.02);
-        filter.correct(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0))), sim.getOutput());
+        filter.predict(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS, Math.abs(vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0))), 0.02);
+        filter.correct(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS, Math.abs(vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0))), sim.getOutput());
         speed = RadiansPerSecond.of(filter.getXhat().get(1,0));
 
         if(!openLoop){
@@ -49,7 +49,7 @@ public class LauncherIOSim implements LauncherIO {
             vout = Volts.of(Math.max(0, vout.in(Volts)));
         }
         if(DriverStation.isEnabled()){
-            sim.setInput(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS(), Math.abs(vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0)));
+            sim.setInput(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS, Math.abs(vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0)));
         } else {
             sim.setInput(0);
         }

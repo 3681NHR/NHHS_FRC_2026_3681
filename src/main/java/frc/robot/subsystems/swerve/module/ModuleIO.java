@@ -14,6 +14,7 @@ public interface ModuleIO {
     @AutoLog
     public static class ModuleIOInputs {
         public boolean driveConnected = false;
+        public boolean driveOpenLoop = false;
         public Angle drivePosition = Radians.of(0);
         public AngularVelocity driveVelocity = RadiansPerSecond.of(0);
         public AngularVelocity driveGoal = RadiansPerSecond.of(0);
@@ -22,7 +23,8 @@ public interface ModuleIO {
         public Current driveCurrent = Amps.of(0);
         public Temperature driveTemp = Celsius.of(0);
 
-        public boolean turnConnected;
+        public boolean turnConnected = false;
+        public boolean turnOpenLoop = false;
         public Angle turnPosition = Radians.of(0);
         public Angle turnGoal = Radians.of(0);
         public Angle turnSetpoint = Radians.of(0);

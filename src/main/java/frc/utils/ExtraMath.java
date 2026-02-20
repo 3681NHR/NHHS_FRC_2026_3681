@@ -15,6 +15,13 @@ import java.util.ArrayList;
  */
 public final class ExtraMath {
 
+    public static double mean(double... in){
+        double sum = 0;
+        for(double i : in){
+            sum += i;
+        }
+        return sum/in.length;
+    }
     /**
      * @param in values to compare
      * @return value with smallest absolute value
@@ -42,6 +49,30 @@ public final class ExtraMath {
             if(Math.abs(in[i]) > greaterAbs){
                 greater = in[i];
                 greaterAbs = Math.abs(in[i]);
+            }
+        }
+        return greater;
+    }
+    
+    public static double min(double... in){
+        double lesser = Double.POSITIVE_INFINITY;
+        double lesserAbs = Double.POSITIVE_INFINITY;
+        for(int i=0;i<in.length;i++){
+            if(in[i] < lesserAbs){
+                lesser = in[i];
+                lesserAbs = in[i];
+            }
+        }
+        return lesser;
+    }
+    
+    public static double max(double... in){
+        double greater = Double.NEGATIVE_INFINITY;
+        double greaterAbs = 0.0;
+        for(int i=0;i<in.length;i++){
+            if(in[i] > greaterAbs){
+                greater = in[i];
+                greaterAbs = in[i];
             }
         }
         return greater;

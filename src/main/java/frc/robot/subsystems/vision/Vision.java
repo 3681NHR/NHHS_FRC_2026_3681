@@ -16,11 +16,14 @@ import java.util.List;
 import java.util.Optional;
 
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 public class Vision extends SubsystemBase {
     private final CameraIO[] io;
     private final CameraIOInputsAutoLogged[] inputs;
     private final Alert[] disconnectedAlerts;
+    private final Alert[] disabledAlerts;
+    private final LoggedNetworkBoolean[] disableCams;
 
     private VisionEstimate[] latestEstimateRaw;
     private VisionEstimate[] latestEstimateFinal = latestEstimateRaw;
@@ -45,20 +48,25 @@ public class Vision extends SubsystemBase {
 
         // Initialize inputs
         this.inputs = new CameraIOInputsAutoLogged[io.length];
-        for (int i = 0; i < inputs.length; i++) {
-            inputs[i] = new CameraIOInputsAutoLogged();
-        }
+        this.disconnectedAlerts = new Alert[io.length];
+        this.disabledAlerts = new Alert[io.length];
+        this.disableCams = new LoggedNetworkBoolean[io.length];
         for (int i = 0; i < io.length; i++) {
+            inputs[i] = new CameraIOInputsAutoLogged();
             io[i].updateInputs(inputs[i]);
             Logger.processInputs("IO/Vision/" + CAMERA_CONFIGS[i].name, inputs[i]);
-        }
-
-        // Initialize disconnected alerts
-        this.disconnectedAlerts = new Alert[io.length];
-        for (int i = 0; i < inputs.length; i++) {
+            // Initialize disconnected alerts
             disconnectedAlerts[i] = new Alert(
                     "Camera: " + inputs[i].name == null ? Integer.toString(i) : inputs[i].name + " is disconnected.",
                     AlertType.kError);
+            disabledAlerts[i] = new Alert(
+                    "Camera: " + inputs[i].name == null ? Integer.toString(i) : inputs[i].name + " is disabled.",
+                    AlertType.kError);
+            
+            disableCams[i] = new LoggedNetworkBoolean(
+                    "Overrides/Vision/disable Camera: " + (inputs[i].name == null ? Integer.toString(i) : inputs[i].name),
+                    false);
+            
         }
     }
 
@@ -69,111 +77,114 @@ public class Vision extends SubsystemBase {
             Logger.processInputs("IO/Vision/" + CAMERA_CONFIGS[i].name, inputs[i]);
         }
 
-        // Initialize logging values
-
         // Loop over cameras
         for (int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
+            if(!disableCams[cameraIndex].get()){
+                
+                // Update disconnected alert
+                disconnectedAlerts[cameraIndex].set(!inputs[cameraIndex].connected);
+                disabledAlerts[cameraIndex].set(false);
 
-            // Initialize logging values
-
-            // Update disconnected alert
-            disconnectedAlerts[cameraIndex].set(!inputs[cameraIndex].connected);
-
-            // Add tag poses
-            for (int tagId : inputs[cameraIndex].tagIds) {
-                var tagPose = layout.getTagPose(tagId);
-                if (tagPose.isPresent()) {
-                    tagPoses.add(tagPose.get());
-                }
-            }
-
-            // Loop over pose observations
-            for (var observation : inputs[cameraIndex].poseObservations) {
-                // Check whether to reject pose
-                boolean rejectPose = observation.tagCount() == 0 // Must have at least one tag
-                        || observation.ambiguity() > MAX_AMBIGUITY // Cannot be too high ambiguity
-                        || Math.abs(observation.pose().getZ()) > MAX_Z_ERROR.in(Meters) // Must have realistic Z coordinate
-                        // // Must be within the field boundaries
-                        || observation.pose().getX() < -1.0
-                        || observation.pose().getX() > layout.getFieldLength()+1
-                        || observation.pose().getY() < -1.0
-                        || observation.pose().getY() > layout.getFieldWidth()+1;
-
-                // Add pose to log
-                robotPoses.add(observation.pose());
-                if (rejectPose) {
-                    robotPosesRejected.add(observation.pose());
-                } else {
-                    robotPosesAccepted.add(observation.pose());
+                // Add tag poses
+                for (int tagId : inputs[cameraIndex].tagIds) {
+                    var tagPose = layout.getTagPose(tagId);
+                    if (tagPose.isPresent()) {
+                        tagPoses.add(tagPose.get());
+                    }
                 }
 
-                // Skip if rejected
-                if (rejectPose) {
-                    continue;
+                // Loop over pose observations
+                for (var observation : inputs[cameraIndex].poseObservations) {
+                    // Check whether to reject pose
+                    boolean rejectPose = observation.tagCount() == 0 // Must have at least one tag
+                            || observation.ambiguity() > MAX_AMBIGUITY // Cannot be too high ambiguity
+                            // || Math.abs(observation.pose().getZ()) > MAX_Z_ERROR.in(Meters) // Must have realistic Z coordinate
+                            // // Must be within the field boundaries
+                            || observation.pose().getX() < -1.0
+                            || observation.pose().getX() > layout.getFieldLength()+1
+                            || observation.pose().getY() < -1.0
+                            || observation.pose().getY() > layout.getFieldWidth()+1;
+
+                    // Add pose to log
+                    robotPoses.add(observation.pose());
+                    if (rejectPose) {
+                        robotPosesRejected.add(observation.pose());
+                    } else {
+                        robotPosesAccepted.add(observation.pose());
+                    }
+
+                    // Skip if rejected
+                    if (rejectPose) {
+                        continue;
+                    }
+
+                    double stdDevFactor = Math.pow(observation.averageTagDistance().in(Meters), 3.0) / observation.tagCount();
+                    double linearStdDev = LIN_STD_DEV_BASELINE * stdDevFactor;
+                    double angularStdDev = ANG_STD_DEV_BASELINE * stdDevFactor;
+                    if (cameraIndex < CAMERA_CONFIGS.length) {
+                        linearStdDev *= CAMERA_CONFIGS[cameraIndex].linStdDevFactor;
+                        angularStdDev *= CAMERA_CONFIGS[cameraIndex].angStdDevFactor;
+                    } else {
+                        throw new RuntimeException("could not find std dev factors for camera index: " + cameraIndex);
+                    }
+
+                    estimates.add(new VisionEstimate(
+                            observation.pose().toPose2d(),
+                            observation.timestamp(),
+                            VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev)));
+
                 }
 
-                double stdDevFactor = Math.pow(observation.averageTagDistance().in(Meters), 3.0) / observation.tagCount();
-                double linearStdDev = LIN_STD_DEV_BASELINE * stdDevFactor;
-                double angularStdDev = ANG_STD_DEV_BASELINE * stdDevFactor;
-                if (cameraIndex < CAMERA_CONFIGS.length) {
-                    linearStdDev *= CAMERA_CONFIGS[cameraIndex].linStdDevFactor;
-                    angularStdDev *= CAMERA_CONFIGS[cameraIndex].angStdDevFactor;
-                } else {
-                    throw new RuntimeException("could not find std dev factors for camera index: " + cameraIndex);
+                // Log camera data
+                if (tagPoses.size() > 0) {
+                    Logger.recordOutput(
+                            "Subsystems/Vision/Cameras/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
+                                    : inputs[cameraIndex].name) + "/TagPoses",
+                            tagPoses.toArray(new Pose3d[0]));
                 }
-
-                estimates.add(new VisionEstimate(
-                        observation.pose().toPose2d(),
-                        observation.timestamp(),
-                        VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev)));
-
-            }
-
-            // Log camera data
-            if (tagPoses.size() > 0) {
+                if (robotPoses.size() > 0) {
+                    Logger.recordOutput(
+                            "Subsystems/Vision/Cameras/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
+                                    : inputs[cameraIndex].name) + "/AllRobotPoses",
+                            robotPoses.toArray(new Pose3d[0]));
+                }
+                if (robotPosesAccepted.size() > 0) {
+                    Logger.recordOutput(
+                            "Subsystems/Vision/Cameras/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
+                                    : inputs[cameraIndex].name) + "/RobotPosesAccepted",
+                            robotPosesAccepted.toArray(new Pose3d[0]));
+                }
+                if (robotPosesRejected.size() > 0) {
+                    Logger.recordOutput(
+                            "Subsystems/Vision/Cameras/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
+                                    : inputs[cameraIndex].name) + "/RobotPosesRejected",
+                            robotPosesRejected.toArray(new Pose3d[0]));
+                }
+                double[][] stdDevs = new double[estimates.size()][3];
+                for (int i = 0; i < stdDevs.length; i++) {
+                    stdDevs[i] = estimates.get(i).visionMeasurementStdDevs.getData();
+                }
                 Logger.recordOutput(
                         "Subsystems/Vision/Cameras/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
-                                : inputs[cameraIndex].name) + "/TagPoses",
-                        tagPoses.toArray(new Pose3d[0]));
-            }
-            if (robotPoses.size() > 0) {
-                Logger.recordOutput(
-                        "Subsystems/Vision/Cameras/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
-                                : inputs[cameraIndex].name) + "/AllRobotPoses",
-                        robotPoses.toArray(new Pose3d[0]));
-            }
-            if (robotPosesAccepted.size() > 0) {
-                Logger.recordOutput(
-                        "Subsystems/Vision/Cameras/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
-                                : inputs[cameraIndex].name) + "/RobotPosesAccepted",
-                        robotPosesAccepted.toArray(new Pose3d[0]));
-            }
-            if (robotPosesRejected.size() > 0) {
-                Logger.recordOutput(
-                        "Subsystems/Vision/Cameras/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
-                                : inputs[cameraIndex].name) + "/RobotPosesRejected",
-                        robotPosesRejected.toArray(new Pose3d[0]));
-            }
-            double[][] stdDevs = new double[estimates.size()][3];
-            for (int i = 0; i < stdDevs.length; i++) {
-                stdDevs[i] = estimates.get(i).visionMeasurementStdDevs.getData();
-            }
-            Logger.recordOutput(
-                    "Subsystems/Vision/Cameras/Camera: " + (inputs[cameraIndex].name == null ? Integer.toString(cameraIndex)
-                            : inputs[cameraIndex].name) + "/stdDevs",
-                    stdDevs);
+                                : inputs[cameraIndex].name) + "/stdDevs",
+                        stdDevs);
 
-            allTagPoses.addAll(tagPoses);
-            allRobotPoses.addAll(robotPoses);
-            allRobotPosesAccepted.addAll(robotPosesAccepted);
-            allRobotPosesRejected.addAll(robotPosesRejected);
-            allEstimates.addAll(estimates);
+                allTagPoses.addAll(tagPoses);
+                allRobotPoses.addAll(robotPoses);
+                allRobotPosesAccepted.addAll(robotPosesAccepted);
+                allRobotPosesRejected.addAll(robotPosesRejected);
+                allEstimates.addAll(estimates);
 
-            tagPoses.clear();
-            robotPoses.clear();
-            robotPosesAccepted.clear();
-            robotPosesRejected.clear();
-            estimates.clear();
+                tagPoses.clear();
+                robotPoses.clear();
+                robotPosesAccepted.clear();
+                robotPosesRejected.clear();
+                estimates.clear();
+
+                
+            } else {
+                disabledAlerts[cameraIndex].set(true);
+            }
         }
 
         // Log summary data
@@ -196,6 +207,7 @@ public class Vision extends SubsystemBase {
         allRobotPosesAccepted.clear();
         allRobotPosesRejected.clear();
         allEstimates.clear();
+        
     }
 
     public VisionEstimate[] getPose() {
