@@ -35,6 +35,6 @@ public class FuelVisionConstants {
     public static final Distance FUEL_RADIUS = Inches.of(3);
 
     //area of fuel on screen where area=dist(idfk why this works)
-    public static final double FUEL_SIZE_BASELINE = 2.8;
+    public static final double FUEL_SIZE_BASELINE = 1.54;
 
 }

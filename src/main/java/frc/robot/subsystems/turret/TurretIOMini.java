@@ -48,6 +48,11 @@ public class TurretIOMini implements TurretIO {
         TURRET_PID_GAINS.withCallback(() -> {
             pid.setGains(TURRET_PID_GAINS);
         });
+        TURRET_FF_GAINS.withCallback(() -> {
+            ff.setKs(TURRET_FF_GAINS.kS);
+            ff.setKv(TURRET_FF_GAINS.kV);
+            ff.setKa(TURRET_FF_GAINS.kA);
+        });
     }
 
     @Override
@@ -58,7 +63,7 @@ public class TurretIOMini implements TurretIO {
 
         filter.predict(VecBuilder.fill(Vout.in(Volts) - Math.min(TURRET_ID_GAINS.kS, Math.abs(Vout.in(Volts)))*Math.signum(getSpeed().magnitude())), 0.02);
         filter.correct(VecBuilder.fill(Vout.in(Volts) - Math.min(TURRET_ID_GAINS.kS, Math.abs(Vout.in(Volts)))*Math.signum(getSpeed().magnitude())), VecBuilder.fill(getAngle().in(Radians), getSpeed().in(RadiansPerSecond)));
-        angle = Radians.of(filter.getXhat().get(0,0));
+        angle = getAngle();
 
         if(!openLoop){
             Vout = Volts.of(pid.calculate(getAngle().in(Radians), goal.in(Radians)));
@@ -101,6 +106,7 @@ public class TurretIOMini implements TurretIO {
     }
     
     private Angle getAngle(){
+            // return Radians.of(filter.getXhat().get(0,0));
             return encoder.getPosition().getValue();
     }
     private AngularVelocity getSpeed(){

@@ -1,5 +1,7 @@
 package frc.robot.subsystems.fuelVision;
 
+import static edu.wpi.first.units.Units.Degrees;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +13,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.constants.FuelVisionConstants;
 import frc.robot.constants.VisionConstants.CameraConfig;
+import frc.utils.ExtraMath;
 
 public class FuelVisionIOPhoton implements FuelVisionIO{
     public PhotonCamera cam;
@@ -41,8 +44,11 @@ public class FuelVisionIOPhoton implements FuelVisionIO{
                      */
                     assert(corners.size() == 4);
                     observations.add(new FuelObservation(
-                        new Translation2d(targ.yaw, targ.pitch),
-                        new Translation2d(corners.get(1).x - corners.get(0).x, corners.get(1).y - corners.get(2).y),
+                        new RadialPos2d(Degrees.of(targ.yaw), Degrees.of(targ.pitch)),
+                        new ScreenSize2d(
+                            Math.abs(ExtraMath.max(corners.get(0).x, corners.get(1).x, corners.get(2).x, corners.get(3).x) - ExtraMath.min(corners.get(0).x, corners.get(1).x, corners.get(2).x, corners.get(3).x))/480.0,
+                            Math.abs(ExtraMath.max(corners.get(0).y, corners.get(1).y, corners.get(2).y, corners.get(3).y) - ExtraMath.min(corners.get(0).y, corners.get(1).y, corners.get(2).y, corners.get(3).y))/640.0
+                            ),
                         targ.area,
                         targ.objDetectConf,
                         FuelVisionConstants.FUEL_SIZE_BASELINE/targ.area

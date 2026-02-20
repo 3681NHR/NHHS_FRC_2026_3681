@@ -282,6 +282,8 @@ public class Drive extends SubsystemBase {
     public void setFOD(boolean fod) {
         this.FODEnabled = fod;
     }
+
+    @AutoLogOutput(key="Subsystems/Swerve/FOD enabled")
     public boolean getFOD(){
         return FODEnabled;
     }
@@ -601,7 +603,8 @@ public class Drive extends SubsystemBase {
 
     /** Returns the maximum angular speed in radians per sec. */
     public double getMaxAngularSpeedRadPerSec() {
-        return MAX_SPEED_PP.in(MetersPerSecond) / RADIUS.in(Meters);
+        // return MAX_SPEED_PP.in(MetersPerSecond) / RADIUS.in(Meters);
+        return MAX_ANGLE_SPEED_PP.in(RadiansPerSecond);
     }
 
     /** Runs the drive in a straight line with the specified drive output. */

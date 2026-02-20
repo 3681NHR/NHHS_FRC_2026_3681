@@ -74,9 +74,9 @@ public class DriveConstants {
     public static final AngularAcceleration MAX_ANGLE_ACCEL_PP = RadiansPerSecondPerSecond.of(MAX_ANGLE_SPEED_PP.in(RadiansPerSecond) * 3);
 
     // pathplanner PIDs
-    public static final PIDGains.PID AUTO_ANGLE_PID = new PIDGains.PID(8, 0.0, 0.0);
+    public static final PIDGains.PID AUTO_ANGLE_PID = new PIDGains.PID(5, 0.0, 0.5);
     public static final PIDGains.PID AUTO_ANGLE_PID_SIM = new PIDGains.PID(8, 0.5, 0.2);
-    public static final PIDGains.PID TRANS_PID = new PIDGains.PID(5, 0.0, 0.0);
+    public static final PIDGains.PID TRANS_PID = new PIDGains.PID(6, 0.0, 0.3);
     public static final PIDGains.PID TRANS_PID_SIM = new PIDGains.PID(7, 1, 0.2);
 
     // kinematics
@@ -109,8 +109,8 @@ public class DriveConstants {
             MODULE_POSITIONS);
 
     // sysid
-    public static final Voltage DRIVE_SYSID_VSTEP = Volts.of(7);
-    public static final Velocity<VoltageUnit> DRIVE_SYSID_VRAMP = Volts.of(2).per(Second);
+    public static final Voltage DRIVE_SYSID_VSTEP = Volts.of(2);
+    public static final Velocity<VoltageUnit> DRIVE_SYSID_VRAMP = Volts.of(0.5).per(Second);
     public static final Time DRIVE_SYSID_TIMEOUT = Seconds.of(5);
 
     public static final Voltage TURN_SYSID_VSTEP = Volts.of(7);

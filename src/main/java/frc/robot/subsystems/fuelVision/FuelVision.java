@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+import static edu.wpi.first.units.Units.Radians;
 import static frc.robot.constants.FuelVisionConstants.*;
 
 public class FuelVision extends SubsystemBase {
@@ -37,13 +38,13 @@ public class FuelVision extends SubsystemBase {
         ArrayList<Double> areaEstimates = new ArrayList<Double>();
 
         for(FuelObservation o : inputs.observations){
-            double areaEst = 307200/Math.pow(Math.max(o.screensize().getX(), o.screensize().getY()), 2);
+            double areaEst = 100 * Math.pow(Math.max(o.screensize().x(), o.screensize().y()), 2);
             areaEstimates.add(areaEst);
 
-            double dist = FUEL_SIZE_BASELINE/o.area();
+            double dist = FUEL_SIZE_BASELINE/Math.sqrt(areaEst);
             distEstimates.add(dist);
 
-            double theta = -CAMERA_CONFIG.robotToCam.getRotation().getY()+Units.degreesToRadians(o.screenPos().getY());
+            double theta = -CAMERA_CONFIG.robotToCam.getRotation().getY()+o.screenPos().y().in(Radians);
             thetaEstimates.add(theta);
             
             double height = Math.sin(theta) * dist;
@@ -53,8 +54,8 @@ public class FuelVision extends SubsystemBase {
             hDistEstimates.add(hDist);
 
             radialEstimates.add(new Translation3d(
-               Math.cos(CAMERA_CONFIG.robotToCam.getRotation().getZ() - Units.degreesToRadians(o.screenPos().getX())) * hDist,
-               Math.sin(CAMERA_CONFIG.robotToCam.getRotation().getZ() - Units.degreesToRadians(o.screenPos().getX())) * hDist,
+               Math.cos(CAMERA_CONFIG.robotToCam.getRotation().getZ() - o.screenPos().x().in(Radians)) * hDist,
+               Math.sin(CAMERA_CONFIG.robotToCam.getRotation().getZ() - o.screenPos().x().in(Radians)) * hDist,
                height 
             )
             .plus(CAMERA_CONFIG.robotToCam.getTranslation())

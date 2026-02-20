@@ -38,8 +38,8 @@ public final class Constants {
         public static final double RIGHT_DEADBAND = 0.15;
 
         // stick curvature
-        public static final double TRANSLATION_CURVE = 1.5;
-        public static final double ROTATION_CURVE = 1.5;
+        public static final double TRANSLATION_CURVE = 2;
+        public static final double ROTATION_CURVE = 2;
 
         // usb ports of controllers, remember to assign controllers to their respective
         // ports in driverstation

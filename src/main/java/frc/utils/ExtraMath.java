@@ -53,6 +53,30 @@ public final class ExtraMath {
         }
         return greater;
     }
+    
+    public static double min(double... in){
+        double lesser = Double.POSITIVE_INFINITY;
+        double lesserAbs = Double.POSITIVE_INFINITY;
+        for(int i=0;i<in.length;i++){
+            if(in[i] < lesserAbs){
+                lesser = in[i];
+                lesserAbs = in[i];
+            }
+        }
+        return lesser;
+    }
+    
+    public static double max(double... in){
+        double greater = Double.NEGATIVE_INFINITY;
+        double greaterAbs = 0.0;
+        for(int i=0;i<in.length;i++){
+            if(in[i] > greaterAbs){
+                greater = in[i];
+                greaterAbs = in[i];
+            }
+        }
+        return greater;
+    }
 
     public static boolean isNearState(State expected, State actual, State tolerance){
         return MathUtil.isNear(expected.position, actual.position, tolerance.position) && MathUtil.isNear(expected.velocity, actual.velocity, tolerance.velocity);

@@ -29,8 +29,8 @@ public final class TurretConstants {
 
     public static final SimpleFF TURRET_ID_GAINS = new SimpleFF(0.15749,0.23831, 0.0087143);//gains from sysid for state space model
 
-    public static final SimpleFF TURRET_FF_GAINS = TURRET_ID_GAINS;
-    public static final ProfiledPID TURRET_PID_GAINS = new ProfiledPID(0.0,0,0.0,20,50).makeTunable("Turret PID");
+    public static final SimpleFF TURRET_FF_GAINS = new SimpleFF(0.2,0.25, 0.03).makeTunable("Turret FF");
+    public static final ProfiledPID TURRET_PID_GAINS = new ProfiledPID(0.8,0.0,0.15,50,100).makeTunable("Turret PID");
     public static final double TURRET_THETA_COMP_FACTOR = -0.08;//offset target angle while robot is spinning
 
     public static final Angle TURRET_SETPOINT_TOLERANCE = Degrees.of(5);

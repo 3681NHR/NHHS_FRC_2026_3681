@@ -192,6 +192,10 @@ public class PIDGains {
                 }
             }
         }
+        
+        public SimpleFF copy(){
+            return new SimpleFF(this.kS, this.kV, this.kA);
+        }
     }
 
     /**
