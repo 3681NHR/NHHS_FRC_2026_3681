@@ -10,7 +10,6 @@ import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.DriveConstants.ODOMETRY_FREQ;
-import static frc.utils.SparkUtil.ifOk;
 import static frc.utils.SparkUtil.sparkStickyFault;
 import static frc.utils.SparkUtil.tryUntilOk;
 
@@ -241,16 +240,11 @@ public class ModuleIOCrackingSpark implements ModuleIO {
 
         // Update turn inputs
         sparkStickyFault = false;
-        ifOk(
-                turnSpark,
-                () -> turnPosition.in(Rotations),
-                (value) -> inputs.turnPosition = Rotations.of(value));
-        ifOk(turnSpark, () -> turnVelocity.in(RPM), (value) -> inputs.turnVelocity = RPM.of(value));
-        ifOk(
-                turnSpark,
-                new DoubleSupplier[] { turnSpark::getAppliedOutput, turnSpark::getBusVoltage },
-                (values) -> inputs.turnAppliedVolts = Volts.of(values[0] * values[1]));
-        ifOk(turnSpark, turnSpark::getOutputCurrent, (value) -> inputs.turnCurrent = Amps.of(value));
+
+        inputs.turnPosition = turnPosition;
+        inputs.turnVelocity = turnVelocity;
+        inputs.turnAppliedVolts = Volts.of(turnSpark.getAppliedOutput() * turnSpark.getBusVoltage());
+        inputs.turnCurrent = Amps.of(turnSpark.getOutputCurrent());
         inputs.turnConnected = turnConnectedDebounce.calculate(!sparkStickyFault);
         inputs.turnGoal = turnGoal;
         inputs.turnSetpoint = Radians.of(turnPID.getSetpoint().position);
