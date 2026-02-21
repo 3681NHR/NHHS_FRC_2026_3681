@@ -35,9 +35,6 @@ public class Turret extends SubsystemBase {
     
     private boolean ready = false;
 
-    private boolean unwinding = false;
-    private Angle unwindgoal = Radians.of(0.0);
-
     private TurretIO io;
     private TurretIOInputsAutoLogged in = new TurretIOInputsAutoLogged();
 
@@ -70,8 +67,6 @@ public class Turret extends SubsystemBase {
 
         Logger.recordOutput("Subsystems/Turret/state", (getCurrentCommand() == null ? "none" :getCurrentCommand().getName()));
         Logger.recordOutput("Subsystems/Turret/ready", ready);
-        Logger.recordOutput("Subsystems/Turret/unwind angle", unwindgoal);
-        Logger.recordOutput("Subsystems/Turret/unwinding", unwinding);
 
         Logger.recordOutput("Subsystems/Turret/field angle", in.filteredAngle.plus(Radians.of(drive.getRotation().getRadians())).plus(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? Degrees.of(180) : Degrees.of(0)));
     }

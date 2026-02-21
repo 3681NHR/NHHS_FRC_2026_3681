@@ -262,20 +262,8 @@ public class ModuleIOCrackingSpark implements ModuleIO {
         timestampQueue.clear();
         drivePositionQueue.clear();
         turnPositionQueue.clear();
-
-        if (driveClosedLoop) {
-            driveTalon.setControl(driveController.withVelocity(driveGoal.plus(RadiansPerSecond.of(getDriveOffsetVelocity()))));
-        } else {
-            driveTalon.setControl(driveOpenLoopOut.withOutput(driveOpenLoopVout));
-        }
-        if (turnClosedLoop) {
-            double ffVolts = turnFF.calculate(turnPID.getSetpoint().velocity);
-            turnSpark.setVoltage(ffVolts + turnPID.calculate(turnEncoder.getPosition(), turnGoal.in(Radians)));
-        } else {
-            turnSpark.setVoltage(turnOpenLoopVout.in(Volts));
-        }
-
     }
+    
     public double getDriveOffsetVelocity() {
         return turnEncoder.getVelocity() * module.DRIVE_OFFSET_VEL_FACTOR;
     }
@@ -284,23 +272,30 @@ public class ModuleIOCrackingSpark implements ModuleIO {
     public void setDriveOpenLoop(Voltage output) {
         driveOpenLoopVout = output;
         driveClosedLoop = false;
+        driveTalon.setControl(driveOpenLoopOut.withOutput(driveOpenLoopVout));
+
     }
 
     @Override
     public void setTurnOpenLoop(Voltage output) {
         turnOpenLoopVout = output;
         turnClosedLoop = false;
+        turnSpark.setVoltage(turnOpenLoopVout.in(Volts));
     }
 
     @Override
     public void setDriveVelocity(AngularVelocity velocity) {
         driveGoal = velocity;
         driveClosedLoop = true;
+        driveTalon.setControl(driveController.withVelocity(driveGoal.plus(RadiansPerSecond.of(getDriveOffsetVelocity()))));
+
     }
 
     @Override
     public void setTurnPosition(Angle rotation) {
         turnGoal = Radians.of(MathUtil.inputModulus(rotation.in(Radians), module.TURN_MIN_POS.in(Radians), module.TURN_MAX_POS.in(Radians)));
         turnClosedLoop = true;
+        double ffVolts = turnFF.calculate(turnPID.getSetpoint().velocity);
+        turnSpark.setVoltage(ffVolts + turnPID.calculate(turnEncoder.getPosition(), turnGoal.in(Radians)));
     }
 }

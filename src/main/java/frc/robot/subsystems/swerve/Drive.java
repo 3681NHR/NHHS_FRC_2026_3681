@@ -210,9 +210,15 @@ public class Drive extends SubsystemBase {
         //update and log gyro and module IOs
         gyroIO.updateInputs(gyroInputs);
         Logger.processInputs("IO/Drive/Gyro", gyroInputs);
+
+        boolean disabled = DriverStation.isDisabled();
         for (var module : modules) {
             module.periodic();
+            if(disabled){
+                module.stop();
+            }
         }
+
         if (USE_VISION) {
             for (VisionEstimate e : vision.getPose()) {
                 poseEstimator.addVisionMeasurement(
@@ -221,17 +227,9 @@ public class Drive extends SubsystemBase {
         }
         odometryLock.unlock();
 
-        Logger.recordOutput("Subsystems/Swerve/tilt", ExtraMath.getTip(gyroInputs.angle));
-
         Logger.recordOutput("Subsystems/Swerve/CurrentCommand",
                 getCurrentCommand() != null ? getCurrentCommand().getName() : "none");
 
-        // Stop moving when disabled
-        if (DriverStation.isDisabled()) {
-            for(int i=0; i<4; i++){
-                modules[i].stop();
-            }
-        }
 
         // Update odometry
         double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
@@ -241,7 +239,7 @@ public class Drive extends SubsystemBase {
             SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
             SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
             for (int moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
-                modulePositions[moduleIndex] = modules[moduleIndex].getOdometryPositions()[i];
+                modulePositions[moduleIndex] = modules[moduleIndex].getOdometryPosition(i);
                 moduleDeltas[moduleIndex] = new SwerveModulePosition(
                         modulePositions[moduleIndex].distanceMeters
                                 - lastModulePositions[moduleIndex].distanceMeters,

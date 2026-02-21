@@ -43,18 +43,24 @@ public class Module {
         io.updateInputs(inputs);
         Logger.processInputs("IO/Drive/Module" + Integer.toString(index), inputs);
 
-        // Calculate positions for odometry
-        int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
-        odometryPositions = new SwerveModulePosition[sampleCount];
-        for (int i = 0; i < sampleCount; i++) {
-            Distance positionMeters = module.WHEEL_RAD.times(inputs.odometryDrivePositionsRad[i]);
-            Rotation2d angle = new Rotation2d(inputs.odometryTurnPositionsRad[i]);
-            odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
-        }
+        // // Calculate positions for odometry
+        // int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
+        // odometryPositions = new SwerveModulePosition[sampleCount];
+        // for (int i = 0; i < sampleCount; i++) {
+        //     Distance positionMeters = module.WHEEL_RAD.times(inputs.odometryDrivePositionsRad[i]);
+        //     Rotation2d angle = new Rotation2d(inputs.odometryTurnPositionsRad[i]);
+        //     odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
+        // }
 
         // Update alerts
         driveDisconnectedAlert.set(!inputs.driveConnected);
         turnDisconnectedAlert.set(!inputs.turnConnected);
+    }
+    /** Returns the module positions received this cycle. */
+    public SwerveModulePosition getOdometryPosition(int i) {
+        Distance positionMeters = module.WHEEL_RAD.times(inputs.odometryDrivePositionsRad[i]);
+        Rotation2d angle = new Rotation2d(inputs.odometryTurnPositionsRad[i]);
+        return new SwerveModulePosition(positionMeters, angle);
     }
 
     /**
@@ -142,9 +148,9 @@ public class Module {
     }
 
     /** Returns the module positions received this cycle. */
-    public SwerveModulePosition[] getOdometryPositions() {
-        return odometryPositions;
-    }
+    // public SwerveModulePosition[] getOdometryPositions() {
+    //     return odometryPositions;
+    // }
 
     /** Returns the timestamps of the samples received this cycle. */
     public double[] getOdometryTimestamps() {
