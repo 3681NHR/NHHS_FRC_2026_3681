@@ -29,6 +29,7 @@ import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
+import static frc.robot.constants.DriveConstants.MAX_ANGLE_SPEED_PP;
 
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
@@ -55,10 +56,6 @@ public class DriveConstants {
     // prevents drift when translating and rotation at the same time
     public static final double ANGULAR_VELOCITY_COEFFICIENT = 0.02;
 
-    // rotation lock PIDs
-    public static final PIDGains.PID ANGLE_PID = new PIDGains.PID(6, 0.0, 0.4);
-    public static final PIDGains.PID ANGLE_PID_SIM = new PIDGains.PID(4, 0.0, 0.1);
-    public static final AngularVelocity ANGLE_MAX_VELOCITY = RadiansPerSecond.of(11.2);
 
     // auto align tolerance
     public static final Angle AUTO_ALIGN_ANGLE_MAX_OFFSET = Degrees.of(0.05);
@@ -78,6 +75,11 @@ public class DriveConstants {
     public static final PIDGains.PID AUTO_ANGLE_PID_SIM = new PIDGains.PID(8, 0.5, 0.2);
     public static final PIDGains.PID TRANS_PID = new PIDGains.PID(6, 0.0, 0.3);
     public static final PIDGains.PID TRANS_PID_SIM = new PIDGains.PID(7, 1, 0.2);
+    
+    // rotation lock PIDs
+    public static final PIDGains.PID ANGLE_PID = new PIDGains.PID(6, 0.0, 0.4);
+    public static final PIDGains.PID ANGLE_PID_SIM = new PIDGains.PID(4, 0.0, 0.1);
+    public static final AngularVelocity ANGLE_MAX_VELOCITY = MAX_ANGLE_SPEED_PP;
 
     // kinematics
     // public static final LinearVelocity MAX_SPEED = MetersPerSecond.of(4.7);
