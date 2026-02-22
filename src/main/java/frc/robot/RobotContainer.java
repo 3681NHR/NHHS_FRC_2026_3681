@@ -371,7 +371,7 @@ public class RobotContainer {
 
         //launcher spin and shoot
         new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.2).whileTrue(
-            launcher.velocityControl(() -> RPM.of(launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[1]))
+            launcher.velocityControl(() -> launchLUT.get(Meters.of(target.getDistance(turret.getFieldPos())), true, launchLUT.LUTHub).speed())
         );
         // new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7).whileTrue(
         //     null// TODO: feed to shooter while spun up

@@ -165,10 +165,6 @@ public class Turret extends SubsystemBase {
         return ready;
     }
 
-    private Angle getAngleToPos(Translation2d target, Translation2d curr){
-        return Radians.of(Math.atan2(target.getY()-curr.getY(), target.getX()-curr.getX()));
-    }
-
     public Angle getAngle(){
         return in.filteredAngle;
     }
