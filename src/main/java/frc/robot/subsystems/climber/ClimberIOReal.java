@@ -23,7 +23,7 @@ public class ClimberIOReal implements ClimberIO {
     private final ProfiledPID pid = new ProfiledPID(ClimbConstants.CLIMB_PID_GAINS);
     private final ElevatorFF ff = new ElevatorFF(ClimbConstants.FF);
     private boolean openLoop = false;
-    private Alert disconnect = new Alert("climber Spark is disconnected %s".formatted(ClimbConstants.MOTOR_ID), AlertType.kError);
+    private Alert disconnect = new Alert("climber Spark is disconnected %d".formatted(ClimbConstants.MOTOR_ID), AlertType.kError);
     private double goal = 0.0;
     public void updateInputs(ClimberIOInputs input){
         if (!openLoop) {
@@ -57,6 +57,7 @@ public class ClimberIOReal implements ClimberIO {
         });
         ClimbConstants.FF.withCallback(() -> {
             ff.setKs(ClimbConstants.FF.kS);
+            ff.setKg(ClimbConstants.FF.kG);
             ff.setKv(ClimbConstants.FF.kV);
             ff.setKa(ClimbConstants.FF.kA);
         });
