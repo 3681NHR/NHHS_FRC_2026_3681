@@ -12,6 +12,7 @@ import frc.robot.constants.Constants.OperatorConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.subsystems.Led;
 import frc.robot.subsystems.launchLUT;
+import frc.robot.subsystems.climber.Climber;
 import frc.robot.subsystems.fuelVision.FuelVision;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhoton;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhotonSim;
@@ -71,6 +72,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -97,6 +99,7 @@ public class RobotContainer {
     private FuelVision fuelVision;
     private Turret turret;
     private Launcher launcher;
+    private Climber climber;
 
     private Led led = new Led();
 
@@ -386,12 +389,16 @@ public class RobotContainer {
         );
         //intake
         // new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5).whileTrue(
-        //     null// TODO: intake
+        //     null// TODO: intake  
         // );
         // //lower hood for trench(should be auto also)(hold)
         // new Trigger(() -> driverController.getRawButton(X)).whileTrue(
         //     null // TODO: lower hood for trench(should be auto also)(hold)
         // );
+        // climber? i hardly know 'er
+
+        new Trigger(() -> driverController.getPOV() == 180).onTrue(climber.extend());
+        new Trigger(() -> driverController.getPOV() == 0).onTrue(climber.retract());
 
         // ------------------------------------------------------------------------------
         // operator controls
