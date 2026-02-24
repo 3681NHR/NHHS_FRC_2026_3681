@@ -4,11 +4,7 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Seconds;
 
-import java.util.function.Supplier;
-
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.launchLUT.ShotParams;
 import frc.robot.subsystems.swerve.Drive;
@@ -60,8 +56,11 @@ public class SOTMSolver extends SubsystemBase{
         double dist = params.dist().in(Meters);
 
         for(int i=0; i<10 && Math.abs(currentV - targetV) > 0.005; i++){
-            double dv = (dist*launchLUT.getSlope(Meters.of(dist), launchLUT.LUTHub).time().in(Seconds))/Math.pow(launchLUT.getSlope(Meters.of(dist), launchLUT.LUTHub).time().in(Seconds), 2);
+            double dv = (dist*launchLUT.getSlope(Meters.of(dist), launchLUT.LUTHub).time().in(Seconds))/Math.pow(launchLUT.get(Meters.of(dist), true, launchLUT.LUTHub).time().in(Seconds), 2);
+            dist -= (currentV-targetV)/dv;
+            currentV = dist/launchLUT.get(Meters.of(dist), true, launchLUT.LUTHub).time().in(Seconds);
         }
+        params = launchLUT.get(Meters.of(dist), true, launchLUT.LUTHub);
 
     }
 

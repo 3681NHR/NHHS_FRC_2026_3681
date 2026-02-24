@@ -344,7 +344,7 @@ public class RobotContainer {
         // TODO: placeholder binding to shooting in sim, remove before running on robot
         new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7 && Robot.isSimulation()).whileTrue(new InstantCommand(() -> {
                 double launchvel = (launcher.getSpeed().in(RPM)-2500)*2*Math.PI*Units.inchesToMeters(2)/60;
-                double angle = SOTMSolver.getInstance().getParams(false).hoodAngle().in(Radians);
+                double angle = SOTMSolver.getInstance().getParams(false).hoodAngle().plus(Degrees.of(90)).in(Radians);
                 GamePieceProjectile fuel = new GamePieceProjectile(
                         RebuiltFuelOnField.REBUILT_FUEL_INFO,
                         driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
@@ -352,8 +352,8 @@ public class RobotContainer {
                                 Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()
                         )),
                         new Translation2d(
-                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + Math.cos(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel,
-                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + Math.sin(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel
+                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + (Math.cos(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel),
+                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + (Math.sin(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel)
                         ),
                         Units.inchesToMeters(20),
                         Math.sin(angle)*launchvel,
