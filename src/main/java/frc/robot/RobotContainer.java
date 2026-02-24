@@ -235,7 +235,7 @@ public class RobotContainer {
                 fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG, driveSim::getSimulatedDriveTrainPose), drive::getPose);
                 turret = new Turret(new TurretIOSim(), drive);
                 launcher = new Launcher(new LauncherIOSim());
-                climber = new Climber(new ClimberIOSim() {});
+                climber = new Climber(new ClimberIOSim());
                 }                break;
 
             default:
