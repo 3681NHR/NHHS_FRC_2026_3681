@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.Time;
+import java.lang.*;
 import edu.wpi.first.wpilibj.RobotBase;
 
 public final class Constants {
@@ -50,5 +51,20 @@ public final class Constants {
     public static class drive {
         //if robot should have field oriented drive enabled on start
         public static final boolean STARTING_FOD = true;
+    }
+
+    public static class DPAD {
+        public static final int UP = 0;
+        public static final int RIGHT = 90;
+        public static final int DOWN = 180;
+        public static final int LEFT = 270;
+        public static final int NONE = -1;
+        public static final int RIGHT_UP = 45;
+        public static final int RIGHT_DOWN = 135;
+        public static final int LEFT_DOWN = 225;
+        public static final int LEFT_UP = 315;
+        private DPAD() {
+            throw new UnsupportedOperationException("do not instanciate this class");
+        }
     }
 }

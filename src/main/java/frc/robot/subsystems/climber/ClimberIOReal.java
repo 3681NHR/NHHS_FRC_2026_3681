@@ -25,6 +25,20 @@ public class ClimberIOReal implements ClimberIO {
     private boolean openLoop = false;
     private Alert disconnect = new Alert("climber Spark is disconnected %s".formatted(ClimbConstants.MOTOR_ID), AlertType.kError);
     private double goal = 0.0;
+    
+    public ClimberIOReal() {
+        ClimbConstants.CLIMB_PID_GAINS.withCallback(() -> {
+            pid.setGains(ClimbConstants.CLIMB_PID_GAINS);
+        });
+        ClimbConstants.FF.withCallback(() -> {
+            ff.setKs(ClimbConstants.FF.kS);
+            ff.setKv(ClimbConstants.FF.kV);
+            ff.setKa(ClimbConstants.FF.kA);
+            ff.setKg(ClimbConstants.FF.kG);
+        });
+        doom.configure(new SparkMaxConfig().idleMode(IdleMode.kBrake).inverted(ClimbConstants.INVERTED), ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+    }
+    
     public void updateInputs(ClimberIOInputs input){
         if (!openLoop) {
             doom.setVoltage(Units.Volts.of(pid.calculate(despair.getPosition(), goal) + ff.calculate(pid.getSetpoint().velocity)));
@@ -38,7 +52,8 @@ public class ClimberIOReal implements ClimberIO {
         input.connected = doom.getLastError() != REVLibError.kCANDisconnected;
         input.motorVoltageOut = Units.Volts.of(doom.getAppliedOutput() * doom.getBusVoltage());
         input.openLoop = openLoop;
-        input.climbVelocityGoal = Units.MetersPerSecond.of(pid.getSetpoint().velocity);
+        input.climbVelocitySetpoint = Units.MetersPerSecond.of(pid.getSetpoint().velocity);
+        input.climbPositionSetpoint = Units.Meters.of(pid.getSetpoint().position);
         disconnect.set(!input.connected);
     }
     /** sets the voltage for the climber. */
@@ -50,17 +65,6 @@ public class ClimberIOReal implements ClimberIO {
     public void setSetpoint(double position){
         openLoop = false;
         goal = position;
-    }
-    public ClimberIOReal() {
-        ClimbConstants.CLIMB_PID_GAINS.withCallback(() -> {
-            pid.setGains(ClimbConstants.CLIMB_PID_GAINS);
-        });
-        ClimbConstants.FF.withCallback(() -> {
-            ff.setKs(ClimbConstants.FF.kS);
-            ff.setKv(ClimbConstants.FF.kV);
-            ff.setKa(ClimbConstants.FF.kA);
-        });
-        doom.configure(new SparkMaxConfig().idleMode(IdleMode.kBrake).inverted(ClimbConstants.INVERTED), ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
     }
     /**
      * zeros the encoder position. (for button)

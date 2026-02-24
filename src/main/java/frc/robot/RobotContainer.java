@@ -8,6 +8,7 @@ import frc.robot.constants.Constants;
 import frc.robot.constants.DriveConstants;
 import frc.robot.constants.FuelVisionConstants;
 import frc.robot.constants.TurretConstants;
+import frc.robot.constants.Constants.DPAD;
 import frc.robot.constants.Constants.OperatorConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.subsystems.Led;
@@ -206,6 +207,7 @@ public class RobotContainer {
                 
                 turret = new Turret(new TurretIOMini(), drive);
                 launcher = new Launcher(new LauncherIOReal());
+                
                 break;
 
             case SIM:
@@ -231,6 +233,7 @@ public class RobotContainer {
                 turret = new Turret(new TurretIOSim(), drive);
                 launcher = new Launcher(new LauncherIOSim());
                 }
+
                 break;
 
             default:
@@ -368,7 +371,7 @@ public class RobotContainer {
         // }).andThen(new WaitCommand(0.1)).repeatedly());
 
         // force teleop drive
-        new Trigger(() -> driverController.getPOV() == 0).onTrue(drive.TeleopDrive());
+        new Trigger(() -> driverController.getPOV() == DPAD.UP).onTrue(drive.TeleopDrive());
 
         new Trigger(() -> driverController.getRawButton(X)).onTrue(drive.rotationLock(() -> 0));
 
@@ -397,8 +400,8 @@ public class RobotContainer {
         // );
         // climber? i hardly know 'er
 
-        new Trigger(() -> driverController.getPOV() == 180).onTrue(climber.extend());
-        new Trigger(() -> driverController.getPOV() == 0).onTrue(climber.retract());
+        new Trigger(() -> driverController.getPOV() == DPAD.RIGHT).onTrue(climber.extend());
+        new Trigger(() -> driverController.getPOV() == DPAD.DOWN).onTrue(climber.retract());
 
         // ------------------------------------------------------------------------------
         // operator controls

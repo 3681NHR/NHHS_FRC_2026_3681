@@ -27,7 +27,8 @@ public interface ClimberIO {
         public Temperature motorTemp = Celsius.zero();
         public Distance encoderPosition = Meters.zero();
         public LinearVelocity encoderVelocity = MetersPerSecond.zero();
-        public LinearVelocity climbVelocityGoal = MetersPerSecond.zero();
+        public LinearVelocity climbVelocitySetpoint = MetersPerSecond.zero();
+        public Distance climbPositionSetpoint = Meters.zero();
         public boolean connected = false;
         public Distance goal = Meters.zero();
         public boolean atSetpoint = false;
