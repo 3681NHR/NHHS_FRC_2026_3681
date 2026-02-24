@@ -413,7 +413,7 @@ public class RobotContainer {
     }
 
     public void Periodic() {
-        rumbler.update(0.02);
+        rumbler.update(Constants.EVENT_LOOP_TIME);
         PIDTuner.updateTunables();
         driverDisconnected.set(!driverController.isConnected());
         operatorDisconnected.set(!operatorController.isConnected());

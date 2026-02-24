@@ -13,6 +13,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
+import frc.robot.constants.Constants;
 import frc.utils.controlWrappers.ElevatorFF;
 import frc.utils.controlWrappers.ProfiledPID;
 
@@ -43,7 +44,7 @@ public class ClimberIOSim implements ClimberIO {
 
         appliedVolts = MathUtil.clamp(appliedVolts, -RobotController.getBatteryVoltage(), RobotController.getBatteryVoltage());
         sim.setInputVoltage(appliedVolts);
-        sim.update(0.02);
+        sim.update(Constants.EVENT_LOOP_TIME);
 
         input.motorVoltageOut = Volts.of(appliedVolts);
         input.motorCurrentOut = Amps.of(Math.abs(sim.getCurrentDrawAmps()));
@@ -51,6 +52,7 @@ public class ClimberIOSim implements ClimberIO {
         input.encoderPosition = Meters.of(sim.getPositionMeters());
         input.encoderVelocity = MetersPerSecond.of(sim.getVelocityMetersPerSecond());
         input.climbVelocitySetpoint = MetersPerSecond.of(pid.getSetpoint().velocity);
+        input.climbPositionSetpoint = Meters.of(pid.getSetpoint().position);
         input.connected = true;
         input.goal = Meters.of(goalMeters);
         input.atSetpoint = pid.atSetpoint();

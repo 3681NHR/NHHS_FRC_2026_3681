@@ -26,7 +26,7 @@ public final class Constants {
     public static final Time AUTO_TIME = Seconds.of(20);
     public static final Time TELEOP_TIME = Seconds.of(140);// 2:20
     public static final Time ENDGAME_TIME = Seconds.of(30);// time remaining in teleop when endgame starts
-
+    public static final double EVENT_LOOP_TIME = 0.02; // 20ms
     // default robot pose
     public static final Pose2d STARTING_POSE = new Pose2d(new Translation2d(8.75, 4), Rotation2d.fromDegrees(0));
 
