@@ -14,6 +14,9 @@ import frc.robot.constants.VisionConstants;
 import frc.robot.subsystems.Led;
 import frc.robot.subsystems.launchLUT;
 import frc.robot.subsystems.climber.Climber;
+import frc.robot.subsystems.climber.ClimberIO;
+import frc.robot.subsystems.climber.ClimberIOReal;
+import frc.robot.subsystems.climber.ClimberIOSim;
 import frc.robot.subsystems.fuelVision.FuelVision;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhoton;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhotonSim;
@@ -207,7 +210,7 @@ public class RobotContainer {
                 
                 turret = new Turret(new TurretIOMini(), drive);
                 launcher = new Launcher(new LauncherIOReal());
-                
+                climber = new Climber(new ClimberIOReal());
                 break;
 
             case SIM:
@@ -232,9 +235,8 @@ public class RobotContainer {
                 fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG, driveSim::getSimulatedDriveTrainPose), drive::getPose);
                 turret = new Turret(new TurretIOSim(), drive);
                 launcher = new Launcher(new LauncherIOSim());
-                }
-
-                break;
+                climber = new Climber(new ClimberIOSim() {});
+                }                break;
 
             default:
                 // Replayed robot, disable IO implementations for replay
@@ -264,6 +266,7 @@ public class RobotContainer {
                         led);
                 turret = new Turret(new TurretIO() {}, drive);
                 launcher = new Launcher(new LauncherIO() {});
+                climber = new Climber(new ClimberIO() {});
                 break;
         }
 

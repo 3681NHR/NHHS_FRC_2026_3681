@@ -23,7 +23,7 @@ public class ClimberIOReal implements ClimberIO {
     private final ProfiledPID pid = new ProfiledPID(ClimbConstants.CLIMB_PID_GAINS);
     private final ElevatorFF ff = new ElevatorFF(ClimbConstants.FF);
     private boolean openLoop = false;
-    private Alert disconnect = new Alert("climber Spark is disconnected %s".formatted(ClimbConstants.MOTOR_ID), AlertType.kError);
+    private Alert disconnect = new Alert("climber Spark is disconnected %d".formatted(ClimbConstants.MOTOR_ID), AlertType.kError);
     private double goal = 0.0;
     
     public ClimberIOReal() {

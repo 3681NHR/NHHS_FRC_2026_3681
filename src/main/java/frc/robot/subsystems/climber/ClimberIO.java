@@ -15,11 +15,11 @@ import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 
 public interface ClimberIO {
-    public void setVoltage(Voltage voltage);
-    public void updateInputs(ClimberIOInputs input);
+    public default void setVoltage(Voltage voltage){}
+    public default void updateInputs(ClimberIOInputs input){}
     /** sets the goal position for the climber. */
-    public void setSetpoint(double position);
-    public void zeroEncoder();
+    public default void setSetpoint(double position){}
+    public default void zeroEncoder(){}
     @AutoLog
     public class ClimberIOInputs{
         public Voltage motorVoltageOut = Volts.zero();
