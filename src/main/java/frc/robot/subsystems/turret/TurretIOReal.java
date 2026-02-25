@@ -1,28 +1,110 @@
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static frc.robot.constants.TurretConstants.*;
+
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.TalonFX;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 
 public class TurretIOReal implements TurretIO {
+
+    private TalonFX motor = new TalonFX(TURRET_MOTOR_ID);
+    private CANcoder e1 = new CANcoder(TURRET_ENCODER_1_ID);
+    private CANcoder e2 = new CANcoder(TURRET_ENCODER_2_ID);
+
+    private boolean openLoop = false;
+    private MotionMagicVoltage closedLoopControl = new MotionMagicVoltage(Radians.of(0));
+    private VoltageOut openLoopControl = new VoltageOut(0);
+    private Angle goal = Radians.of(0);
+
+    public TurretIOReal(){
+        motor.getConfigurator().apply(new MotionMagicConfigs()
+        .withMotionMagicAcceleration(TURRET_PID_GAINS.maxAccel)
+        .withMotionMagicCruiseVelocity(TURRET_PID_GAINS.maxSpeed));
+
+        motor.getConfigurator().apply(
+        new Slot0Configs()
+        .withKP(TURRET_PID_GAINS.kP)
+        .withKI(TURRET_PID_GAINS.kI)
+        .withKD(TURRET_PID_GAINS.kD)
+        .withKS(TURRET_FF_GAINS.kS)
+        .withKV(TURRET_FF_GAINS.kV)
+        .withKA(TURRET_FF_GAINS.kA)
+        );
+    }
     
     @Override
     public void updateInputs(TurretIOInputs input){
 
+        input.angle = getAbsoluteAngle();
+        input.speed = getVelocity();
+
+        input.motorVoltageOut = motor.getMotorVoltage().getValue();
+        input.motorCurrentOut = motor.getSupplyCurrent().getValue();
+        input.motorTemp = motor.getDeviceTemp().getValue();
+
+        input.goal = goal;
+        input.atSetpoint = 
+
+        input.openLoop = openLoop;
+
+        input.angleE1 = e1.getAbsolutePosition().getValue();
+        input.angleE2 = e2.getAbsolutePosition().getValue();
     }    
     
     @Override
     public void setGoal(Angle goal){
-
+        this.goal = goal;
+        openLoop = false;
+        motor.setControl(closedLoopControl.withPosition(goal));
     }
     
     @Override
     public void setVout(Voltage vout){
-
+        openLoop = true;
+        motor.setControl(openLoopControl.withOutput(vout));
     }
-    
-    @Override
-    public void setOpenLoop(boolean openloop){
 
+    private Angle getAbsoluteAngle(){
+        double slope = (TURRET_ENCODER_2_GEAR_TEETH * TURRET_ENCODER_1_GEAR_TEETH)
+        /(TURRET_MAIN_GEAR_TEETH * (TURRET_ENCODER_1_GEAR_TEETH - TURRET_ENCODER_2_GEAR_TEETH));
+
+        return Rotations.of(slope * ((e2.getAbsolutePosition().getValue().in(Rotations)-e1.getAbsolutePosition().getValue().in(Rotations))%1));
     }
-    
+
+    private AngularVelocity getVelocity(){
+        int measures = 0;
+        double sum = 0;//RPS
+
+        if(e1.isConnected()){
+            sum += e1.getVelocity().getValueAsDouble()/(TURRET_MAIN_GEAR_TEETH/TURRET_ENCODER_1_GEAR_TEETH);
+            measures++;
+        }
+        if(e2.isConnected()){
+            sum += e2.getVelocity().getValueAsDouble()/(TURRET_MAIN_GEAR_TEETH/TURRET_ENCODER_2_GEAR_TEETH);
+            measures++;
+        }
+        if(motor.isConnected()){
+            sum += motor.getVelocity().getValueAsDouble()/(TURRET_MAIN_GEAR_TEETH/TURRET_MOTOR_GEAR_TEETH);
+            measures++;
+        }
+        if(measures>0){
+            return RotationsPerSecond.of(sum/measures);//average all velocity readings
+        }
+        return RotationsPerSecond.of(0);//the bad ending
+    }
 }

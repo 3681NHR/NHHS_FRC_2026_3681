@@ -23,6 +23,7 @@ public final class TurretConstants {
     public static final int TURRET_MAIN_GEAR_TEETH = 200;
     public static final int TURRET_ENCODER_1_GEAR_TEETH = 35;
     public static final int TURRET_ENCODER_2_GEAR_TEETH = 34;
+    public static final int TURRET_MOTOR_GEAR_TEETH = 20;
 
     public static final Angle TURRET_ANGLE_OFFSET = Degrees.of(0);
     public static final Angle TURRET_ANGLE_LIM = Degrees.of(360);//soft limit before unwind(from center)
