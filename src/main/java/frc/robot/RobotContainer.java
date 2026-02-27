@@ -68,6 +68,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
@@ -415,7 +416,16 @@ public class RobotContainer {
 
         Logger.recordOutput("AScope/Components", new Pose3d[]{
                 new Pose3d(TURRET_OFFSET, new Rotation3d(0,0,turret.getAngle().in(Radians)-Math.PI/2)),
-                new Pose3d(TURRET_OFFSET.getX()+Math.cos(turret.getAngle().in(Radians))*HOOD_TO_TURRET_OFFSET.getX(),TURRET_OFFSET.getY()+(Math.sin(turret.getAngle().in(Radians))*HOOD_TO_TURRET_OFFSET.getX()), TURRET_OFFSET.getZ()+HOOD_TO_TURRET_OFFSET.getZ(),new Rotation3d(Units.degreesToRadians(0),0,turret.getAngle().in(Radians)-Math.PI/2)),
+                new Pose3d(
+                    TURRET_OFFSET.plus(new Translation3d(
+                        HOOD_TO_TURRET_OFFSET.getX(),
+                        HOOD_TO_TURRET_OFFSET.getX(), 
+                        HOOD_TO_TURRET_OFFSET.getZ()
+                    ).rotateBy(new Rotation3d(0,0,turret.getAngle().in(Radians)))),
+                    new Rotation3d(
+                        0,
+                        0,//TODO: add hood angle here
+                            turret.getAngle().in(Radians)-Math.PI/2)),
         });
     }
 

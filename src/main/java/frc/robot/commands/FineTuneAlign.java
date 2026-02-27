@@ -61,7 +61,7 @@ public class FineTuneAlign extends Command {
                 Math.abs(drive.getPose().getRotation().minus(target.get().getRotation())
                         .getDegrees()) <= DriveConstants.AUTO_ALIGN_ANGLE_MAX_OFFSET.in(Radians);
 
-        led.alignInPos = done;
+        // led.alignInPos = done;
         Logger.recordOutput("Subsystems/Swerve/Align/Fine tune/good", done);
         Logger.recordOutput("Subsystems/Swerve/Align/Fine tune/distance to target",
                 drive.getPose().getTranslation().getDistance(target.get().getTranslation()));
@@ -73,7 +73,7 @@ public class FineTuneAlign extends Command {
 
     @Override
     public void end(boolean interrupted) {
-        led.aligningReef = false;
+        // led.aligningReef = false;
     }
 
     @Override

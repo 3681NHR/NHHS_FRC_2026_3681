@@ -50,8 +50,8 @@ public final class TurretConstants {
 
     public static final Angle TURRET_LOCK_POS = Degrees.of(0.0);
 
-    public static final Translation3d TURRET_OFFSET = new Translation3d(-.158750,0,0.298450);
-    public static final Translation3d HOOD_TO_TURRET_OFFSET = new Translation3d(0.085914,0,0.141886);
+    public static final Translation3d TURRET_OFFSET = new Translation3d(-0.152400,-0.146050,-0.299237);
+    public static final Translation3d HOOD_TO_TURRET_OFFSET = new Translation3d(-0.097045,-0.000460,0.140578);
 
     public static final SysIdRoutine.Config TURRET_SYSID_CONFIG = new SysIdRoutine.Config(
         Volts.per(Second).of(1.0), 
