@@ -1,5 +1,7 @@
 package frc.utils.motorWrappers;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -18,9 +20,10 @@ public class SparkMax extends com.revrobotics.spark.SparkMax {
    */
   public SparkMax(int deviceId, MotorType type) {
     super(deviceId, type);
-    if (!DriverStation.isFMSAttached() && this.getFirmwareVersion() != Constants.SPARKMAX_TARGET_FIRMWARE_INT) {
-      motorsWithIncorrectFirmwareVerison += (motorsWithIncorrectFirmwareVerison.isEmpty() ? "" : ", ") + getDeviceId();
-      motorsWithIncorrectFirmwareVerisonAlert.setText("Firmware version mismatch on motors:" + motorsWithIncorrectFirmwareVerison);
+    Logger.recordOutput(getDeviceId() + " firmware version (spark)", this.getFirmwareVersion());
+    if (!DriverStation.isFMSAttached() && this.getFirmwareVersion() != Constants.SPARKMAX_TARGET_FIRMWARE) {
+      motorsWithIncorrectFirmwareVerison += (motorsWithIncorrectFirmwareVerison.isBlank() ? "" : ", ") + getDeviceId();
+      motorsWithIncorrectFirmwareVerisonAlert.setText("Firmware version mismatch on SparkMAXs: " + motorsWithIncorrectFirmwareVerison);
       if (!motorsWithIncorrectFirmwareVerisonAlert.get()) {
         motorsWithIncorrectFirmwareVerisonAlert.set(true);
       }

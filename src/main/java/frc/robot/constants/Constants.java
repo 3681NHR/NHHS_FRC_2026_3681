@@ -68,7 +68,6 @@ public final class Constants {
         }
     }
 
-    public static final String SPARKMAX_TARGET_FIRMWARE = "26.1.4";
-    public static final int SPARKMAX_TARGET_FIRMWARE_INT = Integer.parseInt(SPARKMAX_TARGET_FIRMWARE.replace(".", ""));
-    public static final int TALONFX_TARGET_FIRMWARE_INT = 0;
+    public static final int SPARKMAX_TARGET_FIRMWARE = 436273156;
+    public static final int TALONFX_TARGET_FIRMWARE = 436273152;
 }

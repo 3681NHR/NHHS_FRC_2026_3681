@@ -1,5 +1,7 @@
 package frc.utils.motorWrappers;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.CANBus;
 
 import edu.wpi.first.wpilibj.Alert;
@@ -57,11 +59,12 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
 
     public TalonFX(int deviceId, CANBus canbus) {
         super(deviceId, canbus);
-        if (!DriverStation.isFMSAttached() && getVersion().getValue() != Constants.TALONFX_TARGET_FIRMWARE_INT) {
-            motorsWithIncorrectFirmwareVerison += (motorsWithIncorrectFirmwareVerison.isEmpty() ? "" : ", ")
+        Logger.recordOutput(getDeviceID() + " firmware version (TalonFX)", getVersion().getValue());
+        if (!DriverStation.isFMSAttached() && getVersion().getValue() != Constants.TALONFX_TARGET_FIRMWARE) {
+            motorsWithIncorrectFirmwareVerison += (motorsWithIncorrectFirmwareVerison.isBlank() ? "" : ", ")
                     + getDeviceID();
             motorsWithIncorrectFirmwareVerisonAlert
-                    .setText("Firmware version mismatch on motors:" + motorsWithIncorrectFirmwareVerison);
+                    .setText("Firmware version mismatch on motors: " + motorsWithIncorrectFirmwareVerison);
             if (!motorsWithIncorrectFirmwareVerisonAlert.get()) {
                 motorsWithIncorrectFirmwareVerisonAlert.set(true);
             }
