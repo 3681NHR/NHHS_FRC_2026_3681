@@ -127,16 +127,8 @@ public class RobotContainer {
             AlertType.kWarning);
 
     private duelJoystickAxis driverSticks;
-    
-    public static boolean alert(String text, AlertType type) {
-        private 
-        return true;
-    }
 
     public RobotContainer() {
-        if (DriverStation.isFMSAttached()) {
-
-        }
         try {
             // load test field layout for camera offset calculation, do not use otherwise
             // e = new AprilTagFieldLayout(Filesystem.getDeployDirectory().getAbsolutePath()

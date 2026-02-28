@@ -6,7 +6,7 @@ import static frc.robot.constants.TurretConstants.*;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.REVLibError;
 import com.revrobotics.spark.SparkLowLevel;
-import com.revrobotics.spark.SparkMax;
+import frc.utils.motorWrappers.SparkMax;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Nat;

@@ -1,11 +1,14 @@
 package frc.utils.motorWrappers;
 
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import frc.robot.RobotContainer;
 import frc.robot.constants.Constants;
 
 public class SparkMax extends com.revrobotics.spark.SparkMax {
-    /**
+  private static String motorsWithIncorrectFirmwareVerison = " ";
+  private static final Alert motorsWithIncorrectFirmwareVerisonAlert = new Alert("Firmware version mismatch on SparkMAXs: ", AlertType.kWarning);
+  /**
    * Create a new object to control a SPARK MAX motor Controller
    *
    * @param deviceId The device ID.
@@ -15,9 +18,15 @@ public class SparkMax extends com.revrobotics.spark.SparkMax {
    */
   public SparkMax(int deviceId, MotorType type) {
     super(deviceId, type);
-    if (this.getFirmwareString() != Constants.SPARKMAX_TARGET_FIRMWARE) {
-        RobotContainer.alert("SPARK id " + deviceId + " is version " + this.getFirmwareString() + ", expected " + Constants.SPARKMAX_TARGET_FIRMWARE, AlertType.kWarning);
+    if (!DriverStation.isFMSAttached() && this.getFirmwareVersion() != Constants.SPARKMAX_TARGET_FIRMWARE_INT) {
+      motorsWithIncorrectFirmwareVerison += (motorsWithIncorrectFirmwareVerison.isEmpty() ? "" : ", ") + getDeviceId();
+      motorsWithIncorrectFirmwareVerisonAlert.setText("Firmware version mismatch on motors:" + motorsWithIncorrectFirmwareVerison);
+      if (!motorsWithIncorrectFirmwareVerisonAlert.get()) {
+        motorsWithIncorrectFirmwareVerisonAlert.set(true);
+      }
     }
   }
-    
+  public static Alert getFirmwareAlert() {
+    return motorsWithIncorrectFirmwareVerisonAlert;
+  }
 }

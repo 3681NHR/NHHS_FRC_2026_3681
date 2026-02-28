@@ -7,7 +7,7 @@ import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.SparkMax;
+import frc.utils.motorWrappers.SparkMax;
 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Voltage;
