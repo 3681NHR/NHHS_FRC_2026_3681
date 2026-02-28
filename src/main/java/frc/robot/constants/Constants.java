@@ -9,7 +9,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.Time;
-import java.lang.*;
 import edu.wpi.first.wpilibj.RobotBase;
 
 public final class Constants {
@@ -32,7 +31,8 @@ public final class Constants {
 
     public static final Mass ROBOT_MASS = Pounds.of(115);
     public static final Time LOOP_TIME = Milliseconds.of(0.13); // 20ms + 110ms spark max velocity lag
-
+    // 3742, thanks Mr. B
+    public static final int ELASTIC_LAYOUT_PORT = 3742;
     public static class OperatorConstants {
         // Joystick Deadbands, radial from center
         public static final double LEFT_DEADBAND = 0.1;
@@ -64,7 +64,10 @@ public final class Constants {
         public static final int LEFT_DOWN = 225;
         public static final int LEFT_UP = 315;
         private DPAD() {
-            throw new UnsupportedOperationException("do not instanciate this class");
+            throw new UnsupportedOperationException("This is a utility class!");
         }
     }
+
+    public static final String SPARKMAX_TARGET_FIRMWARE = "26.1.4";
+    public static final int SPARKMAX_TARGET_FIRMWARE_INT = Integer.parseInt(SPARKMAX_TARGET_FIRMWARE.replace(".", ""));
 }
