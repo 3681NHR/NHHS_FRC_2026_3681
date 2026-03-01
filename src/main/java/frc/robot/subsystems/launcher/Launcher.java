@@ -75,6 +75,6 @@ public class Launcher extends SubsystemBase {
         return ready;
     }
     public AngularVelocity getSpeed(){
-        return in.filteredSpeed;
+        return in.speed;
     }
 }

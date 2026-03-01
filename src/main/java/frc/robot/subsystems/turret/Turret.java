@@ -1,11 +1,9 @@
 package frc.robot.subsystems.turret;
 
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Radian;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.Seconds;
 import static frc.robot.constants.TurretConstants.*;
 import static frc.robot.constants.TurretConstants.TURRET_ANGLE_REVERSE_LIM;
 import static frc.robot.constants.TurretConstants.TURRET_OFFSET;
@@ -18,7 +16,6 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -28,7 +25,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.SOTMSolver;
-import frc.robot.subsystems.launchLUT;
 import frc.robot.subsystems.swerve.Drive;
 import frc.utils.ExtraMath;
 import edu.wpi.first.wpilibj.Alert;
@@ -87,8 +83,14 @@ public class Turret extends SubsystemBase {
                 .plus(Radians.of(TURRET_THETA_COMP_FACTOR*drive.getAngulerVelocity().in(RadiansPerSecond)));
             }
 
-            io.setGoal(angle);
-            ready = in.atSetpoint;
+            if(angle.gt(TURRET_ANGLE_FORWARD_LIM) || angle.lt(TURRET_ANGLE_REVERSE_LIM)){
+                ready = false;
+                illegalTarg.set(true);
+            } else {
+                io.setGoal(angle);
+                ready = in.atSetpoint;
+                illegalTarg.set(false);
+            }
 
             Logger.recordOutput("Subsystems/Turret/manual/target", angle);
         }, this).finallyDo(() -> {
@@ -111,7 +113,7 @@ public class Turret extends SubsystemBase {
                 .minus(Radians.of(drive.getPose().getRotation().getRadians()))
                 .plus(Radians.of(TURRET_THETA_COMP_FACTOR*drive.getAngulerVelocity().in(RadiansPerSecond)));
                 
-            Angle finalAngle = Degrees.of(convertToClosestBoundedTurretAngleDegrees(angle.in(Degrees), new Rotation2d(in.filteredAngle.in(Radians)), TURRET_ANGLE_FORWARD_LIM.in(Degrees), TURRET_ANGLE_REVERSE_LIM.in(Degrees)));
+            Angle finalAngle = Degrees.of(convertToClosestBoundedTurretAngleDegrees(angle.in(Degrees), new Rotation2d(in.angle.in(Radians)), TURRET_ANGLE_FORWARD_LIM.in(Degrees), TURRET_ANGLE_REVERSE_LIM.in(Degrees)));
             io.setGoal(finalAngle);
 
             ready = in.atSetpoint;
@@ -134,7 +136,7 @@ public class Turret extends SubsystemBase {
                 .minus(Radians.of(drive.getPose().getRotation().getRadians()))
                 .plus(Radians.of(TURRET_THETA_COMP_FACTOR*drive.getAngulerVelocity().in(RadiansPerSecond)));
                 
-            Angle finalAngle = Degrees.of(convertToClosestBoundedTurretAngleDegrees(angle.in(Degrees), new Rotation2d(in.filteredAngle.in(Radians)), TURRET_ANGLE_FORWARD_LIM.in(Degrees), TURRET_ANGLE_REVERSE_LIM.in(Degrees)));
+            Angle finalAngle = Degrees.of(convertToClosestBoundedTurretAngleDegrees(angle.in(Degrees), new Rotation2d(in.angle.in(Radians)), TURRET_ANGLE_FORWARD_LIM.in(Degrees), TURRET_ANGLE_REVERSE_LIM.in(Degrees)));
             io.setGoal(finalAngle);
 
             ready = in.atSetpoint;

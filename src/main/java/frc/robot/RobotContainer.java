@@ -29,7 +29,6 @@ import frc.robot.subsystems.swerve.module.ModuleIOCrackingSpark;
 import frc.robot.subsystems.swerve.module.ModuleIOSim;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIO;
-import frc.robot.subsystems.turret.TurretIOMini;
 import frc.robot.subsystems.turret.TurretIOReal;
 import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.CameraIO;
@@ -97,6 +96,7 @@ public class RobotContainer {
     private SwerveDriveSimulation driveSim;
     private Drive drive;
     private Vision vision;
+    @SuppressWarnings("unused")
     private FuelVision fuelVision;
     private Turret turret;
     private Launcher launcher;
