@@ -115,6 +115,9 @@ public class TurretIOReal implements TurretIO {
         input.goal = goal;
         input.atSetpoint = MathUtil.isNear(goal.in(Radians), getAbsoluteAngle().in(Radians), TURRET_SETPOINT_TOLERANCE.in(Radians));
 
+        input.setpointPos = Rotations.of(motor.getClosedLoopReference().getValue());
+        input.setpointVel = RotationsPerSecond.of(motor.getClosedLoopReferenceSlope().getValue());
+
         input.openLoop = openLoop;
 
         input.angleE1 = e1.getAbsolutePosition().getValue();

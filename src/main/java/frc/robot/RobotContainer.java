@@ -29,6 +29,7 @@ import frc.robot.subsystems.swerve.module.ModuleIOSim;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOMini;
+import frc.robot.subsystems.turret.TurretIOReal;
 import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.CameraIO;
 import frc.robot.subsystems.vision.CameraIOPhoton;
@@ -201,7 +202,7 @@ public class RobotContainer {
                         led);
                 fuelVision = new FuelVision(new FuelVisionIOPhoton(FuelVisionConstants.CAMERA_CONFIG), drive::getPose);
                 
-                turret = new Turret(new TurretIOMini(), drive);
+                turret = new Turret(new TurretIOReal(), drive);
                 launcher = new Launcher(new LauncherIOReal());
                 break;
 
