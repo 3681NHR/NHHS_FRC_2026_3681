@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.launchLUT.ShotParams;
 import frc.robot.subsystems.swerve.Drive;
@@ -15,6 +16,7 @@ public class SOTMSolver extends SubsystemBase{
     private ShotParams params;
     private Translation2d target = new Translation2d();
     private Drive drive;
+    private Angle turretAngle = Radians.of(0);
 
     private SOTMSolver(){
         calculate();
@@ -51,6 +53,7 @@ public class SOTMSolver extends SubsystemBase{
             Math.sin(ExtraMath.getAngleToPos(target, curr).in(Radians))
         ).times(curr.getDistance(target) * launchLUT.get(Meters.of(curr.getDistance(target)), true, launchLUT.LUTHub).time().in(Seconds));
         Translation2d targetVel = shotVel.minus(vel);
+        turretAngle = Radians.of(targetVel.getAngle().getRadians());
         double targetV = targetVel.getDistance(new Translation2d());
         double currentV = params.dist().in(Meters);
         double dist = params.dist().in(Meters);
@@ -69,5 +72,15 @@ public class SOTMSolver extends SubsystemBase{
             calculate();
         }
         return params;
+    }
+    public Angle getAngle(boolean refresh){
+        if(refresh){
+            calculate();
+        }
+        return turretAngle;
+    }
+
+    public Translation2d getTarget(){
+        return target;
     }
 }

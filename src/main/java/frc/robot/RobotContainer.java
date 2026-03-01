@@ -83,6 +83,7 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -294,7 +295,7 @@ public class RobotContainer {
         LoggedPowerDistribution.getInstance(pdp.getModule(), ModuleType.kRev);
 
         turret.setDefaultCommand(
-            turret.manPos(turret::getAngle).ignoringDisable(true)
+            turret.manPos(turret::getAngle ,false).ignoringDisable(true)
         );
 
         launcher.setDefaultCommand(
@@ -383,7 +384,7 @@ public class RobotContainer {
         );
         //set turret to preset angle mode
         new Trigger(() -> driverController.getRawButton(A)).onTrue(
-            turret.manPos(() -> Degrees.of(0))
+            turret.manPos(() -> Degrees.of(0), false)
         );
         //intake
         // new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5).whileTrue(
@@ -403,6 +404,7 @@ public class RobotContainer {
     public void Periodic() {
         rumbler.update(0.02);
         PIDTuner.updateTunables();
+        SOTMSolver.getInstance().setTarget(target);
         driverDisconnected.set(!driverController.isConnected());
         operatorDisconnected.set(!operatorController.isConnected());
         
@@ -457,5 +459,12 @@ public class RobotContainer {
 
     public Drive getDrive() {
         return drive;
+    }
+
+    public Command getTrackCommand(){
+        return new ParallelCommandGroup(
+            turret.trackWithLead(),
+            launcher.velocityControl(() -> SOTMSolver.getInstance().getParams(false).speed())
+        );
     }
 }

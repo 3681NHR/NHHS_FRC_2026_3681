@@ -25,7 +25,8 @@ public final class TurretConstants {
     public static final int TURRET_ENCODER_2_GEAR_TEETH = 34;
 
     public static final Angle TURRET_ANGLE_OFFSET = Degrees.of(0);
-    public static final Angle TURRET_ANGLE_LIM = Degrees.of(360);//soft limit before unwind(from center)
+    public static final Angle TURRET_ANGLE_FORWARD_LIM = Degrees.of(360);//soft limit before unwind(from center)
+    public static final Angle TURRET_ANGLE_REVERSE_LIM = Degrees.of(-360);//soft limit before unwind(from center)
 
     public static final SimpleFF TURRET_ID_GAINS = new SimpleFF(0.15749,0.23831, 0.0087143);//gains from sysid for state space model
 
