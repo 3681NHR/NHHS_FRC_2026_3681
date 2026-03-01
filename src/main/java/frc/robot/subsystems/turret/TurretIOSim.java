@@ -53,10 +53,8 @@ public class TurretIOSim implements TurretIO {
             sim.setInput(-Math.min(TURRET_ID_GAINS.kS, Math.abs(Vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0)));
         }
         
-        input.filteredAngle = angle;
-        input.filteredSpeed = RadiansPerSecond.of(filter.getXhat(1));
-        input.rawAngle = Radians.of(sim.getOutput().get(0, 0));
-        input.rawSpeed = RadiansPerSecond.of(sim.getOutput().get(1, 0));
+        input.angle = Radians.of(sim.getOutput().get(0, 0));
+        input.speed = RadiansPerSecond.of(sim.getOutput().get(1, 0));
 
         input.motorVoltageOut = Vout;
 
@@ -77,10 +75,6 @@ public class TurretIOSim implements TurretIO {
     public void setVout(Voltage vout){
         this.openLoop = true;
         Vout = vout;
-    }
-    @Override
-    public void setOpenLoop(boolean openLoop){
-        this.openLoop = openLoop;
     }
 
 }

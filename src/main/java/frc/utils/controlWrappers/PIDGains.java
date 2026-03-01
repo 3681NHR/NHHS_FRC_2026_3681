@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.utils.PIDTuner;
 
 public class PIDGains {
@@ -66,7 +67,7 @@ public class PIDGains {
 
         @Override
         public void update(){
-            if(apply != null){
+            if(apply != null && !DriverStation.isFMSAttached()){
                 if(apply.get()){
                     kP = setkP.get();                    
                     kI = setkI.get();                        
@@ -127,7 +128,7 @@ public class PIDGains {
 
         @Override
         public void update(){
-            if(apply != null){
+            if(apply != null && !DriverStation.isFMSAttached()){
                 if(apply.get()){
                     kP = setkP.get();                    
                     kI = setkI.get();                        
@@ -178,7 +179,7 @@ public class PIDGains {
 
         @Override
         public void update(){
-            if(apply != null){
+            if(apply != null && !DriverStation.isFMSAttached()){
                 if(apply.get()){
                     kS = setkS.get();                    
                     kV = setkV.get();                        
@@ -237,7 +238,7 @@ public class PIDGains {
 
         @Override
         public void update(){
-            if(apply != null){
+            if(apply != null && !DriverStation.isFMSAttached()){
                 if(apply.get()){
                     kS = setkS.get();                    
                     kV = setkV.get();                        
