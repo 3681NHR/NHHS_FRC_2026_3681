@@ -58,8 +58,8 @@ public class TurretIOReal implements TurretIO {
             .withKA(TURRET_FF_GAINS.kA);
 
         config.SoftwareLimitSwitch = new SoftwareLimitSwitchConfigs()
-            .withForwardSoftLimitThreshold(TURRET_ANGLE_LIM)
-            .withReverseSoftLimitThreshold(Radians.of(0).minus(TURRET_ANGLE_LIM))
+            .withForwardSoftLimitThreshold(TURRET_ANGLE_FORWARD_LIM)
+            .withReverseSoftLimitThreshold(TURRET_ANGLE_REVERSE_LIM)
             .withForwardSoftLimitEnable(true)
             .withReverseSoftLimitEnable(true);
 
