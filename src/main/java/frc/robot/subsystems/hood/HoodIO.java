@@ -20,6 +20,8 @@ public interface HoodIO {
 
     public void setGoal(Angle goal);
     public void setVout(Voltage vout);
+    public void setPos(Angle pos);
+    public void setHomed(boolean homed);
     
     @AutoLog
     public class HoodIOInputs{

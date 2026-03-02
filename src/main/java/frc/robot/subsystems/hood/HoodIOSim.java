@@ -27,6 +27,8 @@ public class HoodIOSim implements HoodIO {
     private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(HOOD_FF_GAINS.kV, HOOD_FF_GAINS.kA);
     private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.01, 0.1);
 
+    private double offset = 0;
+
     public HoodIOSim(){
         
     }
@@ -40,8 +42,8 @@ public class HoodIOSim implements HoodIO {
             vout = vout.plus(Volts.of(ff.calculate(pid.getSetpoint().velocity)));
         }
         
-        input.angle = Rotations.of(sim.getOutput().get(0,0));
-        input.velocity = RPM.of(sim.getOutput().get(0,1));
+        input.angle = Radians.of(sim.getOutput().get(0,0)+offset);
+        input.velocity = RadiansPerSecond.of(sim.getOutput().get(0,1));
 
         input.vout = vout;
         input.current = Amps.of(-1);
@@ -60,5 +62,13 @@ public class HoodIOSim implements HoodIO {
     public void setVout(Voltage vout){
         openloop = true;
         this.vout = vout;
+    }
+
+    public void setPos(Angle pos){
+        offset = -(sim.getOutput().get(0,0)+offset) + pos.in(Radians);
+    }
+    
+    public void setHomed(boolean homed){
+        this.homed = homed;
     }
 }

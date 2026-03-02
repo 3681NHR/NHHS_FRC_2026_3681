@@ -6,6 +6,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Unit;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.util.Color;
 
@@ -18,7 +20,15 @@ import java.util.ArrayList;
  * extra math utils
  */
 public final class ExtraMath {
-    
+    public static <T extends Measure<? extends Unit>> T clamp(T val, T min, T max){
+        if(val.gte((max)){
+            return max;
+        }
+        if(val.lte(min)){
+            return min;
+        }
+        return val;
+    }
 
     public static Angle getAngleToPos(Translation2d target, Translation2d curr){
         return Radians.of(Math.atan2(target.getY()-curr.getY(), target.getX()-curr.getX()));

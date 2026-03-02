@@ -55,6 +55,15 @@ public class HoodIOReal implements HoodIO {
             vout = Volts.of(pid.calculate(encoder.getPosition(), goal.in(Rotations)));
             vout = vout.plus(Volts.of(ff.calculate(pid.getSetpoint().velocity)));
         }
+        if(homed){
+            //soft limit - cant use internal, as it cant be configured while enabled
+            if(encoder.getPosition() >= HOOD_MAX_ANGLE.in(Rotations) && vout.in(Volts) > 0){
+                vout = Volts.of(0);
+            }
+            if(encoder.getPosition() <= HOOD_MIN_ANGLE.in(Rotations) && vout.in(Volts) < 0){
+                vout = Volts.of(0);
+            }
+        }
         motor.setVoltage(vout.in(Volts));
         
         input.angle = Rotations.of(encoder.getPosition());
@@ -77,5 +86,11 @@ public class HoodIOReal implements HoodIO {
     public void setVout(Voltage vout){
         openloop = true;
         this.vout = vout;
+    }
+    public void setPos(Angle pos){
+        encoder.setPosition(pos.in(Rotations));
+    }
+    public void setHomed(boolean homed){
+        this.homed = homed;
     }
 }
