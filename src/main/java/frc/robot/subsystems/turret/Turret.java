@@ -111,7 +111,7 @@ public class Turret extends SubsystemBase {
                 .minus(Radians.of(drive.getPose().getRotation().getRadians()))
                 .plus(Radians.of(TURRET_THETA_COMP_FACTOR*drive.getAngulerVelocity().in(RadiansPerSecond)));
                 
-            Angle finalAngle = Degrees.of(convertToClosestBoundedTurretAngleDegrees(angle.in(Degrees), new Rotation2d(in.filteredAngle.in(Radians)), TURRET_ANGLE_FORWARD_LIM.in(Degrees), TURRET_ANGLE_REVERSE_LIM.in(Degrees)));
+            Angle finalAngle = Degrees.of(convertToClosestBoundedTurretAngleDegrees(angle.in(Degrees), new Rotation2d(in.angle.in(Radians)), TURRET_ANGLE_FORWARD_LIM.in(Degrees), TURRET_ANGLE_REVERSE_LIM.in(Degrees)));
             io.setGoal(finalAngle);
 
             ready = in.atSetpoint;
@@ -134,7 +134,7 @@ public class Turret extends SubsystemBase {
                 .minus(Radians.of(drive.getPose().getRotation().getRadians()))
                 .plus(Radians.of(TURRET_THETA_COMP_FACTOR*drive.getAngulerVelocity().in(RadiansPerSecond)));
                 
-            Angle finalAngle = Degrees.of(convertToClosestBoundedTurretAngleDegrees(angle.in(Degrees), new Rotation2d(in.filteredAngle.in(Radians)), TURRET_ANGLE_FORWARD_LIM.in(Degrees), TURRET_ANGLE_REVERSE_LIM.in(Degrees)));
+            Angle finalAngle = Degrees.of(convertToClosestBoundedTurretAngleDegrees(angle.in(Degrees), new Rotation2d(in.angle.in(Radians)), TURRET_ANGLE_FORWARD_LIM.in(Degrees), TURRET_ANGLE_REVERSE_LIM.in(Degrees)));
             io.setGoal(finalAngle);
 
             ready = in.atSetpoint;
