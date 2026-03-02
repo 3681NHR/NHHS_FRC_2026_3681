@@ -1,9 +1,6 @@
 package frc.robot.subsystems.launcher;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.Nat;
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.estimator.KalmanFilter;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.system.LinearSystem;
@@ -33,14 +30,10 @@ public class LauncherIOSim implements LauncherIO {
     
     private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(LAUNCHER_ID_GAINS.kV, LAUNCHER_ID_GAINS.kA);
     private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.01, 0.1);
-    private final KalmanFilter<N2, N1, N2> filter = new KalmanFilter<N2, N1, N2>(Nat.N2(), Nat.N2(), model, VecBuilder.fill(0.2, 1.0), VecBuilder.fill(1.3, 0.7), 0.02);
-    
     @Override
     public void updateInputs(LauncherIOInputs input){
         sim.update(0.02);
-        filter.predict(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS, Math.abs(vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0))), 0.02);
-        filter.correct(VecBuilder.fill(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS, Math.abs(vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0))), sim.getOutput());
-        speed = RadiansPerSecond.of(filter.getXhat().get(1,0));
+        speed = RadiansPerSecond.of(sim.getOutput().get(0,1));
 
         if(!openLoop){
             vout = Volts.of(pid.calculate(speed.in(RPM), goal.in(RPM)));
@@ -54,10 +47,8 @@ public class LauncherIOSim implements LauncherIO {
             sim.setInput(0);
         }
         
-        input.filteredAngle = Radians.of(filter.getXhat(0));
-        input.filteredSpeed = speed;
-        input.rawAngle = Radians.of(sim.getOutput().get(0, 0));
-        input.rawSpeed = RadiansPerSecond.of(sim.getOutput().get(1, 0));
+        input.angle = Radians.of(sim.getOutput().get(0,0));
+        input.speed = speed;
 
         input.motorVoltageOut = vout;
 
@@ -77,10 +68,6 @@ public class LauncherIOSim implements LauncherIO {
         this.openLoop = true;
         this.vout = vout;
         this.goal = RPM.of(0);
-    }
-    @Override
-    public void setOpenLoop(boolean openLoop){
-        this.openLoop = openLoop;
     }
 
 }

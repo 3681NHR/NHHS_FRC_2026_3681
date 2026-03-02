@@ -15,7 +15,7 @@ import frc.utils.controlWrappers.PIDGains;
 
 public final class LauncherConstants {
     
-    public static final int LAUNCHER_MOTOR_ID = -1;
+    public static final int LAUNCHER_MOTOR_ID = 40;
 
     public static final PIDGains.SimpleFF LAUNCHER_ID_GAINS = new PIDGains.SimpleFF(0.0,0.1,0.4);//gains from sysid for state space model
 
