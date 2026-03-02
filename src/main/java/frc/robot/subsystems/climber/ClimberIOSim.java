@@ -1,6 +1,5 @@
 package frc.robot.subsystems.climber;
 
-import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Celsius;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -8,8 +7,6 @@ import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.ClimbConstants.CLIMB_PID_GAINS;
 import static frc.robot.constants.ClimbConstants.FF;
 import static frc.robot.constants.ClimbConstants.CLIMB_ID_GAINS;
-
-import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Nat;
@@ -28,10 +25,12 @@ import frc.utils.controlWrappers.ElevatorFF;
 import frc.utils.controlWrappers.ProfiledPID;
 
 public class ClimberIOSim implements ClimberIO {
-    
-    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(CLIMB_ID_GAINS.kV, CLIMB_ID_GAINS.kA);
+
+    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(CLIMB_ID_GAINS.kV,
+            CLIMB_ID_GAINS.kA);
     private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.01, 0.1);
-    private final KalmanFilter<N2, N1, N2> filter = new KalmanFilter<N2, N1, N2>(Nat.N2(), Nat.N2(), model, VecBuilder.fill(0.2, 1.0), VecBuilder.fill(1.3, 0.7), Constants.EVENT_LOOP_TIME);
+    private final KalmanFilter<N2, N1, N2> filter = new KalmanFilter<N2, N1, N2>(Nat.N2(), Nat.N2(), model,
+            VecBuilder.fill(0.2, 1.0), VecBuilder.fill(1.3, 0.7), Constants.EVENT_LOOP_TIME);
 
     private final ProfiledPID pid = new ProfiledPID(CLIMB_PID_GAINS);
     private final ElevatorFF ff = new ElevatorFF(FF);
@@ -42,25 +41,28 @@ public class ClimberIOSim implements ClimberIO {
     private double position = 0.0;
 
     @Override
-    public void updateInputs(ClimberIOInputs input){
+    public void updateInputs(ClimberIOInputs input) {
         sim.update(Constants.EVENT_LOOP_TIME);
-        
-        double voltageInput = appliedVolts - Math.min(CLIMB_ID_GAINS.kS, Math.abs(appliedVolts)) * Math.signum(sim.getOutput().get(1,0));
-        
+
+        double voltageInput = appliedVolts
+                - Math.min(CLIMB_ID_GAINS.kS, Math.abs(appliedVolts)) * Math.signum(sim.getOutput().get(1, 0));
+
         filter.predict(VecBuilder.fill(voltageInput), Constants.EVENT_LOOP_TIME);
         filter.correct(VecBuilder.fill(voltageInput), sim.getOutput());
-        position = filter.getXhat().get(0,0);
+        position = filter.getXhat().get(0, 0);
 
         if (!openLoop) {
             appliedVolts = pid.calculate(position, goalMeters) + ff.calculate(pid.getSetpoint().velocity);
         }
 
-        appliedVolts = MathUtil.clamp(appliedVolts, -RobotController.getBatteryVoltage(), RobotController.getBatteryVoltage());
-        
-        if(DriverStation.isEnabled()){
-            sim.setInput(appliedVolts - Math.min(CLIMB_ID_GAINS.kS, Math.abs(appliedVolts)) * Math.signum(sim.getOutput().get(1,0)));
+        appliedVolts = MathUtil.clamp(appliedVolts, -RobotController.getBatteryVoltage(),
+                RobotController.getBatteryVoltage());
+
+        if (DriverStation.isEnabled()) {
+            sim.setInput(appliedVolts
+                    - Math.min(CLIMB_ID_GAINS.kS, Math.abs(appliedVolts)) * Math.signum(sim.getOutput().get(1, 0)));
         } else {
-            sim.setInput(-Math.min(CLIMB_ID_GAINS.kS, Math.abs(appliedVolts)) * Math.signum(sim.getOutput().get(1,0)));
+            sim.setInput(-Math.min(CLIMB_ID_GAINS.kS, Math.abs(appliedVolts)) * Math.signum(sim.getOutput().get(1, 0)));
         }
 
         input.motorVoltageOut = Volts.of(appliedVolts);
@@ -77,13 +79,13 @@ public class ClimberIOSim implements ClimberIO {
 
     /** sets the goal position for the climber. */
     @Override
-    public void setSetpoint(double position){
+    public void setSetpoint(double position) {
         openLoop = false;
         goalMeters = position;
     }
 
     @Override
-    public void zeroEncoder(){
+    public void zeroEncoder() {
         sim.setState(VecBuilder.fill(0.0, filter.getXhat(1)));
         filter.setXhat(VecBuilder.fill(0.0, filter.getXhat(1)));
         goalMeters = 0.0;

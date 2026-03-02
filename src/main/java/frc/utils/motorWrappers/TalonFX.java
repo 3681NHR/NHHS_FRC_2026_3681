@@ -11,8 +11,8 @@ import frc.robot.constants.Constants;
 
 public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
 
-    private static String motorsWithIncorrectFirmwareVerison = " ";
-    private static final Alert motorsWithIncorrectFirmwareVerisonAlert = new Alert(
+    private static String motorsWithIncorrectFirmwareVersion = "";
+    private static final Alert motorsWithIncorrectFirmwareVersionAlert = new Alert(
             "Firmware version mismatch on Talons: ", AlertType.kWarning);
 
     /**
@@ -61,17 +61,17 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
         super(deviceId, canbus);
         Logger.recordOutput(getDeviceID() + " firmware version (TalonFX)", getVersion().getValue());
         if (!DriverStation.isFMSAttached() && getVersion().getValue() != Constants.TALONFX_TARGET_FIRMWARE) {
-            motorsWithIncorrectFirmwareVerison += (motorsWithIncorrectFirmwareVerison.isBlank() ? "" : ", ")
+            motorsWithIncorrectFirmwareVersion += (motorsWithIncorrectFirmwareVersion.isBlank() ? "" : ", ")
                     + getDeviceID();
-            motorsWithIncorrectFirmwareVerisonAlert
-                    .setText("Firmware version mismatch on motors: " + motorsWithIncorrectFirmwareVerison);
-            if (!motorsWithIncorrectFirmwareVerisonAlert.get()) {
-                motorsWithIncorrectFirmwareVerisonAlert.set(true);
+            motorsWithIncorrectFirmwareVersionAlert
+                    .setText("Firmware version mismatch on Talons: " + motorsWithIncorrectFirmwareVersion);
+            if (!motorsWithIncorrectFirmwareVersionAlert.get()) {
+                motorsWithIncorrectFirmwareVersionAlert.set(true);
             }
         }
     }
 
     public static Alert getFirmwareAlert() {
-        return motorsWithIncorrectFirmwareVerisonAlert;
+        return motorsWithIncorrectFirmwareVersionAlert;
     }
 }

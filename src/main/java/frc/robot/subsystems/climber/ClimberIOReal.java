@@ -23,7 +23,7 @@ public class ClimberIOReal implements ClimberIO {
     private final ProfiledPID pid = new ProfiledPID(ClimbConstants.CLIMB_PID_GAINS);
     private final ElevatorFF ff = new ElevatorFF(ClimbConstants.FF);
     private boolean openLoop = false;
-    private Alert disconnect = new Alert("climber Spark is disconnected %d".formatted(ClimbConstants.MOTOR_ID), AlertType.kError);
+    private Alert disconnect = new Alert("climber Spark is disconnected, id: " + ClimbConstants.MOTOR_ID, AlertType.kError);
     private double goal = 0.0;
     
     public ClimberIOReal() {
@@ -36,9 +36,19 @@ public class ClimberIOReal implements ClimberIO {
             ff.setKa(ClimbConstants.FF.kA);
             ff.setKg(ClimbConstants.FF.kG);
         });
-        doom.configure(new SparkMaxConfig().idleMode(IdleMode.kBrake).inverted(ClimbConstants.INVERTED), ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+        
+
+        SparkMaxConfig doomConfig = new SparkMaxConfig();
+
+        // motor configuration
+        doomConfig.idleMode(IdleMode.kBrake).inverted(ClimbConstants.INVERTED);
+        // relative encoder configuration
+        doomConfig.encoder.positionConversionFactor(ClimbConstants.POSITION_CONVERSION_FACTOR).velocityConversionFactor(ClimbConstants.VELOCITY_CONVERSION_FACTOR);
+
+        doom.configure(doomConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
     }
     
+    @Override
     public void updateInputs(ClimberIOInputs input){
         if (!openLoop) {
             doom.setVoltage(Units.Volts.of(pid.calculate(despair.getPosition(), goal) + ff.calculate(pid.getSetpoint().velocity)));
@@ -56,12 +66,15 @@ public class ClimberIOReal implements ClimberIO {
         input.climbPositionSetpoint = Units.Meters.of(pid.getSetpoint().position);
         disconnect.set(!input.connected);
     }
+
     /** sets the voltage for the climber. */
+    @Override
     public void setVoltage(Voltage voltage){
         openLoop = true;
         doom.setVoltage(voltage);
     }
     /** sets the goal position for the climber. */
+    @Override
     public void setSetpoint(double position){
         openLoop = false;
         goal = position;
@@ -69,7 +82,8 @@ public class ClimberIOReal implements ClimberIO {
     /**
      * zeros the encoder position. (for button)
      */
-    public void zeroEncoder() {
+    @Override
+     public void zeroEncoder() {
         despair.setPosition(0);
     }
 }
