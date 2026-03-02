@@ -12,5 +12,5 @@ public class ClimbConstants {
     private static final double GEAR_RATIO = 80.0;
     private static final double SPOOL_CIRC = Math.PI * 1.0; // get actual circumference later
     public static final double POSITION_CONVERSION_FACTOR = SPOOL_CIRC/GEAR_RATIO;
-    public static final double VELOCITY_CONVERSION_FACTOR = 1.0;
+    public static final double VELOCITY_CONVERSION_FACTOR = POSITION_CONVERSION_FACTOR/60; // RPM to RPS
 }
