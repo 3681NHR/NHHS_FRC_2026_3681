@@ -76,10 +76,8 @@ public class TurretIOMini implements TurretIO {
             motor.stopMotor();
         }
         
-        input.filteredAngle = angle;
-        input.filteredSpeed = RadiansPerSecond.of(filter.getXhat(1));
-        input.rawAngle = getAngle();
-        input.rawSpeed = getSpeed();
+        input.angle = getAngle();
+        input.speed = getSpeed();
 
         input.motorVoltageOut = Vout;
 
@@ -100,10 +98,6 @@ public class TurretIOMini implements TurretIO {
     public void setVout(Voltage vout){
         this.openLoop = true;
         Vout = vout;
-    }
-    @Override
-    public void setOpenLoop(boolean openLoop){
-        this.openLoop = openLoop;
     }
     
     private Angle getAngle(){
