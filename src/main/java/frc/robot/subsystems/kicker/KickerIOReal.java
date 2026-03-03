@@ -93,7 +93,7 @@ public class KickerIOReal implements KickerIO {
             kickerSpark.stopMotor();
         }
 
-        if (input.motorTemp.in(Celsius) > KickerConstants.KICKER_MAX_TEMP.in(Celsius)) {
+        if (input.motorTemp.gt(KickerConstants.KICKER_MAX_TEMP)) {
             overheatAlert.setText("Kicker motor overheat: " + input.motorTemp.in(Celsius) + " *C !");
             overheatAlert.set(true);
         } else {

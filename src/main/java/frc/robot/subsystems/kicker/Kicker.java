@@ -37,7 +37,7 @@ public class Kicker extends SubsystemBase {
   public Command hold() {
     return Commands.run(() -> {
       if (preloadEnabled.get()) {
-        if (in.distance.in(Centimeters) < KickerConstants.PRELOAD_DISTANCE_THRESHOLD.in(Centimeters)) {
+        if (in.distance.lte(KickerConstants.PRELOAD_DISTANCE_THRESHOLD)) {
           io.setGoal(RPM.of(0));
         } else {
           io.setGoal(KickerConstants.PRELOAD_VELOCITY);
