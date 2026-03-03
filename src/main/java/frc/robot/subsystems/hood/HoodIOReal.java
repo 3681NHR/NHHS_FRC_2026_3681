@@ -46,12 +46,24 @@ public class HoodIOReal implements HoodIO {
                 .voltageCompensation(12.0);
         turnConfig.closedLoop
                 .feedbackSensor(FeedbackSensor.kPrimaryEncoder);
+        turnConfig.encoder
+            .positionConversionFactor(HOOD_GEAR_RATIO)
+            .velocityConversionFactor(HOOD_GEAR_RATIO);
         motor.configure(turnConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        HOOD_PID_GAINS.withCallback(() -> {
+            pid.setGains(HOOD_PID_GAINS);
+        });
+        HOOD_FF_GAINS.withCallback(() -> {
+            ff.setKs(HOOD_FF_GAINS.kS);
+            ff.setKv(HOOD_FF_GAINS.kV);
+            ff.setKa(HOOD_FF_GAINS.kA);
+        });
     }
     
     @Override
     public void updateInputs(HoodIOInputs input){
-        if(openloop){
+        if(!openloop){
             vout = Volts.of(pid.calculate(encoder.getPosition(), goal.in(Rotations)));
             vout = vout.plus(Volts.of(ff.calculate(pid.getSetpoint().velocity)));
         }
@@ -75,6 +87,9 @@ public class HoodIOReal implements HoodIO {
 
         input.homed = homed;
         input.openloop = openloop;
+
+        input.goal = goal;
+        input.setpointPos = Rotations.of(pid.getSetpoint().position);
     }
     
     @Override

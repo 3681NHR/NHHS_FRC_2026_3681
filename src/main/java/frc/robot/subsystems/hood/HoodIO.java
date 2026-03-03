@@ -16,16 +16,18 @@ import edu.wpi.first.units.measure.Voltage;
 
 public interface HoodIO {
     
-    public void updateInputs(HoodIOInputs input);
+    public default void updateInputs(HoodIOInputs input){}
 
-    public void setGoal(Angle goal);
-    public void setVout(Voltage vout);
-    public void setPos(Angle pos);
-    public void setHomed(boolean homed);
+    public default void setGoal(Angle goal){}
+    public default void setVout(Voltage vout){}
+    public default void setPos(Angle pos){}
+    public default void setHomed(boolean homed){}
     
     @AutoLog
     public class HoodIOInputs{
         public Angle angle = Radians.of(0);
+        public Angle goal = Radians.of(0);
+        public Angle setpointPos = Radians.of(0);
         public AngularVelocity velocity = RadiansPerSecond.of(00);
         public boolean homed = false;
         

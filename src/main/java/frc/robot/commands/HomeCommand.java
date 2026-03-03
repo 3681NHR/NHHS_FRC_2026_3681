@@ -1,10 +1,13 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.Microseconds;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+
+import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
@@ -22,7 +25,7 @@ public class HomeCommand extends Command {
     Consumer<Voltage> voltageConsumer;
     Runnable onHome;
 
-    Debouncer stoppedDebouncer;
+    double stopTimestamp = Double.NaN;
 
     public HomeCommand(Voltage homeVolts, Time stopTime, BooleanSupplier stoppedSupplier, Consumer<Voltage> voltageConsumer, Runnable onHome) {
         this.homeVolts = homeVolts;
@@ -30,8 +33,6 @@ public class HomeCommand extends Command {
         this.stoppedSupplier = stoppedSupplier;
         this.voltageConsumer = voltageConsumer;
         this.onHome = onHome;
-
-        stoppedDebouncer = new Debouncer(stopTime.in(Seconds), DebounceType.kRising);
     }
 
     @Override
@@ -42,6 +43,12 @@ public class HomeCommand extends Command {
     @Override
     public void execute() {
         voltageConsumer.accept(homeVolts);
+
+        if(!stoppedSupplier.getAsBoolean()){
+            stopTimestamp = Double.NaN;
+        } else if(Double.isNaN(stopTimestamp)){
+            stopTimestamp = Logger.getTimestamp();
+        }
     }
 
     @Override
@@ -54,6 +61,12 @@ public class HomeCommand extends Command {
 
     @Override
     public boolean isFinished() {
-        return stoppedDebouncer.calculate(stoppedSupplier.getAsBoolean());
+        if(Double.isNaN(stopTimestamp)){
+            return false;
+        }
+        if(Microseconds.of(Logger.getTimestamp()-stopTimestamp).gte(stopTime)){
+            stopTimestamp = Double.NaN;
+        }
+        return Microseconds.of(Logger.getTimestamp()-stopTimestamp).gte(stopTime);
     }
 }

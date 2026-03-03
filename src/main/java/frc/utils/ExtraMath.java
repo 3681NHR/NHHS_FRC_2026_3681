@@ -21,10 +21,10 @@ import java.util.ArrayList;
  */
 public final class ExtraMath {
     public static <T extends Measure<? extends Unit>> T clamp(T val, T min, T max){
-        if(val.gte((max)){
+        if(val.baseUnitMagnitude() >= max.baseUnitMagnitude()){
             return max;
         }
-        if(val.lte(min)){
+        if(val.baseUnitMagnitude() <= min.baseUnitMagnitude()){
             return min;
         }
         return val;

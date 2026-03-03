@@ -52,7 +52,7 @@ public class LauncherIOReal implements LauncherIO {
         } else {
             overheat.set(false);
         }
-        disconnect.set(motor.isConnected());
+        disconnect.set(!motor.isConnected());
         
         input.angle = motor.getPosition().getValue();
         input.speed = motor.getVelocity().getValue();

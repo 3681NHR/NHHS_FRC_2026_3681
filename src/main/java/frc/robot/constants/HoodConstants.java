@@ -1,6 +1,7 @@
 package frc.robot.constants;
 
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
@@ -18,17 +19,17 @@ public final class HoodConstants {
 
     public static final boolean HOOD_HOME_ON_START = false;
     
-    public static final Angle HOOD_MIN_ANGLE = Radians.of(0);
-    public static final Angle HOOD_MAX_ANGLE = Radians.of(0);
+    public static final Angle HOOD_MIN_ANGLE = Degrees.of(27);
+    public static final Angle HOOD_MAX_ANGLE = Degrees.of(52);
 
-    public static final PIDGains.ProfiledPID HOOD_PID_GAINS = new PIDGains.ProfiledPID(0, 0, 0, 0, 0);
-    public static final PIDGains.SimpleFF HOOD_FF_GAINS = new PIDGains.SimpleFF(0,0,0);
+    public static final PIDGains.ProfiledPID HOOD_PID_GAINS = new PIDGains.ProfiledPID(35, 15, 5, 0.2, 3).makeTunable("Tuning/Hood/PID");
+    public static final PIDGains.SimpleFF HOOD_FF_GAINS = new PIDGains.SimpleFF(0.3,35,0).makeTunable("Tuning/Hood/FF");
 
-    public static final Voltage HOOD_HOME_VOLTAGE = Volts.of(-1);
+    public static final Voltage HOOD_HOME_VOLTAGE = Volts.of(-2);
     public static final Time HOOD_HOME_STOP_TIME = Seconds.of(0.5);
-    public static final AngularVelocity HOOD_HOME_STOP_THRESH = RadiansPerSecond.of(0.1);
+    public static final AngularVelocity HOOD_HOME_STOP_THRESH = RadiansPerSecond.of(0.01);
 
-    public static final double HOOD_GEAR_RATIO = (1/25)*(176/10);
+    public static final double HOOD_GEAR_RATIO = (1.0/25.0)*(10.0/176.0)*0.750671851307;
 
     public static final Current HOOD_CURRENT_LIM = Amps.of(20);
 }

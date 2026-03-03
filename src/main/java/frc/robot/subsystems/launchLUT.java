@@ -13,7 +13,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Time;
 import frc.utils.ExtraMath;
 
-public class launchLUT {
+public class LaunchLUT {
     public static final ShotParams[]LUTHub = {
     //  dist, hood, speed, time
         new ShotParams(Inches.of(3.5), Degrees.of(20), RPM.of(3107.0), Seconds.of(0.0)),

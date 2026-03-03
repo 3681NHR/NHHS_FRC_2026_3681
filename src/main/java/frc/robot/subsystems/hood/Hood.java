@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.commands.HomeCommand;
+import frc.robot.subsystems.SOTMSolver;
 import frc.utils.ExtraMath;
 
 import static frc.robot.constants.HoodConstants.*;
@@ -32,6 +33,10 @@ public class Hood extends SubsystemBase {
 
         Logger.recordOutput("Subsystems/Hood/state", (getCurrentCommand() == null ? "none" : getCurrentCommand().getName()));
         
+    }
+
+    public Command trackWithLead(){
+        return positionControl(() -> SOTMSolver.getInstance().getParams(false).hoodAngle()).withName("SOTM position control");
     }
 
     /**
@@ -72,6 +77,7 @@ public class Hood extends SubsystemBase {
      * @return
      */
     public Command home(){
+
         Command c = new InstantCommand(() -> {
             io.setHomed(false);
         }).andThen(new HomeCommand(
@@ -82,9 +88,13 @@ public class Hood extends SubsystemBase {
             () -> {
                 io.setPos(HOOD_MIN_ANGLE);
                 io.setHomed(true);
+                io.setGoal(HOOD_MIN_ANGLE);
             }));
         c.addRequirements(this);
         c.setName("auto home");
         return c;
+    }
+    public Angle getAngle(){
+        return in.angle;
     }
 }
