@@ -78,7 +78,7 @@ public class KickerIOReal implements KickerIO {
 
         input.openLoop = openLoop;
 
-        input.hasBall = true; // TODO: update so that this acutally does something
+        input.hasBall = false; // TODO: update so that this acutally does something
         input.distance = kickerCANRange.getDistance().getValue();
 
         if (DriverStation.isEnabled()) {

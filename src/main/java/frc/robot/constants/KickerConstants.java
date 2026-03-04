@@ -18,6 +18,7 @@ public final class KickerConstants {
     public static final boolean INVERT = false;
 
     public static final Distance PRELOAD_DISTANCE_THRESHOLD = Centimeters.of(2);
+    public static final Distance PRELOAD_MAX_DISTANCE = Centimeters.of(30); // if the can range isnt detecting anything within this range, don't preload - "evans idea"
     public static final AngularVelocity PRELOAD_VELOCITY = RPM.of(5);
     public static final AngularVelocity SHOOT_VELOCITY = RPM.of(30);
 

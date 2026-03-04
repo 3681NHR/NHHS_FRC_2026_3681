@@ -10,6 +10,7 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -39,8 +40,10 @@ public class Kicker extends SubsystemBase {
       if (preloadEnabled.get()) {
         if (in.distance.lte(KickerConstants.PRELOAD_DISTANCE_THRESHOLD)) {
           io.setGoal(RPM.of(0));
-        } else {
+        } else if (in.distance.lte(KickerConstants.PRELOAD_MAX_DISTANCE)) {
           io.setGoal(KickerConstants.PRELOAD_VELOCITY);
+        } else {
+          io.setGoal(RPM.of(0));
         }
       } else {
         io.setGoal(RPM.of(0));
