@@ -77,12 +77,12 @@ public class CameraIOPhoton implements CameraIO {
         observations.clear();
     }
 
-    public Distance getAvgDistance(PhotonPipelineResult res) {
+    public double getAvgDistance(PhotonPipelineResult res) {
         double sum = 0;
         for (PhotonTrackedTarget target : res.getTargets()) {
             sum += target.getBestCameraToTarget().getTranslation().getNorm();
         }
 
-        return Meters.of(sum / res.getTargets().size());
+        return sum / res.getTargets().size();
     }
 }

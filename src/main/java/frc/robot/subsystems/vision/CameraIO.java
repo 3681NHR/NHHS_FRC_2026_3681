@@ -31,7 +31,7 @@ public interface CameraIO {
             Pose3d pose,
             double ambiguity,
             int tagCount,
-            Distance averageTagDistance) {
+            double averageTagDistance) {
     }
 
     public default void updateInputs(CameraIOInputs inputs) {
