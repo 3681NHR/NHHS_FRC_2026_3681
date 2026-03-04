@@ -5,6 +5,8 @@ import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static frc.robot.constants.TurretConstants.*;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
@@ -71,6 +73,11 @@ public class TurretIOReal implements TurretIO {
 
         config.Feedback = new FeedbackConfigs().withSensorToMechanismRatio(TURRET_MAIN_GEAR_TEETH/TURRET_MOTOR_GEAR_TEETH);
 
+        config.SoftwareLimitSwitch = new SoftwareLimitSwitchConfigs().withForwardSoftLimitEnable(true)
+        .withForwardSoftLimitThreshold(TURRET_ANGLE_FORWARD_LIM)
+        .withReverseSoftLimitEnable(true)
+        .withReverseSoftLimitThreshold(TURRET_ANGLE_REVERSE_LIM);
+
         motor.getConfigurator().apply(config);
 
         TURRET_PID_GAINS.withCallback(() -> {
@@ -91,7 +98,7 @@ public class TurretIOReal implements TurretIO {
 
         Angle angle;
         if(e1.isConnected() && e2.isConnected()){
-            angle = Rotations.of(slope * ((e2.getAbsolutePosition().getValue().in(Rotations)-e1.getAbsolutePosition().getValue().in(Rotations))%1));
+            angle = Rotations.of(slope * (MathUtil.inputModulus(e2.getAbsolutePosition().getValue().in(Rotations)-e1.getAbsolutePosition().getValue().in(Rotations), 0, 1)));
 
             motor.setPosition(angle);
         } else {
@@ -143,9 +150,9 @@ public class TurretIOReal implements TurretIO {
 
         Angle angle;
         if(e1.isConnected() && e2.isConnected()){
-            angle = Rotations.of(slope * ((e2.getAbsolutePosition().getValue().in(Rotations)-e1.getAbsolutePosition().getValue().in(Rotations))%1));
-
-            motor.setPosition(angle);
+            angle = Rotations.of(slope * (MathUtil.inputModulus(e2.getAbsolutePosition().getValue().in(Rotations)-e1.getAbsolutePosition().getValue().in(Rotations), 0, 1)));
+            
+            // motor.setPosition(angle);
         } else {
             if(motor.isConnected()){
                 angle = motor.getPosition().getValue();
@@ -174,7 +181,7 @@ public class TurretIOReal implements TurretIO {
             measures++;
         }
         if(measures>0){
-            return RotationsPerSecond.of(sum/measures);//average all velocity readings
+            return RotationsPerSecond.of(-sum/measures);//average all velocity readings
         }
         return RotationsPerSecond.of(0);//the bad ending
     }
