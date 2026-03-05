@@ -40,66 +40,66 @@ public class VisionConstants {
     // Camera names, must match names configured on coprocessor
     public static CameraConfig[] CAMERA_CONFIGS = {
         new CameraConfig(
-            "FL",
-            "front left",
+            "front",
+            "front",
             1.0,
             1.0,
             new Transform3d(
-                Units.inchesToMeters(8.063547),
-                Units.inchesToMeters(11.370765),
-                Units.inchesToMeters(6.837248),
+                Units.inchesToMeters(3.183792),
+                Units.inchesToMeters(-3.016348),
+                Units.inchesToMeters(20.312005),
                 new Rotation3d(
                     Units.degreesToRadians(0),
-                    Units.degreesToRadians(-30),
-                    Units.degreesToRadians(-137.8-90)
+                    Units.degreesToRadians(-10),
+                    Units.degreesToRadians(0)
                 )
             )
         ),
         new CameraConfig(
-            "FR",
-            "front right",
+            "right",
+            "right",
             1.0,
             1.0,
             new Transform3d(
-                Units.inchesToMeters(11.370765),
-                Units.inchesToMeters(-8.063547),
-                Units.inchesToMeters(6.837248),
+                Units.inchesToMeters(-8.375000),
+                Units.inchesToMeters(-12.871373),
+                Units.inchesToMeters(8.188547),
                 new Rotation3d(
                     Units.degreesToRadians(0),
                     Units.degreesToRadians(-30),
-                    Units.degreesToRadians(-138.81+180)
+                    Units.degreesToRadians(-90)
                 )
             )
         ),
         new CameraConfig(
-            "BL",
-            "back left",
+            "left",
+            "left",
             1.0,
             1.0,
             new Transform3d(
-                Units.inchesToMeters(-11.370765),
-                Units.inchesToMeters(8.063547),
-                Units.inchesToMeters(6.837248),
+                Units.inchesToMeters(-8.375520),
+                Units.inchesToMeters(12.871499),
+                Units.inchesToMeters(8.188547),
                 new Rotation3d(
                     Units.degreesToRadians(0),
                     Units.degreesToRadians(-30),
-                    Units.degreesToRadians(-134.75967341477)
+                    Units.degreesToRadians(90)
                 )
             )
         ),
         new CameraConfig(
-            "BR",
-            "back right",
+            "back",
+            "back",
             1.0,
             1.0,
             new Transform3d(
-                Units.inchesToMeters(-8.063547),
-                Units.inchesToMeters(-11.370765),
-                Units.inchesToMeters(6.837248),
+                Units.inchesToMeters(-12.871499),
+                Units.inchesToMeters(-8.375520),
+                Units.inchesToMeters(8.188547),
                 new Rotation3d(
                     Units.degreesToRadians(0),
                     Units.degreesToRadians(-30),
-                    Units.degreesToRadians(138.15-180)
+                    Units.degreesToRadians(180)
                 )
             )
         )
