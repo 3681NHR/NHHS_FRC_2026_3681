@@ -33,7 +33,7 @@ public class LauncherIOSim implements LauncherIO {
     @Override
     public void updateInputs(LauncherIOInputs input){
         sim.update(0.02);
-        speed = RadiansPerSecond.of(sim.getOutput().get(0,1));
+        speed = RadiansPerSecond.of(sim.getOutput().get(1,0));
 
         if(!openLoop){
             vout = Volts.of(pid.calculate(speed.in(RPM), goal.in(RPM)));

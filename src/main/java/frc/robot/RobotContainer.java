@@ -32,6 +32,7 @@ import frc.robot.subsystems.swerve.gyro.GyroIOSim;
 import frc.robot.subsystems.swerve.module.ModuleIO;
 import frc.robot.subsystems.swerve.module.ModuleIOCrackingSpark;
 import frc.robot.subsystems.swerve.module.ModuleIOSim;
+import frc.robot.subsystems.swerve.module.ModuleIOSpark;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOReal;
@@ -53,6 +54,7 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
+import static frc.robot.constants.HoodConstants.HOOD_MIN_ANGLE;
 import static frc.robot.constants.TurretConstants.*;
 
 import static frc.utils.ControllerMap.*;
@@ -213,10 +215,14 @@ public class RobotContainer {
                         );
                 drive = new Drive(
                         new GyroIOPigeon2(),
-                        new ModuleIOCrackingSpark(0),
-                        new ModuleIOCrackingSpark(1),
-                        new ModuleIOCrackingSpark(2),
-                        new ModuleIOCrackingSpark(3),
+                        new ModuleIO() {//FIXME
+                        },
+                        new ModuleIO() {
+                        },
+                        new ModuleIO() {
+                        },
+                        new ModuleIO() {
+                        },
                         vision,
                         driverSticks,
                         led);
@@ -226,10 +232,12 @@ public class RobotContainer {
                 fuelVision = new FuelVision(new FuelVisionIOPhoton(FuelVisionConstants.CAMERA_CONFIG), drive::getPose);
                 
                 // turret = new Turret(new TurretIOReal(), drive);
-                turret = new Turret(new TurretIO() {}, drive);//FIXME
+                turret = new Turret(new TurretIO() {}, drive);
                 
-                launcher = new Launcher(new LauncherIOReal());
-                hood = new Hood(new HoodIOReal());
+                // launcher = new Launcher(new LauncherIOReal());
+                launcher = new Launcher(new LauncherIO(){});
+                // hood = new Hood(new HoodIOReal());
+                hood = new Hood(new HoodIO(){});
                 break;
 
             case SIM:
@@ -456,8 +464,14 @@ public class RobotContainer {
         autoChooser.update();
 
         Logger.recordOutput("AScope/Components", new Pose3d[]{
-                new Pose3d(TURRET_OFFSET, new Rotation3d(0,0,turret.getAngle().in(Radians)-Math.PI/2)),
-                new Pose3d(TURRET_OFFSET.getX()+Math.cos(turret.getAngle().in(Radians))*HOOD_TO_TURRET_OFFSET.getX(),TURRET_OFFSET.getY()+(Math.sin(turret.getAngle().in(Radians))*HOOD_TO_TURRET_OFFSET.getX()), TURRET_OFFSET.getZ()+HOOD_TO_TURRET_OFFSET.getZ(),new Rotation3d(Units.degreesToRadians(0),0,turret.getAngle().in(Radians)-Math.PI/2)),
+                new Pose3d(),
+                new Pose3d(),
+                new Pose3d(TURRET_OFFSET, new Rotation3d(0,0,turret.getAngle().plus(Degrees.of(180)).in(Radians))),
+                new Pose3d(TURRET_OFFSET
+                        .plus(HOOD_TO_TURRET_OFFSET.rotateBy(new Rotation3d(0,0,turret.getAngle().plus(Degrees.of(180)).in(Radians)))),
+                        new Rotation3d(0, 
+                            hood.getAngle().minus(Degrees.of(25)).in(Radians), 
+                            turret.getAngle().plus(Degrees.of(180)).in(Radians))),
         });
     }
 
@@ -523,7 +537,7 @@ public class RobotContainer {
 
     public Command getManShooterCommand(){
         return new ParallelCommandGroup(
-            turret.manPos(() -> Degrees.of(manTurretDegrees.getAsDouble()), true),
+            turret.manPos(() -> Degrees.of(manTurretDegrees.getAsDouble()), false),
             launcher.velocityControl(() -> RPM.of(manShooterRPM.getAsDouble())),
             hood.positionControl(() -> Degrees.of(manHoodDegrees.getAsDouble()))
         ).withName("manual targeting");

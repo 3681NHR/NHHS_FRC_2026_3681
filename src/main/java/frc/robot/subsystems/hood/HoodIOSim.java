@@ -3,6 +3,9 @@ package frc.robot.subsystems.hood;
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.constants.HoodConstants.*;
 
+import edu.wpi.first.math.MatBuilder;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.system.LinearSystem;
@@ -24,26 +27,50 @@ public class HoodIOSim implements HoodIO {
     private ProfiledPID pid = new ProfiledPID(HOOD_PID_GAINS);
     private SimpleFF ff = new SimpleFF(HOOD_FF_GAINS);
 
-    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(HOOD_FF_GAINS.kV, HOOD_FF_GAINS.kA);
-    private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.01, 0.1);
+    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(HOOD_ID_GAINS.kV/(Math.PI*2), HOOD_ID_GAINS.kA/(Math.PI*2));
+    private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.0001, 0.001);
 
-    private double offset = 0;
+    Angle encoderAngle = Degrees.of(0);
+    Angle encoderOffset = Degrees.of(0);
 
     public HoodIOSim(){
-        
+        sim.setState(VecBuilder.fill(Degree.of(35).in(Radians),0));
+        encoderOffset = Radians.of(-sim.getOutput().get(0,0));
     }
     
     @Override
     public void updateInputs(HoodIOInputs input){
         sim.update(0.02);
+        encoderAngle = Radians.of(sim.getOutput().get(0,0)).plus(encoderOffset);
 
-        if(openloop){
-            vout = Volts.of(pid.calculate(sim.getOutput().get(0,0), goal.in(Rotations)));
+        if(!openloop){
+            vout = Volts.of(pid.calculate(encoderAngle.in(Rotations), goal.in(Rotations)));
             vout = vout.plus(Volts.of(ff.calculate(pid.getSetpoint().velocity)));
         }
         
-        input.angle = Radians.of(sim.getOutput().get(0,0)+offset);
-        input.velocity = RadiansPerSecond.of(sim.getOutput().get(0,1));
+        if(homed){
+            //soft limit - cant use internal, as it cant be configured while enabled
+            if(encoderAngle.in(Rotations) >= HOOD_MAX_ANGLE.in(Rotations) && vout.in(Volts) > 0){
+                vout = Volts.of(0);
+            }
+            if(encoderAngle.in(Rotations) <= HOOD_MIN_ANGLE.in(Rotations) && vout.in(Volts) < 0){
+                vout = Volts.of(0);
+            }
+        }
+        
+        if(Radians.of(sim.getOutput().get(0,0)).gt(HOOD_MAX_ANGLE)){
+            sim.setState(VecBuilder.fill(HOOD_MAX_ANGLE.in(Radians),0));
+            sim.setInput(MathUtil.clamp(vout.in(Volts), -12, 0));
+
+        } else if(Radians.of(sim.getOutput().get(0,0)).lt(HOOD_MIN_ANGLE)){
+            sim.setState(VecBuilder.fill(HOOD_MIN_ANGLE.in(Radians),0));
+            sim.setInput(MathUtil.clamp(vout.in(Volts), 0, 12));
+        } else {
+            sim.setInput(vout.in(Volts));
+        }
+        
+        input.angle = encoderAngle;
+        input.velocity = RadiansPerSecond.of(sim.getOutput().get(1,0));
 
         input.vout = vout;
         input.current = Amps.of(-1);
@@ -51,6 +78,9 @@ public class HoodIOSim implements HoodIO {
 
         input.homed = homed;
         input.openloop = openloop;
+        
+        input.goal = goal;
+        input.setpointPos = Rotations.of(pid.getSetpoint().position);
     }
     
     @Override
@@ -65,7 +95,9 @@ public class HoodIOSim implements HoodIO {
     }
 
     public void setPos(Angle pos){
-        offset = -(sim.getOutput().get(0,0)+offset) + pos.in(Radians);
+        encoderOffset = encoderAngle.minus(encoderOffset).unaryMinus().plus(pos);
+        encoderAngle = Radians.of(sim.getOutput().get(0,0)).plus(encoderOffset);
+        pid.reset(encoderAngle.in(Rotations));
     }
     
     public void setHomed(boolean homed){
