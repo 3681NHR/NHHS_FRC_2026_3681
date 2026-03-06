@@ -51,6 +51,7 @@ public class TurretIOSim implements TurretIO {
         }
         
         input.angle = Radians.of(sim.getOutput().get(0, 0));
+        input.motorAngle = input.angle;
         input.speed = RadiansPerSecond.of(sim.getOutput().get(1, 0));
 
         input.motorVoltageOut = Vout;

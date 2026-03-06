@@ -464,12 +464,12 @@ public class RobotContainer {
         Logger.recordOutput("AScope/Components", new Pose3d[]{
                 new Pose3d(),
                 new Pose3d(),
-                new Pose3d(TURRET_OFFSET, new Rotation3d(0,0,turret.getAngle().plus(Degrees.of(180)).in(Radians))),
+                new Pose3d(TURRET_OFFSET, new Rotation3d(0,0,turret.getAngle().in(Radians))),
                 new Pose3d(TURRET_OFFSET
-                        .plus(HOOD_TO_TURRET_OFFSET.rotateBy(new Rotation3d(0,0,turret.getAngle().plus(Degrees.of(180)).in(Radians)))),
+                        .plus(HOOD_TO_TURRET_OFFSET.rotateBy(new Rotation3d(0,0,turret.getAngle().in(Radians)))),
                         new Rotation3d(0, 
                             hood.getAngle().minus(Degrees.of(25)).in(Radians), 
-                            turret.getAngle().plus(Degrees.of(180)).in(Radians))),
+                            turret.getAngle().in(Radians))),
         });
         Logger.recordOutput("target dist", Meters.of(target.getDistance(drive.getPose().getTranslation())));
     }
