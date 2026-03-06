@@ -46,6 +46,7 @@ import frc.utils.Joystick.duelJoystickAxis;
 import frc.utils.TimerHandler;
 import frc.utils.BatteryVoltageSim;
 import frc.utils.ExtraMath;
+import frc.utils.HiddenConditionalCommand;
 import frc.utils.Joystick;
 import frc.utils.PIDTuner;
 
@@ -96,6 +97,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -138,7 +140,7 @@ public class RobotContainer {
 
     private duelJoystickAxis driverSticks;
 
-    private LoggedNetworkBoolean useLead = new LoggedNetworkBoolean("Overrides/Enable SOTM", true);
+    private LoggedNetworkBoolean useLead = new LoggedNetworkBoolean("Overrides/Enable SOTM", false);
 
     private LoggedNetworkNumber manHoodDegrees = new LoggedNetworkNumber("Manual/hood angle degrees", HoodConstants.HOOD_MIN_ANGLE.in(Degrees));
     private LoggedNetworkNumber manShooterRPM = new LoggedNetworkNumber("Manual/Shooter speed RPM", 0);
@@ -215,14 +217,10 @@ public class RobotContainer {
                         );
                 drive = new Drive(
                         new GyroIOPigeon2(),
-                        new ModuleIO() {//FIXME
-                        },
-                        new ModuleIO() {
-                        },
-                        new ModuleIO() {
-                        },
-                        new ModuleIO() {
-                        },
+                        new ModuleIOCrackingSpark(0),
+                        new ModuleIOCrackingSpark(1),
+                        new ModuleIOCrackingSpark(2),
+                        new ModuleIOCrackingSpark(3),
                         vision,
                         driverSticks,
                         led);
@@ -231,8 +229,8 @@ public class RobotContainer {
                 
                 fuelVision = new FuelVision(new FuelVisionIOPhoton(FuelVisionConstants.CAMERA_CONFIG), drive::getPose);
                 
-                // turret = new Turret(new TurretIOReal(), drive);
-                turret = new Turret(new TurretIO() {}, drive);
+                turret = new Turret(new TurretIOReal(), drive);
+                // turret = new Turret(new TurretIO() {}, drive);
                 
                 // launcher = new Launcher(new LauncherIOReal());
                 launcher = new Launcher(new LauncherIO(){});
@@ -391,8 +389,8 @@ public class RobotContainer {
         
         // TODO: placeholder binding to shooting in sim, remove before running on robot
         new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7 && Robot.isSimulation()).whileTrue(new InstantCommand(() -> {
-                double launchvel = (launcher.getSpeed().in(RPM)-2500)*2*Math.PI*Units.inchesToMeters(2)/60;
-                double angle = SOTMSolver.getInstance().getParams(false).hoodAngle().plus(Degrees.of(90)).in(Radians);
+                double launchvel = (launcher.getSpeed().in(RPM))*2*Math.PI*Units.inchesToMeters(2)/60;
+                double angle = hood.getAngle().plus(Degrees.of(90)).in(Radians);
                 GamePieceProjectile fuel = new GamePieceProjectile(
                         RebuiltFuelOnField.REBUILT_FUEL_INFO,
                         driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
@@ -423,9 +421,9 @@ public class RobotContainer {
         new Trigger(() -> driverController.getRawButton(LB)).onTrue(hood.home());
 
         //launcher spin and shoot
-        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.2).whileTrue(
-            launcher.velocityControl(() -> LaunchLUT.get(Meters.of(target.getDistance(turret.getFieldPos())), true, LaunchLUT.LUTHub).speed())
-        );
+        // new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.2).whileTrue(
+        //     launcher.velocityControl(() -> LaunchLUT.get(Meters.of(target.getDistance(turret.getFieldPos())), true, LaunchLUT.LUTHub).speed())
+        // );
         // new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7).whileTrue(
         //     null// TODO: feed to shooter while spun up
         // );
@@ -473,6 +471,7 @@ public class RobotContainer {
                             hood.getAngle().minus(Degrees.of(25)).in(Radians), 
                             turret.getAngle().plus(Degrees.of(180)).in(Radians))),
         });
+        Logger.recordOutput("target dist", Meters.of(target.getDistance(drive.getPose().getTranslation())));
     }
 
     public void SimPeriodic() {
@@ -519,8 +518,7 @@ public class RobotContainer {
      * @return
      */
     public Command getTrackCommand(){
-        Distance dist = Meters.of(target.getDistance(drive.getPose().getTranslation()));
-        return new ConditionalCommand(
+        return new HiddenConditionalCommand(
             new ParallelCommandGroup(
                 turret.trackWithLead(),
                 launcher.velocityControl(() -> SOTMSolver.getInstance().getParams(false).speed()),
@@ -529,8 +527,8 @@ public class RobotContainer {
 
             new ParallelCommandGroup(
                 turret.track(() -> target),
-                launcher.velocityControl(() -> LaunchLUT.get(dist, true, LaunchLUT.LUTHub).speed()),
-                hood.positionControl(() -> LaunchLUT.get(dist, true, LaunchLUT.LUTHub).hoodAngle())
+                launcher.velocityControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).speed()),
+                hood.positionControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).hoodAngle())
             ).withName("track without lead"),
         useLead::get);
     }

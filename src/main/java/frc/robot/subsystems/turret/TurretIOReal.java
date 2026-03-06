@@ -44,6 +44,8 @@ public class TurretIOReal implements TurretIO {
     private Alert e1Disconnect = new Alert("Turret encoder 1 is disconnected!", AlertType.kError);
     private Alert e2Disconnect = new Alert("Turret encoder 2 is disconnected!", AlertType.kError);
 
+    private boolean homed = false;
+
     public TurretIOReal(){
         TalonFXConfiguration config = new TalonFXConfiguration();
 
@@ -73,10 +75,10 @@ public class TurretIOReal implements TurretIO {
 
         config.Feedback = new FeedbackConfigs().withSensorToMechanismRatio(TURRET_MAIN_GEAR_TEETH/TURRET_MOTOR_GEAR_TEETH);
 
-        config.SoftwareLimitSwitch = new SoftwareLimitSwitchConfigs().withForwardSoftLimitEnable(true)
-        .withForwardSoftLimitThreshold(TURRET_ANGLE_FORWARD_LIM)
-        .withReverseSoftLimitEnable(true)
-        .withReverseSoftLimitThreshold(TURRET_ANGLE_REVERSE_LIM);
+        // config.SoftwareLimitSwitch = new SoftwareLimitSwitchConfigs().withForwardSoftLimitEnable(true)
+        // .withForwardSoftLimitThreshold(TURRET_ANGLE_FORWARD_LIM)
+        // .withReverseSoftLimitEnable(true)
+        // .withReverseSoftLimitThreshold(TURRET_ANGLE_REVERSE_LIM);
 
         motor.getConfigurator().apply(config);
 
@@ -101,18 +103,31 @@ public class TurretIOReal implements TurretIO {
             angle = Rotations.of(slope * (MathUtil.inputModulus(e2.getAbsolutePosition().getValue().in(Rotations)-e1.getAbsolutePosition().getValue().in(Rotations), 0, 1)));
 
             motor.setPosition(angle);
-        } else {
-            DriverStation.reportError("Could not reset turret position!", false);
+
+            homed = true;
         }
+        //  else {
+        //     DriverStation.reportError("Could not reset turret position!", false);
+        // }
     }
 
     @Override
     public void updateInputs(TurretIOInputs input){
+        
+        if(e1.isConnected() && e2.isConnected() && !homed){
+            double slope = (TURRET_ENCODER_2_GEAR_TEETH * TURRET_ENCODER_1_GEAR_TEETH)
+            /(TURRET_MAIN_GEAR_TEETH * (TURRET_ENCODER_1_GEAR_TEETH - TURRET_ENCODER_2_GEAR_TEETH));
+
+            Angle angle = Rotations.of(slope * (MathUtil.inputModulus(e2.getAbsolutePosition().getValue().in(Rotations)-e1.getAbsolutePosition().getValue().in(Rotations), 0, 1)));
+            motor.setPosition(angle);
+            homed = true;
+        }
         motorDisconnect.set(!motor.isConnected());
         e1Disconnect.set(!e1.isConnected());
         e2Disconnect.set(!e2.isConnected());
 
         input.angle = getAbsoluteAngle();
+        input.motorAngle = motor.getPosition().getValue();
         input.speed = getVelocity();
 
         input.motorVoltageOut = motor.getMotorVoltage().getValue();

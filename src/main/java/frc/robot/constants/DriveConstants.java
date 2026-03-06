@@ -132,7 +132,7 @@ public class DriveConstants {
         public static final int BR_TURN_ID = 24;
 
         // Drive motor configuration
-        public static final boolean DRIVE_INVERT = true;
+        public static final boolean DRIVE_INVERT = false;
         public static final Current DRIVE_MAX_CURRENT = Amps.of(50);
         public static final Current DRIVE_SLIP_CURRENT = Amps.of(50);
         public static final double DRIVE_REDUCTION = 6.75;
