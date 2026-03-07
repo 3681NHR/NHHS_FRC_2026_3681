@@ -5,13 +5,10 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static frc.robot.constants.TurretConstants.*;
-import static frc.robot.constants.TurretConstants.TURRET_ANGLE_REVERSE_LIM;
-import static frc.robot.constants.TurretConstants.TURRET_OFFSET;
-import static frc.robot.constants.TurretConstants.TURRET_SYSID_CONFIG;
-import static frc.robot.constants.TurretConstants.TURRET_THETA_COMP_FACTOR;
 
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -33,9 +30,6 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 public class Turret extends SubsystemBase {
     
     private boolean ready = false;
-
-    private boolean unwinding = false;
-    private Angle unwindgoal = Radians.of(0.0);
 
     private TurretIO io;
     private TurretIOInputsAutoLogged in = new TurretIOInputsAutoLogged();
@@ -66,9 +60,6 @@ public class Turret extends SubsystemBase {
         Logger.processInputs("IO/Turret", in);
 
         Logger.recordOutput("Subsystems/Turret/state", (getCurrentCommand() == null ? "none" :getCurrentCommand().getName()));
-        Logger.recordOutput("Subsystems/Turret/ready", ready);
-        Logger.recordOutput("Subsystems/Turret/unwind angle", unwindgoal);
-        Logger.recordOutput("Subsystems/Turret/unwinding", unwinding);
 
         Logger.recordOutput("Subsystems/Turret/field angle", in.motorAngle
         .plus(Radians.of(drive.getRotation().getRadians()))
@@ -184,6 +175,7 @@ public class Turret extends SubsystemBase {
         .withName("Dynamic sysid: " + (reverse ? "reverse" : "forward"));
     }
 
+    @AutoLogOutput(key="Subsystems/Turret/ready")
     public boolean isReady(){
         return ready;
     }

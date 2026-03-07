@@ -30,6 +30,7 @@ public interface HoodIO {
         public Angle setpointPos = Radians.of(0);
         public AngularVelocity velocity = RadiansPerSecond.of(00);
         public boolean homed = false;
+        public boolean atSetpoint = false;
         
         public Voltage vout = Volts.of(0);
         public Current current = Amps.of(0);

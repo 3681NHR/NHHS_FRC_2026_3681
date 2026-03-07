@@ -389,7 +389,9 @@ public class RobotContainer {
         }));
         
         // TODO: placeholder binding to shooting in sim, remove before running on robot
-        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7 && Robot.isSimulation()).whileTrue(getSimFireCommand());
+        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7 && turret.isReady() && launcher.isReady() && hood.isReady()).whileTrue(
+            getSimFireCommand()
+        );
 
         // force teleop drive
         new Trigger(() -> driverController.getPOV() == 0).onTrue(drive.TeleopDrive());

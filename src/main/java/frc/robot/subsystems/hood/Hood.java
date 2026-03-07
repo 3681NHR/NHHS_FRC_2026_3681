@@ -15,6 +15,7 @@ import static frc.robot.constants.HoodConstants.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Hood extends SubsystemBase {
@@ -96,5 +97,10 @@ public class Hood extends SubsystemBase {
     }
     public Angle getAngle(){
         return in.angle;
+    }
+
+    @AutoLogOutput(key="Subsystems/Hood/ready")
+    public boolean isReady(){
+        return in.atSetpoint || in.openloop;
     }
 }

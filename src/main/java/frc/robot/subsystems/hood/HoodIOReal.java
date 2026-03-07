@@ -59,6 +59,8 @@ public class HoodIOReal implements HoodIO {
             ff.setKv(HOOD_FF_GAINS.kV);
             ff.setKa(HOOD_FF_GAINS.kA);
         });
+
+        pid.setTolerance(HOOD_SETPOINT_TOLERANCE.in(Rotations));
     }
     
     @Override
@@ -80,6 +82,8 @@ public class HoodIOReal implements HoodIO {
         
         input.angle = Rotations.of(encoder.getPosition());
         input.velocity = RPM.of(encoder.getVelocity());
+
+        input.atSetpoint = pid.atGoal();
 
         input.vout = Volts.of(motor.getAppliedOutput()*motor.getBusVoltage());
         input.current = Amps.of(motor.getOutputCurrent());

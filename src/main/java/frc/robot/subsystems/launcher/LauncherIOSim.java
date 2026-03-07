@@ -29,7 +29,7 @@ public class LauncherIOSim implements LauncherIO {
     private PID pid = new PID(LAUNCHER_PID_GAINS);
     private SimpleFF ff = new SimpleFF(LAUNCHER_FF_GAINS);
     
-    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(LAUNCHER_ID_GAINS.kV/((1/60.0)*2*Math.PI), LAUNCHER_ID_GAINS.kA/((1/60.0)*2*Math.PI));
+    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(LAUNCHER_ID_GAINS.kV/(2*Math.PI), LAUNCHER_ID_GAINS.kA/(2*Math.PI));
     private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.01, 0.1);
     @Override
     public void updateInputs(LauncherIOInputs input){

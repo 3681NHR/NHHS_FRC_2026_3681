@@ -18,6 +18,8 @@ public final class HoodConstants {
     public static final int HOOD_MOTOR_ID = 51;
 
     public static final boolean HOOD_HOME_ON_START = false;
+
+    public static final Angle HOOD_SETPOINT_TOLERANCE = Degrees.of(1);
     
     public static final Angle HOOD_MIN_ANGLE = Degrees.of(25);
     public static final Angle HOOD_MAX_ANGLE = Degrees.of(52);

@@ -36,6 +36,8 @@ public class HoodIOSim implements HoodIO {
     public HoodIOSim(){
         sim.setState(VecBuilder.fill(Degree.of(35).in(Radians),0));
         encoderOffset = Radians.of(-sim.getOutput().get(0,0));
+
+        pid.setTolerance(HOOD_SETPOINT_TOLERANCE.in(Rotations));
     }
     
     @Override
@@ -71,6 +73,8 @@ public class HoodIOSim implements HoodIO {
         
         input.angle = encoderAngle;
         input.velocity = RadiansPerSecond.of(sim.getOutput().get(1,0));
+
+        input.atSetpoint = pid.atGoal();
 
         input.vout = vout;
         input.current = Amps.of(-1);
