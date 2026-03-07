@@ -1,6 +1,6 @@
 package frc.robot.subsystems.kicker;
 
-import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 import static frc.robot.constants.KickerConstants.*;
 
 import java.util.function.Supplier;
@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
-import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -37,14 +37,14 @@ public class Kicker extends SubsystemBase {
     return Commands.run(() -> {
       if (preloadEnabled.get()) {
         if (in.distance.lte(PRELOAD_DISTANCE_THRESHOLD)) {
-          io.setGoal(RPM.zero());
+          io.setGoal(MetersPerSecond.zero());
         } else if (in.distance.lte(PRELOAD_MAX_DISTANCE)) {
           io.setGoal(PRELOAD_VELOCITY);
         } else {
-          io.setGoal(RPM.zero());
+          io.setGoal(MetersPerSecond.zero());
         }
       } else {
-        io.setGoal(RPM.zero());
+        io.setGoal(MetersPerSecond.zero());
       }
     }, this).withName("Hold Ball");
   }
@@ -55,7 +55,7 @@ public class Kicker extends SubsystemBase {
     }, this).withName("Run Kicker");
   }
 
-  public Command velocityControl(Supplier<AngularVelocity> velocity) {
+  public Command velocityControl(Supplier<LinearVelocity> velocity) {
     return Commands.run(() -> {
       io.setGoal(velocity.get());
     }, this).withName("Velocity Control");

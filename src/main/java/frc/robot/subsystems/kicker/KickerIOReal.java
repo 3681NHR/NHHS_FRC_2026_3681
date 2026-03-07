@@ -12,8 +12,7 @@ import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.FeedbackSensor;
-import com.revrobotics.spark.SparkBase;
-import com.revrobotics.spark.SparkMax;
+import frc.utils.motorWrappers.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
@@ -25,7 +24,7 @@ import frc.utils.controlWrappers.SimpleFF;
 
 public class KickerIOReal implements KickerIO {
 
-    private final SparkBase kickerSpark;
+    private final SparkMax kickerSpark;
     private final RelativeEncoder kickerEncoder;
     private final CANrange kickerCANRange;
 
