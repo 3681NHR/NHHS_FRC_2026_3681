@@ -59,25 +59,6 @@ configurations {
     }
 }
 
-sourceSets {
-    main {
-        java {
-            exclude "frc/checker/**"
-        }
-    }
-    checks {
-        java {
-            srcDirs = ["src/main/java/frc/checker"]
-        }
-        resources {
-            srcDirs = ["src/main/java/frc/checker"]
-            includes = ["META-INF/**"]
-        }
-        compileClasspath = configurations.checksDeps
-        runtimeClasspath = configurations.checksDeps
-    }
-}
-
 dependencies {
     def akitJson = new groovy.json.JsonSlurper().parseText(new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text)
     annotationProcessor "org.littletonrobotics.akit:akit-autolog:$akitJson.version"

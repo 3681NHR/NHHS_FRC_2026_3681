@@ -1,6 +1,6 @@
 package frc.robot.subsystems.hood;
 
-import com.revrobotics.spark.SparkMax;
+import frc.utils.motorWrappers.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.PersistMode;
