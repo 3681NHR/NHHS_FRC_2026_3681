@@ -21,6 +21,9 @@ public class Hood extends SubsystemBase {
     HoodIO io;
     HoodIOInputsAutoLogged in = new HoodIOInputsAutoLogged();
 
+    boolean homing = false;
+    boolean manual = false;
+
     public Hood(HoodIO io){
         this.io = io;
     }
@@ -30,7 +33,7 @@ public class Hood extends SubsystemBase {
         io.updateInputs(in);
         Logger.processInputs("IO/Hood", in);
 
-        Logger.recordOutput("Subsystems/Hood/state", (getCurrentCommand() == null ? "none" : getCurrentCommand().getName()));
+        Logger.recordOutput("Subsystems/Hood/state", getCurrentCommand() == null ? "none" : getCurrentCommand().getName());
         
     }
 
@@ -44,9 +47,13 @@ public class Hood extends SubsystemBase {
      * @return
      */
     public Command positionControl(Supplier<Angle> pos){
-        return Commands.run(() -> {
+        return new InstantCommand(() -> {
+            manual = true;
+        }).andThen(Commands.run(() -> {
             io.setGoal(ExtraMath.clamp(pos.get(), HOOD_MIN_ANGLE, HOOD_MAX_ANGLE));
-        }, this).withName("position control");
+        }, this)).finallyDo(() -> {
+            manual = false;
+        }).withName("position control");
     }
 
     /**
@@ -79,6 +86,7 @@ public class Hood extends SubsystemBase {
 
         Command c = new InstantCommand(() -> {
             io.setHomed(false);
+            homing = true;
         }).andThen(new HomeCommand(
             HOOD_HOME_VOLTAGE, 
             HOOD_HOME_STOP_TIME, 
@@ -88,6 +96,8 @@ public class Hood extends SubsystemBase {
                 io.setPos(HOOD_MIN_ANGLE);
                 io.setHomed(true);
                 io.setGoal(HOOD_MIN_ANGLE);
+            })).andThen(new InstantCommand(() -> {
+                homing = false;
             }));
         c.addRequirements(this);
         c.setName("auto home");
@@ -99,6 +109,18 @@ public class Hood extends SubsystemBase {
 
     @AutoLogOutput(key="Subsystems/Hood/ready")
     public boolean isReady(){
-        return in.atSetpoint || in.openloop;
+        return (in.atSetpoint || in.openloop) && in.homed;
+    }
+
+    public boolean isHomed(){
+        return in.homed;
+    }
+
+    public boolean isHoming(){
+        return homing;
+    }
+
+    public boolean isManual(){
+        return manual;
     }
 }

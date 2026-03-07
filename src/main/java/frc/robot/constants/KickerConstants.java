@@ -12,8 +12,8 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import frc.utils.controlWrappers.PIDGains;
 
 public final class KickerConstants {
-    public static final int KICKER_MOTOR_ID = -1;
-    public static final int KICKER_CAN_RANGE_ID = -1;
+    public static final int KICKER_MOTOR_ID = 41;
+    public static final int KICKER_CAN_RANGE_ID = 33;
 
     public static final boolean MOTOR_INVERT = false;
 

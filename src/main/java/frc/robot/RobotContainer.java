@@ -119,7 +119,7 @@ public class RobotContainer {
     private Climber climber;
     private Hood hood;
 
-    private Led led = new Led();
+    private Led led = new Led(launcher, hood, turret, drive);
 
     private final XboxController driverController = new XboxController(OperatorConstants.DRIVER_CONTROLLER_PORT);
     private final XboxController operatorController = new XboxController(OperatorConstants.OPERATOR_CONTROLLER_PORT);
