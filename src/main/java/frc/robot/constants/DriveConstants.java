@@ -15,7 +15,6 @@ package frc.robot.constants;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.FeetPerSecond;
 import static edu.wpi.first.units.Units.Hertz;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
@@ -133,7 +132,7 @@ public class DriveConstants {
         public static final int BR_TURN_ID = 24;
 
         // Drive motor configuration
-        public static final boolean DRIVE_INVERT = true;
+        public static final boolean DRIVE_INVERT = false;
         public static final Current DRIVE_MAX_CURRENT = Amps.of(50);
         public static final Current DRIVE_SLIP_CURRENT = Amps.of(50);
         public static final double DRIVE_REDUCTION = 6.75;
@@ -148,7 +147,7 @@ public class DriveConstants {
 
         // Drive PID configuration
         public static final PIDGains.PID DRIVE_PID = new PIDGains.PID(0.25, 0.0, 0.0).makeTunable("Drive PID");
-        public static final PIDGains.SimpleFF DRIVE_FF = new PIDGains.SimpleFF(0.16, 0.76217, 0.016315).makeTunable("Drive FF");//TODO test new gains
+        public static final PIDGains.SimpleFF DRIVE_FF = new PIDGains.SimpleFF(0.16, 0.76217, 0.016315).makeTunable("Drive FF");
         public static final PIDGains.PID DRIVE_PID_SIM = new PIDGains.PID(0.01, 0.0, 0.0);
         public static final PIDGains.SimpleFF DRIVE_FF_SIM = new PIDGains.SimpleFF(0.11, 0.13, 0.1);
 

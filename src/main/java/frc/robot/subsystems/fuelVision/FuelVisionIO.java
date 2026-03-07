@@ -4,7 +4,6 @@ import static edu.wpi.first.units.Units.Radians;
 
 import org.littletonrobotics.junction.AutoLog;
 
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Angle;
 
 public interface FuelVisionIO {

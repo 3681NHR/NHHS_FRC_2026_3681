@@ -2,8 +2,6 @@ package frc.robot.subsystems.fuelVision;
 
 import java.util.ArrayList;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
-
 import org.ironmaple.simulation.SimulatedArena;
 import org.photonvision.estimation.TargetModel;
 import org.photonvision.simulation.PhotonCameraSim;
@@ -11,15 +9,12 @@ import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
 import org.photonvision.simulation.VisionTargetSim;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.util.Units;
 import frc.robot.constants.FuelVisionConstants;
 import frc.robot.constants.VisionConstants.CameraConfig;
-import frc.robot.subsystems.vision.CameraIO.CameraIOInputs;
 
 public class FuelVisionIOPhotonSim extends FuelVisionIOPhoton{
     private static VisionSystemSim visionSim;

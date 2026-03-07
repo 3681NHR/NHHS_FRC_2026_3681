@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.constants.Constants;
 import frc.utils.BatteryVoltageSim;
-import frc.utils.Elastic;
 import frc.utils.TimerHandler;
 
 /**
@@ -130,7 +129,7 @@ public class Robot extends LoggedRobot {
      */
     @Override
     public void autonomousInit() {
-        Elastic.selectTab(0);
+        // Elastic.selectTab(0);
         autonomousCommand = robotContainer.getAutonomousCommand();
 
         robotContainer.enableTeleop();
@@ -154,7 +153,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void teleopInit() {
-        Elastic.selectTab(0);
+        // Elastic.selectTab(0);
         // This makes sure that the autonomous stops running when
         // teleop starts running. If you want the autonomous to
         // continue until interrupted by another command, remove

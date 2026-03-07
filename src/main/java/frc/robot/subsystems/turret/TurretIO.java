@@ -25,6 +25,7 @@ public interface TurretIO {
     public class TurretIOInputs{
 
         public Angle angle = Radians.of(0.0);
+        public Angle motorAngle = Radians.of(0.0);
         public AngularVelocity speed = RadiansPerSecond.of(0.0);
 
         public Voltage motorVoltageOut = Volts.of(0);
