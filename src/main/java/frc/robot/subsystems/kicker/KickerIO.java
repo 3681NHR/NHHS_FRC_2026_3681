@@ -14,15 +14,16 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 
+@SuppressWarnings("PMD.UncommentedEmptyMethodBody")
 public interface KickerIO {
-    
-    public default void updateInputs(KickerIOInputs input) {}
 
-    public default void setVout(Voltage vout) {}
-    public default void setGoal(LinearVelocity goal) {}
+    default void updateInputs(KickerIOInputs input) {}
+
+    default void setVout(Voltage vout) {}
+    default void setGoal(LinearVelocity goal) {}
     
     @AutoLog
-    public class KickerIOInputs{
+    class KickerIOInputs{
         public LinearVelocity speed = MetersPerSecond.zero();
 
         public Voltage motorVoltageOut = Volts.zero();
