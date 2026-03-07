@@ -14,14 +14,11 @@ public interface LauncherIO {
     
     public default void setGoal(AngularVelocity goal){}
     public default void setVout(Voltage vout){}
-    public default void setOpenLoop(boolean openloop){}
 
     @AutoLog
     public class LauncherIOInputs{
-        public Angle filteredAngle;
-        public AngularVelocity filteredSpeed;
-        public Angle rawAngle;
-        public AngularVelocity rawSpeed;
+        public Angle angle;
+        public AngularVelocity speed;
 
         public Voltage motorVoltageOut;
         public Current motorCurrentOut;

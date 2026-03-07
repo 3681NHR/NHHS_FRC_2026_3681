@@ -9,7 +9,6 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonTrackedTarget;
 import org.photonvision.targeting.TargetCorner;
 
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.constants.FuelVisionConstants;
 import frc.robot.constants.VisionConstants.CameraConfig;

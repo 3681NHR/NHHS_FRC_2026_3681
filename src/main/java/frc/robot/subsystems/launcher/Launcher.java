@@ -2,6 +2,7 @@ package frc.robot.subsystems.launcher;
 
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -19,8 +20,6 @@ public class Launcher extends SubsystemBase {
     
     LauncherIO io;
     LauncherIOInputsAutoLogged in = new LauncherIOInputsAutoLogged();
-
-    boolean ready = false;
 
     private SysIdRoutine sysid = new SysIdRoutine(LAUNCHER_SYSID_CONFIG, new SysIdRoutine.Mechanism(v -> io.setVout(v), null, this));
     private Alert runningSysid = new Alert("Launcher sysid running", AlertType.kInfo);
@@ -54,7 +53,6 @@ public class Launcher extends SubsystemBase {
     public Command sysidQuasistatic(boolean reverse){
         return sysid.quasistatic(reverse ? SysIdRoutine.Direction.kReverse : SysIdRoutine.Direction.kForward)
         .raceWith(Commands.run(() -> {
-            ready = false;
             runningSysid.set(true);
             runningSysid.setText("Turret sysid running: Quasistatic, " + (reverse ? "reverse" : "forward"));
         }))
@@ -64,17 +62,17 @@ public class Launcher extends SubsystemBase {
     public Command sysidDynamic(boolean reverse){
         return sysid.dynamic(reverse ? SysIdRoutine.Direction.kReverse : SysIdRoutine.Direction.kForward)
         .raceWith(Commands.run(() -> {
-            ready = false;
             runningSysid.set(true);
             runningSysid.setText("Turret sysid running: Dynamic, " + (reverse ? "reverse" : "forward"));
         }))
         .withName("Dynamic sysid: " + (reverse ? "reverse" : "forward"));
     }
 
+    @AutoLogOutput(key="Subsystems/Launcher/ready")
     public boolean isReady(){
-        return ready;
+        return in.atSetpoint || in.openLoop;
     }
     public AngularVelocity getSpeed(){
-        return in.filteredSpeed;
+        return in.speed;
     }
 }

@@ -1,9 +1,6 @@
 package frc.robot.constants;
 
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meters;
-
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
@@ -19,9 +16,9 @@ public class FuelVisionConstants {
             1.0,
             1.0,
             new Transform3d(
-                Units.inchesToMeters(5),
-                Units.inchesToMeters(-12),
-                Units.inchesToMeters(11),
+                Units.inchesToMeters(3.185501),
+                Units.inchesToMeters(0.733652),
+                Units.inchesToMeters(19.913505),
                 new Rotation3d(
                     Units.degreesToRadians(0),
                     Units.degreesToRadians(10),

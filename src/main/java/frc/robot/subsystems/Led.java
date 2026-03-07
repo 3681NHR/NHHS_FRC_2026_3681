@@ -105,8 +105,8 @@ public class Led extends SubsystemBase {
 
         led.setData(buffer);
 
-        Logger.recordOutput("Subsystems/led/status", buffer.getLED(0).toHexString());
-        Logger.recordOutput("Subsystems/led/state", buffer.getLED(49).toHexString());
+        // Logger.recordOutput("Subsystems/led/status", buffer.getLED(0).toHexString());
+        // Logger.recordOutput("Subsystems/led/state", buffer.getLED(49).toHexString());
 
         Logger.recordOutput("Subsystems/led/hasCoral", hasCoral);
         Logger.recordOutput("Subsystems/led/rotLock", rotLock);
@@ -120,7 +120,7 @@ public class Led extends SubsystemBase {
         Logger.recordOutput("Subsystems/led/Sensor fault", intakeSensorFault);
 
         for (int i = 0; i < buffer.getLength(); i++) {
-            Logger.recordOutput("Subsystems/led/leds/" + i, buffer.getLED(i).toHexString());
+            // Logger.recordOutput("Subsystems/led/leds/" + i, buffer.getLED(i).toHexString());//FIXME: toHexString is slow
         }
     }
 

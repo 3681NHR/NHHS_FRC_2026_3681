@@ -3,7 +3,6 @@ plugins {
     id "edu.wpi.first.GradleRIO" version "2026.2.1"
     id "com.peterabeles.gversion" version "1.10"
     id "checkstyle"
-    id "pmd"
 }
 
 java {
@@ -16,16 +15,10 @@ checkstyle {
     toolVersion = "11.1.0"
 }
 
-pmd {
-    toolVersion = "7.10.0"
-    consoleOutput = true
-    rulesMinimumPriority = 1
-    ruleSetFiles = files("src/main/pmd/custom-rules.xml")
-    ruleSets = []   // suppress built-in rulesets so only our custom rules run
-}
-
 def ROBOT_MAIN_CLASS = "frc.robot.Main"
 
+// Define targets (RoboRIO) and artifacts (deployable files)
+// This is added by GradleRIO's backing project DeployUtils.
 deploy {
     targets {
         roborio(getTargetTypeClass('RoboRIO')) {
@@ -34,7 +27,14 @@ deploy {
 
             artifacts {
                 frcJava(getArtifactTypeClass('FRCJavaArtifact')) {
-                }
+   // Enable VisualVM connection
+   jvmArgs.add("-Dcom.sun.management.jmxremote=true")
+   jvmArgs.add("-Dcom.sun.management.jmxremote.port=1198")
+   jvmArgs.add("-Dcom.sun.management.jmxremote.local.only=false")
+   jvmArgs.add("-Dcom.sun.management.jmxremote.ssl=false")
+   jvmArgs.add("-Dcom.sun.management.jmxremote.authenticate=false")
+   jvmArgs.add("-Djava.rmi.server.hostname=10.36.81.2")
+}
 
                 frcStaticFileDeploy(getArtifactTypeClass('FileTreeArtifact')) {
                     files = project.fileTree('src/main/deploy')
@@ -51,6 +51,32 @@ def deployArtifact = deploy.targets.roborio.artifacts.frcJava
 wpi.java.debugJni = false
 
 def includeDesktopSupport = false
+
+configurations {
+    checksDeps {
+        extendsFrom configurations.compileClasspath
+        canBeResolved = true
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            exclude "frc/checker/**"
+        }
+    }
+    checks {
+        java {
+            srcDirs = ["src/main/java/frc/checker"]
+        }
+        resources {
+            srcDirs = ["src/main/java/frc/checker"]
+            includes = ["META-INF/**"]
+        }
+        compileClasspath = configurations.checksDeps
+        runtimeClasspath = configurations.checksDeps
+    }
+}
 
 dependencies {
     def akitJson = new groovy.json.JsonSlurper().parseText(new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text)
@@ -97,10 +123,6 @@ jar {
 deployArtifact.jarTask = jar
 wpi.java.configureExecutableTasks(jar)
 wpi.java.configureTestTasks(test)
-
-tasks.withType(JavaCompile) {
-    options.compilerArgs.add '-XDstringConcat=inline'
-}
 
 project.compileJava.dependsOn(createVersionFile)
 
