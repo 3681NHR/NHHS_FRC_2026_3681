@@ -17,7 +17,7 @@ public class FuelVisionConstants {
             1.0,
             new Transform3d(
                 Units.inchesToMeters(3.185501),
-                Units.inchesToMeters(0.733652),
+                Units.inchesToMeters(0.733652-1.0),
                 Units.inchesToMeters(19.913505),
                 new Rotation3d(
                     Units.degreesToRadians(0),
