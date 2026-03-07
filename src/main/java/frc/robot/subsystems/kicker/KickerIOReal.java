@@ -78,13 +78,13 @@ public class KickerIOReal implements KickerIO {
 
         input.openLoop = openLoop;
 
-        input.hasBall = false; // TODO: update so that this acutally does something
+        input.hasBall = false; // TODO: update so that this actually does something
         input.distance = kickerCANRange.getDistance().getValue();
 
         if (DriverStation.isEnabled()) {
             if (!openLoop) {
-                double ffVoltage = kickerFF.calculate(input.goal.in(RadiansPerSecond));
-                kickerController.setSetpoint(goal.in(RadiansPerSecond), ControlType.kVelocity, ClosedLoopSlot.kSlot0,
+                double ffVoltage = kickerFF.calculate(input.goal.in(RPM));
+                kickerController.setSetpoint(goal.in(RPM), ControlType.kVelocity, ClosedLoopSlot.kSlot0,
                         ffVoltage, ArbFFUnits.kVoltage);
             } else {
                 kickerController.setSetpoint(vout.in(Volts), ControlType.kVoltage);
