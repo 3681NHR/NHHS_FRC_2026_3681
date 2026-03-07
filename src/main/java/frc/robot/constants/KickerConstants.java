@@ -2,8 +2,10 @@ package frc.robot.constants;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Centimeters;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Second;
 
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
@@ -25,6 +27,6 @@ public final class KickerConstants {
 
     public static final Current KICKER_MAX_CURRENT = Amps.of(20);
 
-    public static final double POSITION_CONVERSION_FACTOR = 1.;
-    public static final double VELOCITY_CONVERSION_FACTOR = 1.;
+    public static final double POSITION_CONVERSION_FACTOR = (1.0/2.5)*2*Math.PI*Units.inchesToMeters(1);
+    public static final double VELOCITY_CONVERSION_FACTOR = POSITION_CONVERSION_FACTOR;
 }
