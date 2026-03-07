@@ -44,8 +44,6 @@ public class LauncherIOReal implements LauncherIO {
     @Override
     public void updateInputs(LauncherIOInputs input){
 
-        motor.stopMotor();
-
         if(motor.getDeviceTemp().getValue().magnitude() > LAUNCHER_MAX_TEMP.magnitude()){
             overheat.set(true);
             overheat.setText("Launcher motor overheat! ("+motor.getDeviceTemp().getValue().in(Celsius)+"C)");
