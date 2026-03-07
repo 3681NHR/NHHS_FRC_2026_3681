@@ -1,6 +1,7 @@
 package frc.robot.subsystems.kicker;
 
 import static edu.wpi.first.units.Units.RPM;
+import static frc.robot.constants.KickerConstants.*;
 
 import java.util.function.Supplier;
 
@@ -12,7 +13,6 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.constants.KickerConstants;
 
 public class Kicker extends SubsystemBase {
 
@@ -36,10 +36,10 @@ public class Kicker extends SubsystemBase {
   public Command hold() {
     return Commands.run(() -> {
       if (preloadEnabled.get()) {
-        if (in.distance.lte(KickerConstants.PRELOAD_DISTANCE_THRESHOLD)) {
+        if (in.distance.lte(PRELOAD_DISTANCE_THRESHOLD)) {
           io.setGoal(RPM.zero());
-        } else if (in.distance.lte(KickerConstants.PRELOAD_MAX_DISTANCE)) {
-          io.setGoal(KickerConstants.PRELOAD_VELOCITY);
+        } else if (in.distance.lte(PRELOAD_MAX_DISTANCE)) {
+          io.setGoal(PRELOAD_VELOCITY);
         } else {
           io.setGoal(RPM.zero());
         }
@@ -51,7 +51,7 @@ public class Kicker extends SubsystemBase {
 
   public Command run() {
     return Commands.run(() -> {
-      io.setGoal(KickerConstants.SHOOT_VELOCITY);
+      io.setGoal(SHOOT_VELOCITY);
     }, this).withName("Run Kicker");
   }
 

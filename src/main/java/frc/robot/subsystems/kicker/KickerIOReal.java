@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.utils.SparkUtil.tryUntilOk;
+import static frc.robot.constants.KickerConstants.*;
 
 import com.ctre.phoenix6.configs.CANrangeConfiguration;
 import com.ctre.phoenix6.hardware.CANrange;
@@ -28,7 +29,6 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import frc.robot.constants.KickerConstants;
 import frc.utils.controlWrappers.SimpleFF;
 
 public class KickerIOReal implements KickerIO {
@@ -38,7 +38,7 @@ public class KickerIOReal implements KickerIO {
     private final CANrange kickerCANRange;
 
     private final SparkClosedLoopController kickerController;
-    private final SimpleFF kickerFF = new SimpleFF(KickerConstants.KICKER_FF_GAINS);
+    private final SimpleFF kickerFF = new SimpleFF(KICKER_FF_GAINS);
 
     AngularVelocity goal = RPM.zero();
     Voltage vout = Volts.zero();
@@ -48,19 +48,19 @@ public class KickerIOReal implements KickerIO {
     private boolean openLoop = false;
 
     public KickerIOReal() {
-        kickerCANRange = new CANrange(KickerConstants.KICKER_CAN_RANGE_ID);
+        kickerCANRange = new CANrange(KICKER_CAN_RANGE_ID);
         CANrangeConfiguration ballRangeConfig = new CANrangeConfiguration();
         kickerCANRange.getConfigurator().apply(ballRangeConfig);
 
-        kickerSpark = new SparkMax(KickerConstants.KICKER_MOTOR_ID, MotorType.kBrushless);
+        kickerSpark = new SparkMax(KICKER_MOTOR_ID, MotorType.kBrushless);
         kickerEncoder = kickerSpark.getEncoder();
         kickerController = kickerSpark.getClosedLoopController();
 
         SparkMaxConfig kickerConfig = new SparkMaxConfig();
-        kickerConfig.inverted(KickerConstants.INVERT).idleMode(IdleMode.kBrake).voltageCompensation(12)
-                .smartCurrentLimit((int) KickerConstants.KICKER_MAX_CURRENT.in(Amps));
-        kickerConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder).pid(KickerConstants.KICKER_PID_GAINS.kP,
-                KickerConstants.KICKER_PID_GAINS.kI, KickerConstants.KICKER_PID_GAINS.kD);
+        kickerConfig.inverted(MOTOR_INVERT).idleMode(IdleMode.kBrake).voltageCompensation(12)
+                .smartCurrentLimit((int) KICKER_MAX_CURRENT.in(Amps));
+        kickerConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder).pid(KICKER_PID_GAINS.kP,
+                KICKER_PID_GAINS.kI, KICKER_PID_GAINS.kD);
 
         tryUntilOk(kickerSpark, 5, () -> kickerSpark.configure(kickerConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters));
@@ -93,7 +93,7 @@ public class KickerIOReal implements KickerIO {
             kickerSpark.stopMotor();
         }
 
-        if (input.motorTemp.gt(KickerConstants.KICKER_MAX_TEMP)) {
+        if (input.motorTemp.gt(KICKER_MAX_TEMP)) {
             overheatAlert.setText("Kicker motor overheat: " + input.motorTemp.in(Celsius) + " *C !");
             overheatAlert.set(true);
         } else {

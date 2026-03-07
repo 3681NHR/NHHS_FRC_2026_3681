@@ -15,7 +15,7 @@ public final class KickerConstants {
     public static final int KICKER_MOTOR_ID = -1;
     public static final int KICKER_CAN_RANGE_ID = -1;
 
-    public static final boolean INVERT = false;
+    public static final boolean MOTOR_INVERT = false;
 
     public static final Distance PRELOAD_DISTANCE_THRESHOLD = Centimeters.of(5);
     public static final Distance PRELOAD_MAX_DISTANCE = Centimeters.of(22); // if the can range isnt detecting anything within this range, don't preload - "evans idea"
