@@ -28,5 +28,5 @@ public final class KickerConstants {
     public static final Current KICKER_MAX_CURRENT = Amps.of(20);
 
     public static final double POSITION_CONVERSION_FACTOR = (1.0/2.5)*2*Math.PI*Units.inchesToMeters(1);
-    public static final double VELOCITY_CONVERSION_FACTOR = POSITION_CONVERSION_FACTOR;
+    public static final double VELOCITY_CONVERSION_FACTOR = POSITION_CONVERSION_FACTOR*60;
 }
