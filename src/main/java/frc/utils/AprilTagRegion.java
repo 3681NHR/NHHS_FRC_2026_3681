@@ -5,7 +5,7 @@ import java.util.Arrays;
 /*
  * code to get tag ids for a given field element and side
  */
-public class AprilTagRegion {
+public final class AprilTagRegion {
     private enum Regions {
         STATION(new int[]{1, 2}, new int[]{12, 13}),
         PROCESSOR(new int[]{3}, new int[]{16}),

@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.CameraIO.TargetObservation;
 
-import static edu.wpi.first.units.Units.Meters;
 import static frc.robot.constants.VisionConstants.*;
 
 import java.util.LinkedList;
@@ -118,7 +117,7 @@ public class Vision extends SubsystemBase {
                         continue;
                     }
 
-                    double stdDevFactor = Math.pow(observation.averageTagDistance().in(Meters), 3.0) / observation.tagCount();
+                    double stdDevFactor = Math.pow(observation.averageTagDistance(), 3.0) / observation.tagCount();
                     double linearStdDev = LIN_STD_DEV_BASELINE * stdDevFactor;
                     double angularStdDev = ANG_STD_DEV_BASELINE * stdDevFactor;
                     if (cameraIndex < CAMERA_CONFIGS.length) {
@@ -224,7 +223,7 @@ public class Vision extends SubsystemBase {
             }
         } else {
             for (int i = 0; i < inputs.length; i++) {
-                for (TargetObservation t : inputs[i].targets) {// FIXME
+                for (TargetObservation t : inputs[i].targets) {
                     if (t != null) {
                         if (t.ID() == tagID) {
                             yaw = Optional.of(t.tx().getRadians() + inputs[i].robotToCamera.getRotation().getZ());

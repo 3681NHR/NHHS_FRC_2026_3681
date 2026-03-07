@@ -8,12 +8,13 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import edu.wpi.first.net.WebServer;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.constants.Constants;
 import frc.utils.BatteryVoltageSim;
-import frc.utils.Elastic;
 import frc.utils.TimerHandler;
 
 /**
@@ -86,6 +87,8 @@ public class Robot extends LoggedRobot {
 
         // start timerhandler
         TimerHandler.init();
+        // start elastic dashboard remote layout downloading server 
+        WebServer.start(Constants.ELASTIC_LAYOUT_PORT, Filesystem.getDeployDirectory().getAbsolutePath());
     }
 
     /**
@@ -110,7 +113,7 @@ public class Robot extends LoggedRobot {
         CommandScheduler.getInstance().run();
         TimerHandler.update();
 
-        robotContainer.Periodic();
+        robotContainer.periodic();
 
     }
 
@@ -130,7 +133,7 @@ public class Robot extends LoggedRobot {
      */
     @Override
     public void autonomousInit() {
-        Elastic.selectTab(0);
+        // Elastic.selectTab(0);
         autonomousCommand = robotContainer.getAutonomousCommand();
 
         robotContainer.enableTeleop();
@@ -154,7 +157,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void teleopInit() {
-        Elastic.selectTab(0);
+        // Elastic.selectTab(0);
         // This makes sure that the autonomous stops running when
         // teleop starts running. If you want the autonomous to
         // continue until interrupted by another command, remove
@@ -195,7 +198,7 @@ public class Robot extends LoggedRobot {
     /** This function is called periodically whilst in simulation. */
     @Override
     public void simulationPeriodic() {
-        robotContainer.SimPeriodic();
+        robotContainer.simPeriodic();
 
         // update battery voltage(set as roborio input voltage)
         BatteryVoltageSim.getInstance().calculateVoltage();

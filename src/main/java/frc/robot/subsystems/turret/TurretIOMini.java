@@ -6,7 +6,7 @@ import static frc.robot.constants.TurretConstants.*;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.REVLibError;
 import com.revrobotics.spark.SparkLowLevel;
-import com.revrobotics.spark.SparkMax;
+import frc.utils.motorWrappers.SparkMax;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Nat;
@@ -22,6 +22,7 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
+import frc.robot.constants.Constants;
 import frc.utils.controlWrappers.ProfiledPID;
 import frc.utils.controlWrappers.SimpleFF;
 
@@ -61,7 +62,7 @@ public class TurretIOMini implements TurretIO {
         motorError.set(motor.getLastError() != REVLibError.kOk);
         motorError.setText("turret motor error: " + motor.getLastError().toString());
 
-        filter.predict(VecBuilder.fill(Vout.in(Volts) - Math.min(TURRET_ID_GAINS.kS, Math.abs(Vout.in(Volts)))*Math.signum(getSpeed().magnitude())), 0.02);
+        filter.predict(VecBuilder.fill(Vout.in(Volts) - Math.min(TURRET_ID_GAINS.kS, Math.abs(Vout.in(Volts)))*Math.signum(getSpeed().magnitude())), Constants.EVENT_LOOP_TIME);
         filter.correct(VecBuilder.fill(Vout.in(Volts) - Math.min(TURRET_ID_GAINS.kS, Math.abs(Vout.in(Volts)))*Math.signum(getSpeed().magnitude())), VecBuilder.fill(getAngle().in(Radians), getSpeed().in(RadiansPerSecond)));
         angle = getAngle();
 
@@ -75,10 +76,8 @@ public class TurretIOMini implements TurretIO {
             motor.stopMotor();
         }
         
-        input.filteredAngle = angle;
-        input.filteredSpeed = RadiansPerSecond.of(filter.getXhat(1));
-        input.rawAngle = getAngle();
-        input.rawSpeed = getSpeed();
+        input.angle = getAngle();
+        input.speed = getSpeed();
 
         input.motorVoltageOut = Vout;
 
@@ -99,10 +98,6 @@ public class TurretIOMini implements TurretIO {
     public void setVout(Voltage vout){
         this.openLoop = true;
         Vout = vout;
-    }
-    @Override
-    public void setOpenLoop(boolean openLoop){
-        this.openLoop = openLoop;
     }
     
     private Angle getAngle(){

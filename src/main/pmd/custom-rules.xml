@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<ruleset name="FRC Custom Rules"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0
+                             https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>Team 3681 custom PMD rules.</description>
+
+    <!--
+        IntegerDivision - flags any use of the / operator where both operands
+        resolve to an integral type (int, long, short, byte, char).
+        Cast at least one operand to double/float, or use a dedicated
+        floating-point variable, to avoid silent truncation.
+    -->
+    <rule name="IntegerDivision"
+          language="java"
+          message="Integer division truncates the result; cast an operand to double/float or use BigDecimal instead."
+          class="net.sourceforge.pmd.lang.rule.xpath.XPathRule">
+        <description>
+            The / operator applied to two integral operands performs integer
+            (truncating) division. This is rarely intentional and often indicates
+            a precision bug. Cast at least one operand to a floating-point type,
+            or store one operand in a double/float variable first.
+        </description>
+        <priority>1</priority>
+        <properties>
+            <property name="xpath">
+                <value><![CDATA[
+//InfixExpression[@Operator = "/"]
+    [*[1][
+         pmd-java:typeIs("int")   or pmd-java:typeIs("long")  or
+         pmd-java:typeIs("short") or pmd-java:typeIs("byte")  or
+         pmd-java:typeIs("char")
+     ]]
+    [*[2][
+         pmd-java:typeIs("int")   or pmd-java:typeIs("long")  or
+         pmd-java:typeIs("short") or pmd-java:typeIs("byte")  or
+         pmd-java:typeIs("char")
+     ]]
+]]></value>
+            </property>
+        </properties>
+        <example><![CDATA[
+// Bad - result is truncated
+int a = 5;
+int b = 2;
+double ratio = a / b;  // evaluates to 2.0, not 2.5
+
+// Good
+double ratio = (double) a / b;
+]]></example>
+    </rule>
+
+</ruleset>

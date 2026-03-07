@@ -14,7 +14,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
-import frc.robot.constants.DriveConstants.module;
+import frc.robot.constants.DriveConstants.Module;
 import frc.utils.BatteryVoltageSim;
 import frc.utils.SparkUtil;
 import frc.utils.controlWrappers.PID;
@@ -32,10 +32,10 @@ public class ModuleIOSim implements ModuleIO {
     private boolean driveClosedLoop = false;
     private boolean turnClosedLoop = false;
 
-    private PID driveController = new PID(module.DRIVE_PID_SIM);
-    private ProfiledPID turnController = new ProfiledPID(module.TURN_PID_SIM);
+    private PID driveController = new PID(Module.DRIVE_PID_SIM);
+    private ProfiledPID turnController = new ProfiledPID(Module.TURN_PID_SIM);
 
-    private final SimpleFF driveFF = new SimpleFF(module.DRIVE_FF_SIM);
+    private final SimpleFF driveFF = new SimpleFF(Module.DRIVE_FF_SIM);
 
     private Voltage driveAppliedVolts = Volts.of(0.0);
     private Voltage turnAppliedVolts = Volts.of(0.0);
@@ -56,7 +56,7 @@ public class ModuleIOSim implements ModuleIO {
                 .withCurrentLimit(Amps.of(40));
 
         // Enable wrapping for turn PID
-        turnController.enableContinuousInput(module.TURN_MIN_POS.in(Radians), module.TURN_MAX_POS.in(Radians));
+        turnController.enableContinuousInput(Module.TURN_MIN_POS.in(Radians), Module.TURN_MAX_POS.in(Radians));
 
         BatteryVoltageSim.getInstance().addCurrentSource(() -> moduleSim.getDriveMotorSupplyCurrent().in(Amps));
         BatteryVoltageSim.getInstance().addCurrentSource(() -> moduleSim.getSteerMotorSupplyCurrent().in(Amps));
@@ -65,8 +65,8 @@ public class ModuleIOSim implements ModuleIO {
     @Override
     public void updateInputs(ModuleIOInputs inputs) {
 
-        turnPos = Radians.of(MathUtil.inputModulus(moduleSim.getSteerAbsoluteFacing().getRadians(), module.TURN_MIN_POS.in(Radians), module.TURN_MAX_POS.in(Radians)));
-        turnGoal = Radians.of(MathUtil.inputModulus(turnGoal.in(Radians), module.TURN_MIN_POS.in(Radians), module.TURN_MAX_POS.in(Radians)));
+        turnPos = Radians.of(MathUtil.inputModulus(moduleSim.getSteerAbsoluteFacing().getRadians(), Module.TURN_MIN_POS.in(Radians), Module.TURN_MAX_POS.in(Radians)));
+        turnGoal = Radians.of(MathUtil.inputModulus(turnGoal.in(Radians), Module.TURN_MIN_POS.in(Radians), Module.TURN_MAX_POS.in(Radians)));
 
         // Run closed-loop control
         if (driveClosedLoop) {
@@ -76,7 +76,7 @@ public class ModuleIOSim implements ModuleIO {
             driveController.reset();
         }
         if (turnClosedLoop) {
-            turnAppliedVolts = Volts.of(module.TURN_FF_SIM.kS * Math.signum(turnController.getSetpoint().position)
+            turnAppliedVolts = Volts.of(Module.TURN_FF_SIM.kS * Math.signum(turnController.getSetpoint().position)
                     + turnController.calculate(turnPos.in(Radians), turnGoal.in(Radians)));
         } else {
             turnController.reset(turnPos.in(Radians));

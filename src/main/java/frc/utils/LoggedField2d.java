@@ -107,7 +107,7 @@ public class LoggedField2d implements NTSendable, AutoCloseable {
   private NetworkTable m_table;
   private final List<LoggedFieldObject2d> m_objects = new ArrayList<>();
 
-    public void Log(String key){
+    public void log(String key){
         for(LoggedFieldObject2d obj : m_objects){
             Logger.recordOutput(key+"/"+obj.m_name, obj.getPoses().stream().toArray(Pose2d[]::new));
         }

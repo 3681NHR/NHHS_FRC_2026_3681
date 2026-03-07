@@ -7,14 +7,24 @@ import frc.robot.commands.SwerveWheelCharacterization;
 import frc.robot.constants.Constants;
 import frc.robot.constants.DriveConstants;
 import frc.robot.constants.FuelVisionConstants;
+import frc.robot.constants.HoodConstants;
 import frc.robot.constants.TurretConstants;
 import frc.robot.constants.Constants.OperatorConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.subsystems.Led;
-import frc.robot.subsystems.launchLUT;
+import frc.robot.subsystems.SOTMSolver;
+import frc.robot.subsystems.LaunchLUT;
+import frc.robot.subsystems.climber.Climber;
+import frc.robot.subsystems.climber.ClimberIO;
+import frc.robot.subsystems.climber.ClimberIOReal;
+import frc.robot.subsystems.climber.ClimberIOSim;
 import frc.robot.subsystems.fuelVision.FuelVision;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhoton;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhotonSim;
+import frc.robot.subsystems.hood.Hood;
+import frc.robot.subsystems.hood.HoodIO;
+import frc.robot.subsystems.hood.HoodIOReal;
+import frc.robot.subsystems.hood.HoodIOSim;
 import frc.robot.subsystems.launcher.Launcher;
 import frc.robot.subsystems.launcher.LauncherIO;
 import frc.robot.subsystems.launcher.LauncherIOReal;
@@ -28,17 +38,19 @@ import frc.robot.subsystems.swerve.module.ModuleIOCrackingSpark;
 import frc.robot.subsystems.swerve.module.ModuleIOSim;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIO;
-import frc.robot.subsystems.turret.TurretIOMini;
+import frc.robot.subsystems.turret.TurretIOReal;
 import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.CameraIO;
 import frc.robot.subsystems.vision.CameraIOPhoton;
 import frc.robot.subsystems.vision.CameraIOPhotonSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.utils.rumble.*;
-import frc.utils.Joystick.duelJoystickAxis;
+import frc.utils.Joystick.DuelJoystickAxis;
 import frc.utils.TimerHandler;
 import frc.utils.BatteryVoltageSim;
+import frc.utils.ControllerMap;
 import frc.utils.ExtraMath;
+import frc.utils.HiddenConditionalCommand;
 import frc.utils.Joystick;
 import frc.utils.PIDTuner;
 
@@ -47,6 +59,7 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.TurretConstants.*;
 
 import static frc.utils.ControllerMap.*;
@@ -62,6 +75,8 @@ import org.littletonrobotics.junction.LoggedPowerDistribution;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -72,6 +87,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -83,10 +99,11 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-
 
 public class RobotContainer {
     private LoggedDashboardChooser<Command> sysidChooser = new LoggedDashboardChooser<Command>("sysid auto chooser");
@@ -95,9 +112,12 @@ public class RobotContainer {
     private SwerveDriveSimulation driveSim;
     private Drive drive;
     private Vision vision;
+    @SuppressWarnings("unused")
     private FuelVision fuelVision;
     private Turret turret;
     private Launcher launcher;
+    private Climber climber;
+    private Hood hood;
 
     private Led led = new Led();
 
@@ -120,10 +140,15 @@ public class RobotContainer {
     private final Alert operatorDisconnected = new Alert("Operator controller disconnected (port 1).",
             AlertType.kWarning);
 
-    private duelJoystickAxis driverSticks;
+
+    private LoggedNetworkBoolean useLead = new LoggedNetworkBoolean("Overrides/Enable SOTM", false);
+
+    private LoggedNetworkNumber manHoodDegrees = new LoggedNetworkNumber("Manual/hood angle degrees", HoodConstants.HOOD_MIN_ANGLE.in(Degrees));
+    private LoggedNetworkNumber manShooterRPM = new LoggedNetworkNumber("Manual/Shooter speed RPM", 0);
+    private LoggedNetworkNumber manTurretDegrees = new LoggedNetworkNumber("Manual/turret angle degrees", 0);
+    private DuelJoystickAxis driverSticks;
 
     public RobotContainer() {
-
         try {
             // load test field layout for camera offset calculation, do not use otherwise
             // e = new AprilTagFieldLayout(Filesystem.getDeployDirectory().getAbsolutePath()
@@ -150,12 +175,11 @@ public class RobotContainer {
 
             driveSim = new SwerveDriveSimulation(driveTrainSimulationConfig, Constants.STARTING_POSE);
             SimulatedArena.getInstance().addDriveTrainSimulation(driveSim);
-        //     driveSim.
         }
 
         // process driver controls(radial deadzone, curve, trigger slowdown, and
         // inversion)
-        driverSticks = new duelJoystickAxis(
+        driverSticks = new DuelJoystickAxis(
                 () -> ExtraMath.processInput(
                         Joystick.deadzone(Constants.OperatorConstants.LEFT_DEADBAND,
                                 driverController.getRawAxis(LEFT_STICK_X), driverController.getRawAxis(LEFT_STICK_Y))
@@ -189,8 +213,7 @@ public class RobotContainer {
                         new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
                         new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1]),
                         new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2]),
-                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3])
-                        );
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3]));
                 drive = new Drive(
                         new GyroIOPigeon2(),
                         new ModuleIOCrackingSpark(0),
@@ -200,20 +223,33 @@ public class RobotContainer {
                         vision,
                         driverSticks,
                         led);
-                fuelVision = new FuelVision(new FuelVisionIOPhoton(FuelVisionConstants.CAMERA_CONFIG), drive::getPose);
+                SOTMSolver.getInstance().setDrive(drive);
+                SOTMSolver.getInstance().calculate();
                 
-                turret = new Turret(new TurretIOMini(), drive);
+                fuelVision = new FuelVision(new FuelVisionIOPhoton(FuelVisionConstants.CAMERA_CONFIG), drive::getPose);
+
+                turret = new Turret(new TurretIOReal(), drive);
+                // turret = new Turret(new TurretIO() {}, drive);
+                
                 launcher = new Launcher(new LauncherIOReal());
+                // launcher = new Launcher(new LauncherIO(){});
+                hood = new Hood(new HoodIOReal());
+                // hood = new Hood(new HoodIO(){});
+                climber = new Climber(new ClimberIOReal());
                 break;
 
             case SIM:
                 // Sim robot, instantiate physics sim IO implementations
                 vision = new Vision(
                         apriltagLayout,
-                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0], driveSim::getSimulatedDriveTrainPose),
-                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1], driveSim::getSimulatedDriveTrainPose),
-                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2], driveSim::getSimulatedDriveTrainPose),
-                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3], driveSim::getSimulatedDriveTrainPose));
+                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0],
+                                driveSim::getSimulatedDriveTrainPose),
+                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1],
+                                driveSim::getSimulatedDriveTrainPose),
+                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2],
+                                driveSim::getSimulatedDriveTrainPose),
+                        new CameraIOPhotonSim(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3],
+                                driveSim::getSimulatedDriveTrainPose));
                 if (driveSim != null) {
                     drive = new Drive(
                             new GyroIOSim(driveSim.getGyroSimulation()) {
@@ -225,9 +261,15 @@ public class RobotContainer {
                             vision,
                             driverSticks,
                             led);
-                fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG, driveSim::getSimulatedDriveTrainPose), drive::getPose);
-                turret = new Turret(new TurretIOSim(), drive);
-                launcher = new Launcher(new LauncherIOSim());
+                SOTMSolver.getInstance().setDrive(drive);
+                SOTMSolver.getInstance().calculate();
+                
+                    fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG,
+                            driveSim::getSimulatedDriveTrainPose), drive::getPose);
+                    turret = new Turret(new TurretIOSim(), drive);
+                    launcher = new Launcher(new LauncherIOSim());
+                hood = new Hood(new HoodIOSim());
+                    climber = new Climber(new ClimberIOSim());
                 }
                 break;
 
@@ -257,13 +299,22 @@ public class RobotContainer {
                         vision,
                         driverSticks,
                         led);
-                turret = new Turret(new TurretIO() {}, drive);
-                launcher = new Launcher(new LauncherIO() {});
+                SOTMSolver.getInstance().setDrive(drive);
+                SOTMSolver.getInstance().calculate();
+
+                turret = new Turret(new TurretIO() {
+                }, drive);
+                launcher = new Launcher(new LauncherIO() {
+                });
+                climber = new Climber(new ClimberIO() {
+                });
+                hood = new Hood(new HoodIO() {});
                 break;
         }
 
         // build pathplanner autos and put in dashboard
-        // autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
+        // autoChooser = new LoggedDashboardChooser<>("Auto Choices",
+        // AutoBuilder.buildAutoChooser());
 
         configureBindings();
 
@@ -271,12 +322,14 @@ public class RobotContainer {
         sysidChooser.addDefaultOption("none", null);
         sysidChooser.addOption("drive sysid quasistatic forward", drive.sysIdQuasistatic(Direction.kForward));
         sysidChooser.addOption("drive sysid quasistatic reverse", drive.sysIdQuasistatic(Direction.kReverse));
-        sysidChooser.addOption("drive sysid dynamic forward",     drive.sysIdDynamic(Direction.kForward));
-        sysidChooser.addOption("drive sysid dynamic reverse",     drive.sysIdDynamic(Direction.kReverse));
+        sysidChooser.addOption("drive sysid dynamic forward", drive.sysIdDynamic(Direction.kForward));
+        sysidChooser.addOption("drive sysid dynamic reverse", drive.sysIdDynamic(Direction.kReverse));
+
         sysidChooser.addOption("steer sysid quasistatic forward", drive.steerSysIdQuasistatic(Direction.kForward));
         sysidChooser.addOption("steer sysid quasistatic reverse", drive.steerSysIdQuasistatic(Direction.kReverse));
-        sysidChooser.addOption("steer sysid dynamic forward",     drive.steerSysIdDynamic(Direction.kForward));
-        sysidChooser.addOption("steer sysid dynamic reverse",     drive.steerSysIdDynamic(Direction.kReverse));
+        sysidChooser.addOption("steer sysid dynamic forward", drive.steerSysIdDynamic(Direction.kForward));
+        sysidChooser.addOption("steer sysid dynamic reverse", drive.steerSysIdDynamic(Direction.kReverse));
+
         sysidChooser.addOption("angle sysid quasistatic forward", drive.angleSysIdQuasistatic(Direction.kForward));
         sysidChooser.addOption("angle sysid quasistatic reverse", drive.angleSysIdQuasistatic(Direction.kReverse));
         sysidChooser.addOption("angle sysid dynamic forward",     drive.angleSysIdDynamic(Direction.kForward));
@@ -284,28 +337,29 @@ public class RobotContainer {
         sysidChooser.addOption("swerve wheel radius char",     new SwerveWheelCharacterization(drive));
         sysidChooser.addOption("turret sysid quasistatic forward", turret.sysidQuasistatic(false));
         sysidChooser.addOption("turret sysid quasistatic reverse", turret.sysidQuasistatic(true));
-        sysidChooser.addOption("turret sysid dynamic forward",     turret.sysidDynamic(false));
-        sysidChooser.addOption("turret sysid dynamic reverse",     turret.sysidDynamic(true));
+        sysidChooser.addOption("turret sysid dynamic forward", turret.sysidDynamic(false));
+        sysidChooser.addOption("turret sysid dynamic reverse", turret.sysidDynamic(true));
+
         sysidChooser.addOption("launcher sysid quasistatic forward", launcher.sysidQuasistatic(false));
         sysidChooser.addOption("launcher sysid quasistatic reverse", launcher.sysidQuasistatic(true));
-        sysidChooser.addOption("launcher sysid dynamic forward",     launcher.sysidDynamic(false));
-        sysidChooser.addOption("launcher sysid dynamic reverse",     launcher.sysidDynamic(true));
+        sysidChooser.addOption("launcher sysid dynamic forward", launcher.sysidDynamic(false));
+        sysidChooser.addOption("launcher sysid dynamic reverse", launcher.sysidDynamic(true));
 
         LoggedPowerDistribution.getInstance(pdp.getModule(), ModuleType.kRev);
 
         turret.setDefaultCommand(
-            turret.manPos(turret::getAngle).ignoringDisable(true)
-        );
+                turret.manPos(turret::getAngle, false).ignoringDisable(true));
 
         launcher.setDefaultCommand(
-            launcher.velocityControl(() -> RPM.of(0)).ignoringDisable(true)
+            launcher.voltageControl(() -> Volts.of(0))
         );
 
-        drive.setDefaultCommand(drive.TeleopDrive());
+        drive.setDefaultCommand(drive.teleopDrive().ignoringDisable(true));
+
+        hood.setDefaultCommand(hood.positionControl(() -> hood.getAngle()).ignoringDisable(true));
     }
 
     private void configureBindings() {
-        // new Trigger(DriverStation::isDisabled).onTrue();
 
         // reset odometry dashboard button
         resetOdometry.set(false);
@@ -341,58 +395,40 @@ public class RobotContainer {
             rumbler.overrideQue(RumblePreset.TAP.load());
         }));
         
-        // TODO: placeholder binding to shooting in sim, remove before running on robot
-        // new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7).whileTrue(new InstantCommand(() -> {
-        //         double launchvel = (launcher.getSpeed().in(RPM)-2500)*2*Math.PI*Units.inchesToMeters(2)/60;
-        //         double angle = launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[0];
-        //         GamePieceProjectile fuel = new GamePieceProjectile(
-        //                 RebuiltFuelOnField.REBUILT_FUEL_INFO,
-        //                 driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
-        //                         Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
-        //                         Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()
-        //                 )),
-        //                 new Translation2d(
-        //                         ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + Math.cos(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel,
-        //                         ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + Math.sin(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel
-        //                 ),
-        //                 Units.inchesToMeters(20),
-        //                 Math.sin(angle)*launchvel,
-        //                 new Rotation3d()
-        //                 );
-                
-        //         fuel.withTouchGroundHeight(Inches.of(3).in(Meters));
-        //         fuel.enableBecomesGamePieceOnFieldAfterTouchGround();
-        //         SimulatedArena.getInstance().addGamePieceProjectile(fuel);
-        // }).andThen(new WaitCommand(0.1)).repeatedly());
+        // TODO: add real feed command
+        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7 && turret.isReady() && launcher.isReady() && hood.isReady()).whileTrue(
+            getSimFireCommand()
+        );
 
         // force teleop drive
-        new Trigger(() -> driverController.getPOV() == 0).onTrue(drive.TeleopDrive());
+        new Trigger(() -> driverController.getPOV() == ControllerMap.UP).onTrue(drive.teleopDrive());
 
-        new Trigger(() -> driverController.getRawButton(X)).onTrue(drive.rotationLock(() -> 0));
-
-        //launcher spin and shoot
-        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.2).whileTrue(
-            launcher.velocityControl(() -> RPM.of(launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[1]))
+        new Trigger(() -> driverController.getRawButton(X)).whileTrue(//lower hood
+            hood.positionControl(() -> HoodConstants.HOOD_MIN_ANGLE).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
         );
-        // new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7).whileTrue(
-        //     null// TODO: feed to shooter while spun up
-        // );
+
+        new Trigger(() -> driverController.getRawButton(LB)).onTrue(hood.home());
+
         //set turret to auto track mode
         new Trigger(() -> driverController.getRawButton(B)).onTrue(
-            turret.track(() -> target)
+            getTrackCommand()
         );
         //set turret to preset angle mode
         new Trigger(() -> driverController.getRawButton(A)).onTrue(
-            turret.manPos(() -> Degrees.of(0))
+            getManShooterCommand()
         );
         //intake
         // new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5).whileTrue(
-        //     null// TODO: intake
+        // null// TODO: intake
         // );
         // //lower hood for trench(should be auto also)(hold)
         // new Trigger(() -> driverController.getRawButton(X)).whileTrue(
-        //     null // TODO: lower hood for trench(should be auto also)(hold)
+        // null // TODO: lower hood for trench(should be auto also)(hold)
         // );
+        // climber? i hardly know 'er
+
+        new Trigger(() -> driverController.getPOV() == ControllerMap.RIGHT).onTrue(climber.extend());
+        new Trigger(() -> driverController.getPOV() == ControllerMap.DOWN).onTrue(climber.retract());
 
         // ------------------------------------------------------------------------------
         // operator controls
@@ -400,36 +436,39 @@ public class RobotContainer {
 
     }
 
-    public void Periodic() {
-        rumbler.update(0.02);
+    public void periodic() {
+        rumbler.update(Constants.EVENT_LOOP_TIME);
         PIDTuner.updateTunables();
+        SOTMSolver.getInstance().setTarget(target);
         driverDisconnected.set(!driverController.isConnected());
         operatorDisconnected.set(!operatorController.isConnected());
-        
-        Translation2d hub = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? TurretConstants.RED_HUB : TurretConstants.BLUE_HUB;
-        Translation2d pass = drive.getPose().getTranslation().nearest(Arrays.asList(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? RED_PASS : BLUE_PASS));
-        boolean hubTrack = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? drive.getPose().getX()>12 : drive.getPose().getX()<4.5);
+
+        Translation2d hub = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? TurretConstants.RED_HUB
+                : TurretConstants.BLUE_HUB;
+        Translation2d pass = drive.getPose().getTranslation().nearest(Arrays
+                .asList(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? RED_PASS : BLUE_PASS));
+        boolean hubTrack = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red
+                ? drive.getPose().getX() > 12
+                : drive.getPose().getX() < 4.5);
         Logger.recordOutput("Subsystems/Turret/track/tracking hub", hubTrack);
         target = hubTrack ? hub : pass;
-    
+
         autoChooser.update();
 
         Logger.recordOutput("AScope/Components", new Pose3d[]{
-                new Pose3d(TURRET_OFFSET, new Rotation3d(0,0,turret.getAngle().in(Radians)-Math.PI/2)),
-                new Pose3d(
-                    TURRET_OFFSET.plus(new Translation3d(
-                        HOOD_TO_TURRET_OFFSET.getX(),
-                        HOOD_TO_TURRET_OFFSET.getX(), 
-                        HOOD_TO_TURRET_OFFSET.getZ()
-                    ).rotateBy(new Rotation3d(0,0,turret.getAngle().in(Radians)))),
-                    new Rotation3d(
-                        0,
-                        0,//TODO: add hood angle here
-                            turret.getAngle().in(Radians)-Math.PI/2)),
+                new Pose3d(),
+                new Pose3d(),
+                new Pose3d(TURRET_OFFSET, new Rotation3d(0,0,turret.getAngle().in(Radians))),
+                new Pose3d(TURRET_OFFSET
+                        .plus(HOOD_TO_TURRET_OFFSET.rotateBy(new Rotation3d(0,0,turret.getAngle().in(Radians)))),
+                        new Rotation3d(0, 
+                            hood.getAngle().minus(Degrees.of(25)).in(Radians), 
+                            turret.getAngle().in(Radians))),
         });
+        Logger.recordOutput("target dist", Meters.of(target.getDistance(drive.getPose().getTranslation())));
     }
 
-    public void SimPeriodic() {
+    public void simPeriodic() {
 
         SimulatedArena.getInstance().simulationPeriodic();
 
@@ -442,7 +481,7 @@ public class RobotContainer {
 
     public Command getAutonomousCommand() {
         Command auto;
-        if(sysidChooser.get() == null || DriverStation.isFMSAttached()){
+        if (sysidChooser.get() == null || DriverStation.isFMSAttached()) {
             auto = autoChooser.getSelected();
         } else {
             auto = sysidChooser.get();
@@ -455,7 +494,7 @@ public class RobotContainer {
     }
 
     public void enableTeleop() {
-        CommandScheduler.getInstance().schedule(drive.TeleopDrive());
+        CommandScheduler.getInstance().schedule(drive.teleopDrive());
         // symphony.loadSong("music/the-trout.chrp");
         // symphony.play();
         drive.setCallback();
@@ -466,5 +505,58 @@ public class RobotContainer {
 
     public Drive getDrive() {
         return drive;
+    }
+
+    /**
+     * get command for turret, shooter, and hood to track current target, lead may be disabled through the useLead var
+     * @return
+     */
+    public Command getTrackCommand(){
+        return new HiddenConditionalCommand(
+            new ParallelCommandGroup(
+                turret.trackWithLead(),
+                launcher.velocityControl(() -> SOTMSolver.getInstance().getParams(false).speed()),
+                hood.positionControl(() -> SOTMSolver.getInstance().getParams(false).hoodAngle())
+            ).withName("track with lead"),
+
+            new ParallelCommandGroup(
+                turret.track(() -> target),
+                launcher.velocityControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).speed()),
+                hood.positionControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).hoodAngle())
+            ).withName("track without lead"),
+        useLead::get);
+    }
+
+    public Command getManShooterCommand(){
+        return new ParallelCommandGroup(
+            turret.manPos(() -> Degrees.of(manTurretDegrees.getAsDouble()), false),
+            launcher.velocityControl(() -> RPM.of(manShooterRPM.getAsDouble())),
+            hood.positionControl(() -> Degrees.of(manHoodDegrees.getAsDouble()))
+        ).withName("manual targeting");
+    }
+
+    public Command getSimFireCommand(){
+        return new InstantCommand(() -> {
+                double launchvel = (launcher.getSpeed().in(RPM))*2*Math.PI*Units.inchesToMeters(2)/60;
+                double angle = hood.getAngle().plus(Degrees.of(90)).in(Radians);
+                GamePieceProjectile fuel = new GamePieceProjectile(
+                        RebuiltFuelOnField.REBUILT_FUEL_INFO,
+                        driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
+                                Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
+                                Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()
+                        )),
+                        new Translation2d(
+                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + (Math.cos(drive.getRotation().getRadians() + turret.getAngle().plus(Degrees.of(180)).in(Radians))*Math.cos(angle)*launchvel),
+                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + (Math.sin(drive.getRotation().getRadians() + turret.getAngle().plus(Degrees.of(180)).in(Radians))*Math.cos(angle)*launchvel)
+                        ),
+                        Units.inchesToMeters(20),
+                        Math.sin(angle)*launchvel,
+                        new Rotation3d()
+                        );
+                
+                fuel.withTouchGroundHeight(Inches.of(3).in(Meters));
+                fuel.enableBecomesGamePieceOnFieldAfterTouchGround();
+                SimulatedArena.getInstance().addGamePieceProjectile(fuel);
+        }).andThen(new WaitCommand(0.1)).repeatedly();
     }
 }

@@ -4,8 +4,14 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Unit;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.util.Color;
+
+import static edu.wpi.first.units.Units.Radians;
 
 import java.lang.Math;
 import java.util.ArrayList;
@@ -14,6 +20,19 @@ import java.util.ArrayList;
  * extra math utils
  */
 public final class ExtraMath {
+    public static <T extends Measure<? extends Unit>> T clamp(T val, T min, T max){
+        if(val.baseUnitMagnitude() >= max.baseUnitMagnitude()){
+            return max;
+        }
+        if(val.baseUnitMagnitude() <= min.baseUnitMagnitude()){
+            return min;
+        }
+        return val;
+    }
+
+    public static Angle getAngleToPos(Translation2d target, Translation2d curr){
+        return Radians.of(Math.atan2(target.getY()-curr.getY(), target.getX()-curr.getX()));
+    }
 
     public static double mean(double... in){
         double sum = 0;
@@ -202,7 +221,7 @@ public final class ExtraMath {
     /**
      * check if two poses are within tolerance in translation and rotation
      */
-    public static boolean PoseWithinTolerance(Pose2d a, Pose2d b, double toleranceLinear, double toleranceAngular) {
+    public static boolean poseWithinTolerance(Pose2d a, Pose2d b, double toleranceLinear, double toleranceAngular) {
 
         double dist = getDistance(a, b);
         double angleDiff = Math.abs(a.getRotation().minus(b.getRotation()).getRadians());
