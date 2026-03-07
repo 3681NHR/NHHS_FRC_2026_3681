@@ -16,6 +16,8 @@ import frc.robot.subsystems.launchLUT;
 import frc.robot.subsystems.fuelVision.FuelVision;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhoton;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhotonSim;
+import frc.robot.subsystems.kicker.Kicker;
+import frc.robot.subsystems.kicker.KickerIOReal;
 import frc.robot.subsystems.launcher.Launcher;
 import frc.robot.subsystems.launcher.LauncherIO;
 import frc.robot.subsystems.launcher.LauncherIOReal;
@@ -100,6 +102,7 @@ public class RobotContainer {
     private FuelVision fuelVision;
     private Turret turret;
     private Launcher launcher;
+    private Kicker kicker;
 
     private Led led = new Led();
 
@@ -206,6 +209,7 @@ public class RobotContainer {
                 
                 turret = new Turret(new TurretIOReal(), drive);
                 launcher = new Launcher(new LauncherIOReal());
+                kicker = new Kicker(new KickerIOReal());
                 break;
 
             case SIM:
@@ -302,6 +306,8 @@ public class RobotContainer {
         launcher.setDefaultCommand(
             launcher.velocityControl(() -> RPM.of(0)).ignoringDisable(true)
         );
+
+        kicker.setDefaultCommand(kicker.hold());
 
         drive.setDefaultCommand(drive.TeleopDrive());
     }

@@ -19,7 +19,7 @@ public class Kicker extends SubsystemBase {
   KickerIO io;
   KickerIOInputsAutoLogged in = new KickerIOInputsAutoLogged();
 
-  private LoggedNetworkBoolean preloadEnabled = new LoggedNetworkBoolean("Controls/Kicker Preload", false);
+  private LoggedNetworkBoolean preloadEnabled = new LoggedNetworkBoolean("Controls/Kicker Preload", true);
 
   public Kicker(KickerIO io) {
     this.io = io;
