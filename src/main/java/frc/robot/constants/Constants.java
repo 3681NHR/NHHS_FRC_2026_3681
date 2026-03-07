@@ -48,24 +48,9 @@ public final class Constants {
         public static final int OPERATOR_CONTROLLER_PORT = 1;
     }
 
-    public static class drive {
+    public static class Drive {
         //if robot should have field oriented drive enabled on start
         public static final boolean STARTING_FOD = true;
-    }
-
-    public static class DPAD {
-        public static final int UP = 0;
-        public static final int RIGHT = 90;
-        public static final int DOWN = 180;
-        public static final int LEFT = 270;
-        public static final int NONE = -1;
-        public static final int RIGHT_UP = 45;
-        public static final int RIGHT_DOWN = 135;
-        public static final int LEFT_DOWN = 225;
-        public static final int LEFT_UP = 315;
-        private DPAD() {
-            throw new UnsupportedOperationException("This is a utility class!");
-        }
     }
 
     public static final int SPARKMAX_TARGET_FIRMWARE = 436273156;

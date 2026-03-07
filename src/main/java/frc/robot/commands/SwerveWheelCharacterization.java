@@ -57,17 +57,17 @@ public class SwerveWheelCharacterization extends Command {
             double rad = (drive.getAngulerVelocity().in(RadiansPerSecond)*DriveConstants.RADIUS.in(Meters))
                 /
                 (ExtraMath.mean(
-                    drive.getModuleStates()[0].speedMetersPerSecond/DriveConstants.module.WHEEL_RAD.in(Meters),
-                    drive.getModuleStates()[1].speedMetersPerSecond/DriveConstants.module.WHEEL_RAD.in(Meters),
-                    drive.getModuleStates()[2].speedMetersPerSecond/DriveConstants.module.WHEEL_RAD.in(Meters),
-                    drive.getModuleStates()[3].speedMetersPerSecond/DriveConstants.module.WHEEL_RAD.in(Meters)
+                    drive.getModuleStates()[0].speedMetersPerSecond/DriveConstants.Module.WHEEL_RAD.in(Meters),
+                    drive.getModuleStates()[1].speedMetersPerSecond/DriveConstants.Module.WHEEL_RAD.in(Meters),
+                    drive.getModuleStates()[2].speedMetersPerSecond/DriveConstants.Module.WHEEL_RAD.in(Meters),
+                    drive.getModuleStates()[3].speedMetersPerSecond/DriveConstants.Module.WHEEL_RAD.in(Meters)
                     ));
             Logger.recordOutput("Wheel char/data/gyro radsPerSec", drive.getAngulerVelocity());
             Logger.recordOutput("Wheel char/data/wheel radPerSec", 2*Math.PI*ExtraMath.mean(
-                    drive.getModuleStates()[0].speedMetersPerSecond/DriveConstants.module.WHEEL_RAD.in(Meters),
-                    drive.getModuleStates()[1].speedMetersPerSecond/DriveConstants.module.WHEEL_RAD.in(Meters),
-                    drive.getModuleStates()[2].speedMetersPerSecond/DriveConstants.module.WHEEL_RAD.in(Meters),
-                    drive.getModuleStates()[3].speedMetersPerSecond/DriveConstants.module.WHEEL_RAD.in(Meters)
+                    drive.getModuleStates()[0].speedMetersPerSecond/DriveConstants.Module.WHEEL_RAD.in(Meters),
+                    drive.getModuleStates()[1].speedMetersPerSecond/DriveConstants.Module.WHEEL_RAD.in(Meters),
+                    drive.getModuleStates()[2].speedMetersPerSecond/DriveConstants.Module.WHEEL_RAD.in(Meters),
+                    drive.getModuleStates()[3].speedMetersPerSecond/DriveConstants.Module.WHEEL_RAD.in(Meters)
                     ));
             if(Double.isFinite(rad)){
                 Logger.recordOutput("Wheel char/data/rad", Meters.of(rad).in(Inches));
@@ -80,17 +80,16 @@ public class SwerveWheelCharacterization extends Command {
     @Override
     public void end(boolean interrupted) {
         drive.stop();
-        assert(gyroreadings.size() == wheelreadings.size());
         ArrayList<Distance> rads = new ArrayList<Distance>();
         for(int i=0; i<gyroreadings.size(); i++){
             rads.add(
                 Meters.of((gyroreadings.get(i).in(RadiansPerSecond)*DriveConstants.RADIUS.in(Meters))
                 /
                 (2*Math.PI*ExtraMath.mean(
-                    wheelreadings.get(i)[0].speedMetersPerSecond/DriveConstants.module.WHEEL_RAD.in(Meters),
-                    wheelreadings.get(i)[1].speedMetersPerSecond/DriveConstants.module.WHEEL_RAD.in(Meters),
-                    wheelreadings.get(i)[2].speedMetersPerSecond/DriveConstants.module.WHEEL_RAD.in(Meters),
-                    wheelreadings.get(i)[3].speedMetersPerSecond/DriveConstants.module.WHEEL_RAD.in(Meters)
+                    wheelreadings.get(i)[0].speedMetersPerSecond/DriveConstants.Module.WHEEL_RAD.in(Meters),
+                    wheelreadings.get(i)[1].speedMetersPerSecond/DriveConstants.Module.WHEEL_RAD.in(Meters),
+                    wheelreadings.get(i)[2].speedMetersPerSecond/DriveConstants.Module.WHEEL_RAD.in(Meters),
+                    wheelreadings.get(i)[3].speedMetersPerSecond/DriveConstants.Module.WHEEL_RAD.in(Meters)
                     ))
                 ));
         }

@@ -1,5 +1,7 @@
 package frc.robot.subsystems.climber;
 
+import static edu.wpi.first.units.Units.Meters;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
@@ -10,6 +12,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import frc.utils.motorWrappers.SparkMax;
 
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -37,7 +40,7 @@ public class ClimberIOReal implements ClimberIO {
             ff.setKg(ClimbConstants.FF.kG);
         });
         
-
+        
         SparkMaxConfig doomConfig = new SparkMaxConfig();
 
         // motor configuration
@@ -46,6 +49,8 @@ public class ClimberIOReal implements ClimberIO {
         doomConfig.encoder.positionConversionFactor(ClimbConstants.POSITION_CONVERSION_FACTOR).velocityConversionFactor(ClimbConstants.VELOCITY_CONVERSION_FACTOR);
 
         doom.configure(doomConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+
+        pid.setTolerance(ClimbConstants.SETPOINT_TOLERANCE.in(Meters));
     }
     
     @Override
@@ -75,9 +80,9 @@ public class ClimberIOReal implements ClimberIO {
     }
     /** sets the goal position for the climber. */
     @Override
-    public void setSetpoint(double position){
+    public void setGoal(Distance goal){
         openLoop = false;
-        goal = position;
+        this.goal = goal.in(Meters);
     }
     /**
      * zeros the encoder position. (for button)

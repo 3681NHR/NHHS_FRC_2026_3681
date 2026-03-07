@@ -17,18 +17,18 @@ public class Joystick {
     /*
      * class to hold DoubleSupplier for two joysticks
      */
-    public static class duelJoystickAxis{
+    public static class DuelJoystickAxis{
         public DoubleSupplier lx = () -> 0;
         public DoubleSupplier ly = () -> 0;
         public DoubleSupplier rx = () -> 0;
         public DoubleSupplier ry = () -> 0;
 
-        public duelJoystickAxis(DoubleSupplier lx, DoubleSupplier ly, DoubleSupplier rx, DoubleSupplier ry){
+        public DuelJoystickAxis(DoubleSupplier lx, DoubleSupplier ly, DoubleSupplier rx, DoubleSupplier ry){
             this.lx = lx;
             this.ly = ly;
             this.rx = rx;
             this.ry = ry;
         }
-        public duelJoystickAxis() {}
+        public DuelJoystickAxis() {}
     }
 }

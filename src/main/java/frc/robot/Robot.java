@@ -114,7 +114,7 @@ public class Robot extends LoggedRobot {
         CommandScheduler.getInstance().run();
         TimerHandler.update();
 
-        robotContainer.Periodic();
+        robotContainer.periodic();
 
     }
 
@@ -199,7 +199,7 @@ public class Robot extends LoggedRobot {
     /** This function is called periodically whilst in simulation. */
     @Override
     public void simulationPeriodic() {
-        robotContainer.SimPeriodic();
+        robotContainer.simPeriodic();
 
         // update battery voltage(set as roborio input voltage)
         BatteryVoltageSim.getInstance().calculateVoltage();

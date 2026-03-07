@@ -59,7 +59,7 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
 
     public TalonFX(int deviceId, CANBus canbus) {
         super(deviceId, canbus);
-        Logger.recordOutput(getDeviceID() + " firmware version (TalonFX)", getVersion().getValue());
+        Logger.recordOutput("Firmware/Talon/" + getDeviceID() + " firmware version", getVersion().getValue());
         if (!DriverStation.isFMSAttached() && getVersion().getValue() != Constants.TALONFX_TARGET_FIRMWARE) {
             motorsWithIncorrectFirmwareVersion += (motorsWithIncorrectFirmwareVersion.isBlank() ? "" : ", ")
                     + getDeviceID();

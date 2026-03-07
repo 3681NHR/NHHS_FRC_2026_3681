@@ -18,7 +18,7 @@ public interface ClimberIO {
     public default void setVoltage(Voltage voltage){}
     public default void updateInputs(ClimberIOInputs input){}
     /** sets the goal position for the climber. */
-    public default void setSetpoint(double position){}
+    public default void setGoal(Distance goal){}
     public default void zeroEncoder(){}
     @AutoLog
     public class ClimberIOInputs{

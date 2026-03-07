@@ -1,5 +1,7 @@
 package frc.robot.subsystems.climber;
 
+import static edu.wpi.first.units.Units.Meters;
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -26,13 +28,13 @@ public class Climber extends SubsystemBase {
      */
     public Command extend() {
         // FIXME: placeholder value
-        return runOnce(() -> io.setSetpoint(ClimbConstants.EXTEND_POSITION));
+        return runOnce(() -> io.setGoal(ClimbConstants.EXTEND_POSITION));
     }
     /**
      * retracts the climber to 0
      */
     public Command retract() {
-        return runOnce(() -> io.setSetpoint(0.0));
+        return runOnce(() -> io.setGoal(ClimbConstants.MIN_POSITION));
     }
     /**
      * set encoder position to 0 (for button)

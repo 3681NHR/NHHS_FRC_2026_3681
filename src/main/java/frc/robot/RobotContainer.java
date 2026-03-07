@@ -8,12 +8,11 @@ import frc.robot.constants.Constants;
 import frc.robot.constants.DriveConstants;
 import frc.robot.constants.FuelVisionConstants;
 import frc.robot.constants.TurretConstants;
-import frc.robot.constants.Constants.DPAD;
 import frc.robot.constants.Constants.OperatorConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.subsystems.Led;
 import frc.robot.subsystems.SOTMSolver;
-import frc.robot.subsystems.launchLUT;
+import frc.robot.subsystems.LaunchLUT;
 import frc.robot.subsystems.climber.Climber;
 import frc.robot.subsystems.climber.ClimberIO;
 import frc.robot.subsystems.climber.ClimberIOReal;
@@ -42,9 +41,10 @@ import frc.robot.subsystems.vision.CameraIOPhoton;
 import frc.robot.subsystems.vision.CameraIOPhotonSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.utils.rumble.*;
-import frc.utils.Joystick.duelJoystickAxis;
+import frc.utils.Joystick.DuelJoystickAxis;
 import frc.utils.TimerHandler;
 import frc.utils.BatteryVoltageSim;
+import frc.utils.ControllerMap;
 import frc.utils.ExtraMath;
 import frc.utils.Joystick;
 import frc.utils.PIDTuner;
@@ -128,7 +128,7 @@ public class RobotContainer {
     private final Alert operatorDisconnected = new Alert("Operator controller disconnected (port 1).",
             AlertType.kWarning);
 
-    private duelJoystickAxis driverSticks;
+    private DuelJoystickAxis driverSticks;
 
     public RobotContainer() {
         try {
@@ -157,12 +157,11 @@ public class RobotContainer {
 
             driveSim = new SwerveDriveSimulation(driveTrainSimulationConfig, Constants.STARTING_POSE);
             SimulatedArena.getInstance().addDriveTrainSimulation(driveSim);
-            // driveSim.
         }
 
         // process driver controls(radial deadzone, curve, trigger slowdown, and
         // inversion)
-        driverSticks = new duelJoystickAxis(
+        driverSticks = new DuelJoystickAxis(
                 () -> ExtraMath.processInput(
                         Joystick.deadzone(Constants.OperatorConstants.LEFT_DEADBAND,
                                 driverController.getRawAxis(LEFT_STICK_X), driverController.getRawAxis(LEFT_STICK_Y))
@@ -317,7 +316,7 @@ public class RobotContainer {
         launcher.setDefaultCommand(
                 launcher.velocityControl(() -> RPM.of(0)).ignoringDisable(true));
 
-        drive.setDefaultCommand(drive.TeleopDrive());
+        drive.setDefaultCommand(drive.teleopDrive());
     }
 
     private void configureBindings() {
@@ -390,14 +389,14 @@ public class RobotContainer {
                 }).andThen(new WaitCommand(0.1)).repeatedly());
 
         // force teleop drive
-        new Trigger(() -> driverController.getPOV() == DPAD.UP).onTrue(drive.TeleopDrive());
+        new Trigger(() -> driverController.getPOV() == ControllerMap.UP).onTrue(drive.teleopDrive());
 
         new Trigger(() -> driverController.getRawButton(X)).onTrue(drive.rotationLock(() -> 0));
 
         // launcher spin and shoot
         new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.2).whileTrue(
-                launcher.velocityControl(() -> launchLUT
-                        .get(Meters.of(target.getDistance(turret.getFieldPos())), true, launchLUT.LUTHub).speed()));
+                launcher.velocityControl(() -> LaunchLUT
+                        .get(Meters.of(target.getDistance(turret.getFieldPos())), true, LaunchLUT.LUTHub).speed()));
         // new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) >
         // 0.7).whileTrue(
         // null// TODO: feed to shooter while spun up
@@ -418,8 +417,8 @@ public class RobotContainer {
         // );
         // climber? i hardly know 'er
 
-        new Trigger(() -> driverController.getPOV() == DPAD.RIGHT).onTrue(climber.extend());
-        new Trigger(() -> driverController.getPOV() == DPAD.DOWN).onTrue(climber.retract());
+        new Trigger(() -> driverController.getPOV() == ControllerMap.RIGHT).onTrue(climber.extend());
+        new Trigger(() -> driverController.getPOV() == ControllerMap.DOWN).onTrue(climber.retract());
 
         // ------------------------------------------------------------------------------
         // operator controls
@@ -427,7 +426,7 @@ public class RobotContainer {
 
     }
 
-    public void Periodic() {
+    public void periodic() {
         rumbler.update(Constants.EVENT_LOOP_TIME);
         PIDTuner.updateTunables();
         SOTMSolver.getInstance().setTarget(target);
@@ -456,7 +455,7 @@ public class RobotContainer {
         });
     }
 
-    public void SimPeriodic() {
+    public void simPeriodic() {
 
         SimulatedArena.getInstance().simulationPeriodic();
 
@@ -482,7 +481,7 @@ public class RobotContainer {
     }
 
     public void enableTeleop() {
-        CommandScheduler.getInstance().schedule(drive.TeleopDrive());
+        CommandScheduler.getInstance().schedule(drive.teleopDrive());
         // symphony.loadSong("music/the-trout.chrp");
         // symphony.play();
         drive.setCallback();

@@ -5,7 +5,16 @@ package frc.utils;
  */
 public class ControllerMap {
 		
-	//XboxOne Joysticks
+	public static final int UP = 0;
+	public static final int RIGHT = 90;
+	public static final int DOWN = 180;
+	public static final int LEFT = 270;
+	public static final int NONE = -1;
+	public static final int RIGHT_UP = 45;
+	public static final int RIGHT_DOWN = 135;
+	public static final int LEFT_DOWN = 225;
+	public static final int LEFT_UP = 315;
+    //XboxOne Joysticks
 	public static final int LEFT_STICK_X = 0;
 	public static final int LEFT_STICK_Y = 1;
 	public static final int LEFT_TRIGGER = 2;

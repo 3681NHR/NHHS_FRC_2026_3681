@@ -16,6 +16,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
@@ -79,9 +80,9 @@ public class ClimberIOSim implements ClimberIO {
 
     /** sets the goal position for the climber. */
     @Override
-    public void setSetpoint(double position) {
+    public void setGoal(Distance goal) {
         openLoop = false;
-        goalMeters = position;
+        goalMeters = goal.in(Meters);
     }
 
     @Override

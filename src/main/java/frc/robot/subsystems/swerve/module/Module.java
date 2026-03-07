@@ -10,6 +10,7 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import frc.robot.constants.DriveConstants;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -47,7 +48,7 @@ public class Module {
         int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
         odometryPositions = new SwerveModulePosition[sampleCount];
         for (int i = 0; i < sampleCount; i++) {
-            Distance positionMeters = module.WHEEL_RAD.times(inputs.odometryDrivePositionsRad[i]);
+            Distance positionMeters = DriveConstants.Module.WHEEL_RAD.times(inputs.odometryDrivePositionsRad[i]);
             Rotation2d angle = new Rotation2d(inputs.odometryTurnPositionsRad[i]);
             odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
         }
@@ -68,7 +69,7 @@ public class Module {
         state = newCosineScale(state, new Rotation2d(inputs.turnPosition));
 
         // Apply setpoints
-        io.setDriveVelocity(RadiansPerSecond.of(state.speedMetersPerSecond / module.WHEEL_RAD.in(Meters)));
+        io.setDriveVelocity(RadiansPerSecond.of(state.speedMetersPerSecond / DriveConstants.Module.WHEEL_RAD.in(Meters)));
         io.setTurnPosition(Radians.of(state.angle.getRadians()));
     }
     
@@ -123,12 +124,12 @@ public class Module {
 
     /** Returns the current drive position of the module in meters. */
     public Distance getDrivePosition() {
-        return Meters.of(inputs.drivePosition.in(Radians) * module.WHEEL_RAD.in(Meters));
+        return Meters.of(inputs.drivePosition.in(Radians) * DriveConstants.Module.WHEEL_RAD.in(Meters));
     }
 
     /** Returns the current drive velocity of the module in meters per second. */
     public LinearVelocity getDriveVelocity() {
-        return MetersPerSecond.of(inputs.driveVelocity.in(RadiansPerSecond) * module.WHEEL_RAD.in(Meters));
+        return MetersPerSecond.of(inputs.driveVelocity.in(RadiansPerSecond) * DriveConstants.Module.WHEEL_RAD.in(Meters));
     }
 
     /** Returns the module position (turn angle and drive position). */

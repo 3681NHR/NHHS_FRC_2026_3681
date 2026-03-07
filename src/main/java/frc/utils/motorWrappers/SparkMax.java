@@ -20,7 +20,7 @@ public class SparkMax extends com.revrobotics.spark.SparkMax {
    */
   public SparkMax(int deviceId, MotorType type) {
     super(deviceId, type);
-    Logger.recordOutput(getDeviceId() + " firmware version (spark)", this.getFirmwareVersion());
+    Logger.recordOutput("Firmware/Spark/" + getDeviceId() + " firmware version", this.getFirmwareVersion());
     if (!DriverStation.isFMSAttached() && this.getFirmwareVersion() != Constants.SPARKMAX_TARGET_FIRMWARE) {
       motorsWithIncorrectFirmwareVersion += (motorsWithIncorrectFirmwareVersion.isBlank() ? "" : ", ") + getDeviceId();
       motorsWithIncorrectFirmwareVersionAlert.setText("Firmware version mismatch on SparkMaxs: " + motorsWithIncorrectFirmwareVersion);

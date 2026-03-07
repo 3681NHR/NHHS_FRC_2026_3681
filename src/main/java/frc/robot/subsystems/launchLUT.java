@@ -14,7 +14,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Time;
 import frc.utils.ExtraMath;
 
-public class launchLUT {
+public final class LaunchLUT {
     public static final ShotParams[]LUTHub = {
     //  dist, hood, speed, time
         new ShotParams(Inches.of(3.5), Degrees.of(20), RPM.of(3107.0), Seconds.of(0.0)),
@@ -33,43 +33,43 @@ public class launchLUT {
      * get data from LUT at given distance val
      * @param dist - value to lookup
      * @param lerp - weather to lerp between closest values or return nearest entry(will always return above dist)
-     * @param LUT - 2d array to use, needs to be n by 4 and sorted by distance
+     * @param lut - 2d array to use, needs to be n by 4 and sorted by distance
      * @return - array with data, [hood angle, launcher speed, TOF]
      * <p> edge cases:
      * <p> - when dist is greater than the farthest entry, farthest entry will be returned. 
      *          if lerp is true, returned value will be extrapolated from highest two entries
      * <p> - when dist is closer than minimum entry, the minumum entry will be returned
      */
-    public static ShotParams get(Distance dist, boolean lerp, ShotParams[] LUT){
+    public static ShotParams get(Distance dist, boolean lerp, ShotParams[] lut){
         ShotParams out;
 
         int i=0;
-        while(LUT[i].dist().gt(dist)){
+        while(lut[i].dist().gt(dist)){
             i++;
-            if(i>=LUT.length){
+            if(i>=lut.length){
                 if(!lerp){
-                    return LUT[LUT.length-1];
+                    return lut[lut.length-1];
                 } else {
-                    double factor = (dist.in(Meters)-LUT[LUT.length-2].dist().in(Meters))/(LUT[LUT.length-1].dist().in(Meters)-LUT[LUT.length-2].dist().in(Meters));
+                    double factor = (dist.in(Meters)-lut[lut.length-2].dist().in(Meters))/(lut[lut.length-1].dist().in(Meters)-lut[lut.length-2].dist().in(Meters));
                     return new ShotParams(    //extrapolate based on last two values
                         dist,
-                        Radians.of(ExtraMath.lerp(LUT[LUT.length-2].hoodAngle().in(Radians), LUT[LUT.length-1].hoodAngle().in(Radians), factor)),
-                        RPM.of(ExtraMath.lerp(LUT[LUT.length-2].speed().in(RPM), LUT[LUT.length-1].speed().in(RPM), factor)),
-                        Seconds.of(ExtraMath.lerp(LUT[LUT.length-2].time().in(Seconds), LUT[LUT.length-1].time().in(Seconds), factor))
+                        Radians.of(ExtraMath.lerp(lut[lut.length-2].hoodAngle().in(Radians), lut[lut.length-1].hoodAngle().in(Radians), factor)),
+                        RPM.of(ExtraMath.lerp(lut[lut.length-2].speed().in(RPM), lut[lut.length-1].speed().in(RPM), factor)),
+                        Seconds.of(ExtraMath.lerp(lut[lut.length-2].time().in(Seconds), lut[lut.length-1].time().in(Seconds), factor))
                     );
                 }
             }
         }
         if(lerp && i>0){
-            double factor = (dist.in(Meters)-LUT[i-1].dist().in(Meters))/(LUT[i].dist().in(Meters)-LUT[i-1].dist().in(Meters));
+            double factor = (dist.in(Meters)-lut[i-1].dist().in(Meters))/(lut[i].dist().in(Meters)-lut[i-1].dist().in(Meters));
             out = new ShotParams(
                 dist,
-                Radians.of(ExtraMath.lerp(LUT[i-1].hoodAngle().in(Radians), LUT[i].hoodAngle().in(Radians), factor)),
-                RPM.of(ExtraMath.lerp(LUT[i-1].speed().in(RPM), LUT[i].speed().in(RPM), factor)),
-                Seconds.of(ExtraMath.lerp(LUT[i-1].time().in(Seconds), LUT[i].time().in(Seconds), factor))
+                Radians.of(ExtraMath.lerp(lut[i-1].hoodAngle().in(Radians), lut[i].hoodAngle().in(Radians), factor)),
+                RPM.of(ExtraMath.lerp(lut[i-1].speed().in(RPM), lut[i].speed().in(RPM), factor)),
+                Seconds.of(ExtraMath.lerp(lut[i-1].time().in(Seconds), lut[i].time().in(Seconds), factor))
             );
         } else {
-            out = LUT[i];
+            out = lut[i];
         }
         return out;
     }
@@ -77,36 +77,36 @@ public class launchLUT {
     /**
      * get slope of data from LUT at given distance val
      * @param dist - value to lookup
-     * @param LUT - 2d array to use, needs to be n by 4 and sorted by distance
+     * @param lut - 2d array to use, needs to be n by 4 and sorted by distance
      * @return - array with data, [hood angle, launcher speed, TOF]
      */
-    public static ShotParams getSlope(Distance dist, ShotParams[] LUT){
+    public static ShotParams getSlope(Distance dist, ShotParams[] lut){
         ShotParams out;
 
         int i=0;
-        while(LUT[i].dist().gt(dist)){
+        while(lut[i].dist().gt(dist)){
             i++;
-            if(i>=LUT.length){
-                double run = LUT[LUT.length-2].dist().in(Meters)-LUT[LUT.length-1].dist().in(Meters);
+            if(i>=lut.length){
+                double run = lut[lut.length-2].dist().in(Meters)-lut[lut.length-1].dist().in(Meters);
                 return new ShotParams(    //extrapolate based on last two values
                     Meters.of(1),
-                    Radians.of((LUT[LUT.length-2].hoodAngle().in(Radians) - LUT[LUT.length-1].hoodAngle().in(Radians))/run),
-                    RPM.of((LUT[LUT.length-2].speed().in(RPM) - LUT[LUT.length-1].speed().in(RPM))/run),
-                    Seconds.of((LUT[LUT.length-2].time().in(Seconds) - LUT[LUT.length-1].time().in(Seconds))/run)
+                    Radians.of((lut[lut.length-2].hoodAngle().in(Radians) - lut[lut.length-1].hoodAngle().in(Radians))/run),
+                    RPM.of((lut[lut.length-2].speed().in(RPM) - lut[lut.length-1].speed().in(RPM))/run),
+                    Seconds.of((lut[lut.length-2].time().in(Seconds) - lut[lut.length-1].time().in(Seconds))/run)
                 );
                 
             }
         }
         if(i>0){
-            double run = LUT[i-1].dist().in(Meters)-LUT[i].dist().in(Meters);
+            double run = lut[i-1].dist().in(Meters)-lut[i].dist().in(Meters);
             out = new ShotParams(
                 Meters.of(1),
-                Radians.of((LUT[i-1].hoodAngle().in(Radians) - LUT[i].hoodAngle().in(Radians))/run),
-                RPM.of((LUT[i-1].speed().in(RPM) - LUT[i].speed().in(RPM))/run),
-                Seconds.of((LUT[i-1].time().in(Seconds) - LUT[i].time().in(Seconds))/run)
+                Radians.of((lut[i-1].hoodAngle().in(Radians) - lut[i].hoodAngle().in(Radians))/run),
+                RPM.of((lut[i-1].speed().in(RPM) - lut[i].speed().in(RPM))/run),
+                Seconds.of((lut[i-1].time().in(Seconds) - lut[i].time().in(Seconds))/run)
             );
         } else {
-            out = LUT[i];
+            out = lut[i];
         }
         return out;
     }

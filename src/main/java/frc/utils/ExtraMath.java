@@ -211,7 +211,7 @@ public final class ExtraMath {
     /**
      * check if two poses are within tolerance in translation and rotation
      */
-    public static boolean PoseWithinTolerance(Pose2d a, Pose2d b, double toleranceLinear, double toleranceAngular) {
+    public static boolean poseWithinTolerance(Pose2d a, Pose2d b, double toleranceLinear, double toleranceAngular) {
 
         double dist = getDistance(a, b);
         double angleDiff = Math.abs(a.getRotation().minus(b.getRotation()).getRadians());

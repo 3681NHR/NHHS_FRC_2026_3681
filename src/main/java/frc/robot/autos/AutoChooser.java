@@ -155,7 +155,7 @@ public class AutoChooser {
             Logger.recordOutput("Auto/Total time"   , ExtraMath.roundToPoint(chooser.get().getPathLength(factory), 3));
             
             Logger.recordOutput("Auto/Checklist/Auto selected", chooser.get() != null);
-            Logger.recordOutput("Auto/Checklist/Robot in position", ExtraMath.PoseWithinTolerance(container.getDrive().getPose(), chooser.get().getStartingPose(factory), 0.5, Math.toRadians(20)));
+            Logger.recordOutput("Auto/Checklist/Robot in position", ExtraMath.poseWithinTolerance(container.getDrive().getPose(), chooser.get().getStartingPose(factory), 0.5, Math.toRadians(20)));
             Logger.recordOutput("Auto/Checklist/FMS connected", DriverStation.isFMSAttached());
             Logger.recordOutput("Auto/Checklist/Joysticks connected", DriverStation.isJoystickConnected(0) && DriverStation.isJoystickConnected(1));
             Logger.recordOutput("Auto/Checklist/No alerts", 
