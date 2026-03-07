@@ -37,14 +37,14 @@ public class Kicker extends SubsystemBase {
     return Commands.run(() -> {
       if (preloadEnabled.get()) {
         if (in.distance.lte(KickerConstants.PRELOAD_DISTANCE_THRESHOLD)) {
-          io.setGoal(RPM.of(0));
+          io.setGoal(RPM.zero());
         } else if (in.distance.lte(KickerConstants.PRELOAD_MAX_DISTANCE)) {
           io.setGoal(KickerConstants.PRELOAD_VELOCITY);
         } else {
-          io.setGoal(RPM.of(0));
+          io.setGoal(RPM.zero());
         }
       } else {
-        io.setGoal(RPM.of(0));
+        io.setGoal(RPM.zero());
       }
     }, this).withName("Hold Ball");
   }

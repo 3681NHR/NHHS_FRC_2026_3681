@@ -24,16 +24,16 @@ public interface KickerIO {
     
     @AutoLog
     public class KickerIOInputs{
-        public AngularVelocity speed = RadiansPerSecond.of(0);
+        public AngularVelocity speed = RadiansPerSecond.zero();
 
-        public Voltage motorVoltageOut = Volts.of(0);
-        public Current motorCurrentOut = Amps.of(0);
-        public Temperature motorTemp = Kelvin.of(-1);
+        public Voltage motorVoltageOut = Volts.zero();
+        public Current motorCurrentOut = Amps.zero();
+        public Temperature motorTemp = Kelvin.zero().minus(Kelvin.one());
 
         public boolean hasBall = false;
-        public Distance distance = Meters.of(0.0);
+        public Distance distance = Meters.zero();
 
-        public AngularVelocity goal = RadiansPerSecond.of(0);
+        public AngularVelocity goal = RadiansPerSecond.zero();
 
         public boolean openLoop = false;
     }

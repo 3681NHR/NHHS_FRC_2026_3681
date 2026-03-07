@@ -40,8 +40,8 @@ public class KickerIOReal implements KickerIO {
     private final SparkClosedLoopController kickerController;
     private final SimpleFF kickerFF = new SimpleFF(KickerConstants.KICKER_FF_GAINS);
 
-    AngularVelocity goal = RPM.of(0);
-    Voltage vout = Volts.of(0.0);
+    AngularVelocity goal = RPM.zero();
+    Voltage vout = Volts.zero();
 
     Alert overheatAlert = new Alert("", AlertType.kError);
 
