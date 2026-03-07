@@ -1,7 +1,6 @@
 package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Microseconds;
-import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.BooleanSupplier;
@@ -9,8 +8,6 @@ import java.util.function.Consumer;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;

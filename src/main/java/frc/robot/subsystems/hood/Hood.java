@@ -11,8 +11,6 @@ import frc.robot.subsystems.SOTMSolver;
 import frc.utils.ExtraMath;
 
 import static frc.robot.constants.HoodConstants.*;
-
-import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;

@@ -3,7 +3,6 @@ package frc.robot.subsystems.hood;
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.constants.HoodConstants.*;
 
-import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.numbers.N1;

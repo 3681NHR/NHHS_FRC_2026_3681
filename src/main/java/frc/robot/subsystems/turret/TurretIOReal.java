@@ -1,6 +1,5 @@
 package frc.robot.subsystems.turret;
 
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -28,7 +27,6 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 
 public class TurretIOReal implements TurretIO {
@@ -206,7 +204,8 @@ public class TurretIOReal implements TurretIO {
         return RotationsPerSecond.of(0);//the bad ending
     }
     
-    private double calculateTurretAngleFromCANCoderDegrees(double e1, double e2) {
+    @SuppressWarnings("unused")
+	private double calculateTurretAngleFromCANCoderDegrees(double e1, double e2) {
         double difference = e2 - e1;
         if (difference > 250) {
             difference -= 360;

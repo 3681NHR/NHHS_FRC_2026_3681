@@ -32,7 +32,6 @@ import frc.robot.subsystems.swerve.gyro.GyroIOSim;
 import frc.robot.subsystems.swerve.module.ModuleIO;
 import frc.robot.subsystems.swerve.module.ModuleIOCrackingSpark;
 import frc.robot.subsystems.swerve.module.ModuleIOSim;
-import frc.robot.subsystems.swerve.module.ModuleIOSpark;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOReal;
@@ -56,7 +55,6 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Volts;
-import static frc.robot.constants.HoodConstants.HOOD_MIN_ANGLE;
 import static frc.robot.constants.TurretConstants.*;
 
 import static frc.utils.ControllerMap.*;
@@ -83,7 +81,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -94,11 +91,8 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -388,7 +382,7 @@ public class RobotContainer {
             rumbler.overrideQue(RumblePreset.TAP.load());
         }));
         
-        // TODO: placeholder binding to shooting in sim, remove before running on robot
+        // TODO: add real feed command
         new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7 && turret.isReady() && launcher.isReady() && hood.isReady()).whileTrue(
             getSimFireCommand()
         );
@@ -402,13 +396,6 @@ public class RobotContainer {
 
         new Trigger(() -> driverController.getRawButton(LB)).onTrue(hood.home());
 
-        //launcher spin and shoot
-        // new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.2).whileTrue(
-        //     launcher.velocityControl(() -> LaunchLUT.get(Meters.of(target.getDistance(turret.getFieldPos())), true, LaunchLUT.LUTHub).speed())
-        // );
-        // new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7).whileTrue(
-        //     null// TODO: feed to shooter while spun up
-        // );
         //set turret to auto track mode
         new Trigger(() -> driverController.getRawButton(B)).onTrue(
             getTrackCommand()
