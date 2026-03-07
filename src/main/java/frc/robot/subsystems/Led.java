@@ -99,7 +99,7 @@ public class Led extends SubsystemBase {
             }
         } else {
             for (int i = 0; i < buffer.getLength(); i++) {
-                buffer.setLED(i, i < (double) buffer.getLength() / 2.0 ? status : state);// overlayOn is broken, so we use this
+                // buffer.setLED(i, i < (double) buffer.getLength() / 2.0 ? status : state);// overlayOn is broken, so we use this
             }
         }
 
