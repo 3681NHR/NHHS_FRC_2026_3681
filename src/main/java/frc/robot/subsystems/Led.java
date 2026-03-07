@@ -43,54 +43,54 @@ public class Led extends SubsystemBase {
 
     @Override
     public void periodic() {
-        Color status = Color.kBlack;
-        Color state = Color.kBlack;
+        // Color status = Color.kBlack;
+        // Color state = Color.kBlack;
 
-        // if(affectorInPos){
-        // status = Color.kBlack;
+        // // if(affectorInPos){
+        // // status = Color.kBlack;
+        // // }
+        // if (homing) {
+        //     state = new Color(255, 0, 0);
+        //     // state = state.mask(LEDPattern.steps(Map.of(0, Color.kBlack, 0.45,
+        //     // Color.kWhite, 0.55, Color.kBlack)));
+        //     // state = state.scrollAtRelativeSpeed(Percent.per(Second).of(0.25));
         // }
-        if (homing) {
-            state = new Color(255, 0, 0);
-            // state = state.mask(LEDPattern.steps(Map.of(0, Color.kBlack, 0.45,
-            // Color.kWhite, 0.55, Color.kBlack)));
-            // state = state.scrollAtRelativeSpeed(Percent.per(Second).of(0.25));
-        }
-        if (hasCoral) {
-            state = new Color(0, 255, 0);
-        } else {
-            state = new Color(255, 50, 0);
-            alignInPos = false;
-        }
-        if (intakeSensorFault) {
-            state = new Color(0, 0, 255);
-        }
-        if (intakeRunning) {
-            state = new Color(255, 255, 0);
-        }
-
-        if (rotLock) {
-            status = new Color(255, 255, 255);
-            alignInPos = false;
-        }
-        if (aligningReef) {
-            status = new Color(0, 0, 255);
-            alignInPos = false;
-        }
-        if (alignInPos) {
-            status = new Color(0, 255, 255);
-        }
-        if (!homed) {
-            state = new Color(255, 0, 0);
-            // status = status.breathe(Seconds.of(1));
-        }
-        if (climbMode) {
-            state = Color.kMagenta;
-            status = Color.kMagenta;
-        }
-
-        // if(intakeRunning){
-        // pattern = pattern.blink(Seconds.of(.125));
+        // if (hasCoral) {
+        //     state = new Color(0, 255, 0);
+        // } else {
+        //     state = new Color(255, 50, 0);
+        //     alignInPos = false;
         // }
+        // if (intakeSensorFault) {
+        //     state = new Color(0, 0, 255);
+        // }
+        // if (intakeRunning) {
+        //     state = new Color(255, 255, 0);
+        // }
+
+        // if (rotLock) {
+        //     status = new Color(255, 255, 255);
+        //     alignInPos = false;
+        // }
+        // if (aligningReef) {
+        //     status = new Color(0, 0, 255);
+        //     alignInPos = false;
+        // }
+        // if (alignInPos) {
+        //     status = new Color(0, 255, 255);
+        // }
+        // if (!homed) {
+        //     state = new Color(255, 0, 0);
+        //     // status = status.breathe(Seconds.of(1));
+        // }
+        // if (climbMode) {
+        //     state = Color.kMagenta;
+        //     status = Color.kMagenta;
+        // }
+
+        // // if(intakeRunning){
+        // // pattern = pattern.blink(Seconds.of(.125));
+        // // }
 
         b.update();
         if (rainbow.get()) {
@@ -103,21 +103,23 @@ public class Led extends SubsystemBase {
             }
         }
 
-        led.setData(buffer);
+        // led.setData(buffer);
 
         // Logger.recordOutput("Subsystems/led/status", buffer.getLED(0).toHexString());
         // Logger.recordOutput("Subsystems/led/state", buffer.getLED(49).toHexString());
+        // Logger.recordOutput("Subsystems/led/status", buffer.getLED(0).toHexString());
+        // Logger.recordOutput("Subsystems/led/state", buffer.getLED(49).toHexString());
 
-        Logger.recordOutput("Subsystems/led/hasCoral", hasCoral);
-        Logger.recordOutput("Subsystems/led/rotLock", rotLock);
-        Logger.recordOutput("Subsystems/led/aligningReef", aligningReef);
-        Logger.recordOutput("Subsystems/led/homing", homing);
-        Logger.recordOutput("Subsystems/led/climbing", climbMode);
-        Logger.recordOutput("Subsystems/led/homed", homed);
-        Logger.recordOutput("Subsystems/led/affectorInPos", affectorInPos);
-        Logger.recordOutput("Subsystems/led/alignInPos", alignInPos);
-        Logger.recordOutput("Subsystems/led/intakerunning", intakeRunning);
-        Logger.recordOutput("Subsystems/led/Sensor fault", intakeSensorFault);
+        // Logger.recordOutput("Subsystems/led/hasCoral", hasCoral);
+        // Logger.recordOutput("Subsystems/led/rotLock", rotLock);
+        // Logger.recordOutput("Subsystems/led/aligningReef", aligningReef);
+        // Logger.recordOutput("Subsystems/led/homing", homing);
+        // Logger.recordOutput("Subsystems/led/climbing", climbMode);
+        // Logger.recordOutput("Subsystems/led/homed", homed);
+        // Logger.recordOutput("Subsystems/led/affectorInPos", affectorInPos);
+        // Logger.recordOutput("Subsystems/led/alignInPos", alignInPos);
+        // Logger.recordOutput("Subsystems/led/intakerunning", intakeRunning);
+        // Logger.recordOutput("Subsystems/led/Sensor fault", intakeSensorFault);
 
         for (int i = 0; i < buffer.getLength(); i++) {
             // Logger.recordOutput("Subsystems/led/leds/" + i, buffer.getLED(i).toHexString());//FIXME: toHexString is slow

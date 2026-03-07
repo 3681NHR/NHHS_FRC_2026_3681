@@ -21,10 +21,15 @@ import frc.robot.subsystems.climber.ClimberIOSim;
 import frc.robot.subsystems.fuelVision.FuelVision;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhoton;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhotonSim;
+<<<<<<< HEAD
 import frc.robot.subsystems.hood.Hood;
 import frc.robot.subsystems.hood.HoodIO;
 import frc.robot.subsystems.hood.HoodIOReal;
 import frc.robot.subsystems.hood.HoodIOSim;
+=======
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIOReal;
+>>>>>>> origin/trench
 import frc.robot.subsystems.launcher.Launcher;
 import frc.robot.subsystems.launcher.LauncherIO;
 import frc.robot.subsystems.launcher.LauncherIOReal;
@@ -41,7 +46,6 @@ import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOReal;
 import frc.robot.subsystems.turret.TurretIOSim;
 import frc.robot.subsystems.vision.CameraIO;
-import frc.robot.subsystems.vision.CameraIOPhoton;
 import frc.robot.subsystems.vision.CameraIOPhotonSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.utils.rumble.*;
@@ -115,8 +119,12 @@ public class RobotContainer {
     private FuelVision fuelVision;
     private Turret turret;
     private Launcher launcher;
+<<<<<<< HEAD
     private Climber climber;
     private Hood hood;
+=======
+    private Intake intake;
+>>>>>>> origin/trench
 
     private Led led = new Led();
 
@@ -130,6 +138,7 @@ public class RobotContainer {
     private RumbleHandler opRumbler = new RumbleHandler(operatorController);
 
     private PowerDistribution pdp = new PowerDistribution(1, ModuleType.kRev);
+
 
     private Translation2d target = new Translation2d();
 
@@ -209,8 +218,8 @@ public class RobotContainer {
                 // Real robot, instantiate hardware IO implementations
                 vision = new Vision(
                         apriltagLayout,
-                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
-                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1]),
+                        // new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
+                        // new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1]),
                         new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2]),
                         new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3]));
                 drive = new Drive(
@@ -230,6 +239,11 @@ public class RobotContainer {
                 turret = new Turret(new TurretIOReal(), drive);
                 // turret = new Turret(new TurretIO() {}, drive);
                 
+<<<<<<< HEAD
+=======
+                turret = new Turret(new TurretIOMini(), drive);
+                intake = new Intake(new IntakeIOReal());
+>>>>>>> origin/trench
                 launcher = new Launcher(new LauncherIOReal());
                 // launcher = new Launcher(new LauncherIO(){});
                 hood = new Hood(new HoodIOReal());
@@ -387,17 +401,50 @@ public class RobotContainer {
             drive.resetGyro(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? Math.PI : 0);
             rumbler.overrideQue(RumblePreset.TAP.load());
         }));
-
+        
         // toggle field oriented driving
         new Trigger(() -> driverController.getRawButton(LEFT_STICK_BUTTON)).onTrue(new InstantCommand(() -> {
             drive.setFOD(!drive.getFOD());
             rumbler.overrideQue(RumblePreset.TAP.load());
         }));
         
+<<<<<<< HEAD
         // TODO: add real feed command
         new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7 && turret.isReady() && launcher.isReady() && hood.isReady()).whileTrue(
             getSimFireCommand()
         );
+=======
+        // intake :3
+        new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5).whileTrue(
+            new InstantCommand(() -> {
+                intake.voltageControl(12.0);
+            })
+        );
+
+        // TODO: placeholder binding to shooting in sim, remove before running on robot
+        // new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7).whileTrue(new InstantCommand(() -> {
+        //         double launchvel = (launcher.getSpeed().in(RPM)-2500)*2*Math.PI*Units.inchesToMeters(2)/60;
+        //         double angle = launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[0];
+        //         GamePieceProjectile fuel = new GamePieceProjectile(
+        //                 RebuiltFuelOnField.REBUILT_FUEL_INFO,
+        //                 driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
+        //                         Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
+        //                         Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()
+        //                 )),
+        //                 new Translation2d(
+        //                         ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + Math.cos(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel,
+        //                         ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + Math.sin(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel
+        //                 ),
+        //                 Units.inchesToMeters(20),
+        //                 Math.sin(angle)*launchvel,
+        //                 new Rotation3d()
+        //                 );
+                
+        //         fuel.withTouchGroundHeight(Inches.of(3).in(Meters));
+        //         fuel.enableBecomesGamePieceOnFieldAfterTouchGround();
+        //         SimulatedArena.getInstance().addGamePieceProjectile(fuel);
+        // }).andThen(new WaitCommand(0.1)).repeatedly());
+>>>>>>> origin/trench
 
         // force teleop drive
         new Trigger(() -> driverController.getPOV() == ControllerMap.UP).onTrue(drive.teleopDrive());

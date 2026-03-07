@@ -61,6 +61,10 @@ public class Turret extends SubsystemBase {
         Logger.processInputs("IO/Turret", in);
 
         Logger.recordOutput("Subsystems/Turret/state", (getCurrentCommand() == null ? "none" :getCurrentCommand().getName()));
+<<<<<<< HEAD
+=======
+        Logger.recordOutput("Subsystems/Turret/ready", ready);
+>>>>>>> origin/trench
 
         Logger.recordOutput("Subsystems/Turret/field angle", in.motorAngle
         .plus(Radians.of(drive.getRotation().getRadians()))
