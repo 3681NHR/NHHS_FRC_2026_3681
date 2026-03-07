@@ -19,7 +19,7 @@ public final class HoodConstants {
 
     public static final boolean HOOD_HOME_ON_START = false;
     
-    public static final Angle HOOD_MIN_ANGLE = Degrees.of(27);
+    public static final Angle HOOD_MIN_ANGLE = Degrees.of(25);
     public static final Angle HOOD_MAX_ANGLE = Degrees.of(52);
 
     public static final PIDGains.SimpleFF HOOD_ID_GAINS = new PIDGains.SimpleFF(0.3,35,0.0000001);//from sysid

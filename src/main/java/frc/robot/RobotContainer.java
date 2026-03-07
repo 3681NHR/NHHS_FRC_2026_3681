@@ -55,6 +55,7 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.HoodConstants.HOOD_MIN_ANGLE;
 import static frc.robot.constants.TurretConstants.*;
 
@@ -232,10 +233,10 @@ public class RobotContainer {
                 turret = new Turret(new TurretIOReal(), drive);
                 // turret = new Turret(new TurretIO() {}, drive);
                 
-                // launcher = new Launcher(new LauncherIOReal());
-                launcher = new Launcher(new LauncherIO(){});
-                // hood = new Hood(new HoodIOReal());
-                hood = new Hood(new HoodIO(){});
+                launcher = new Launcher(new LauncherIOReal());
+                // launcher = new Launcher(new LauncherIO(){});
+                hood = new Hood(new HoodIOReal());
+                // hood = new Hood(new HoodIO(){});
                 break;
 
             case SIM:
@@ -343,12 +344,12 @@ public class RobotContainer {
         );
 
         launcher.setDefaultCommand(
-            launcher.velocityControl(() -> RPM.of(0)).ignoringDisable(true)
+            launcher.voltageControl(() -> Volts.of(0))
         );
 
         drive.setDefaultCommand(drive.TeleopDrive().ignoringDisable(true));
 
-        // hood.setDefaultCommand(hood.positionControl(() -> hood.getAngle()).ignoringDisable(true));
+        hood.setDefaultCommand(hood.positionControl(() -> hood.getAngle()).ignoringDisable(true));
     }
 
     private void configureBindings() {
@@ -388,28 +389,7 @@ public class RobotContainer {
         }));
         
         // TODO: placeholder binding to shooting in sim, remove before running on robot
-        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7 && Robot.isSimulation()).whileTrue(new InstantCommand(() -> {
-                double launchvel = (launcher.getSpeed().in(RPM))*2*Math.PI*Units.inchesToMeters(2)/60;
-                double angle = hood.getAngle().plus(Degrees.of(90)).in(Radians);
-                GamePieceProjectile fuel = new GamePieceProjectile(
-                        RebuiltFuelOnField.REBUILT_FUEL_INFO,
-                        driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
-                                Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
-                                Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()
-                        )),
-                        new Translation2d(
-                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + (Math.cos(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel),
-                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + (Math.sin(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel)
-                        ),
-                        Units.inchesToMeters(20),
-                        Math.sin(angle)*launchvel,
-                        new Rotation3d()
-                        );
-                
-                fuel.withTouchGroundHeight(Inches.of(3).in(Meters));
-                fuel.enableBecomesGamePieceOnFieldAfterTouchGround();
-                SimulatedArena.getInstance().addGamePieceProjectile(fuel);
-        }).andThen(new WaitCommand(0.1)).repeatedly());
+        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7 && Robot.isSimulation()).whileTrue(getSimFireCommand());
 
         // force teleop drive
         new Trigger(() -> driverController.getPOV() == 0).onTrue(drive.TeleopDrive());
@@ -539,5 +519,30 @@ public class RobotContainer {
             launcher.velocityControl(() -> RPM.of(manShooterRPM.getAsDouble())),
             hood.positionControl(() -> Degrees.of(manHoodDegrees.getAsDouble()))
         ).withName("manual targeting");
+    }
+
+    public Command getSimFireCommand(){
+        return new InstantCommand(() -> {
+                double launchvel = (launcher.getSpeed().in(RPM))*2*Math.PI*Units.inchesToMeters(2)/60;
+                double angle = hood.getAngle().plus(Degrees.of(90)).in(Radians);
+                GamePieceProjectile fuel = new GamePieceProjectile(
+                        RebuiltFuelOnField.REBUILT_FUEL_INFO,
+                        driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
+                                Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
+                                Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()
+                        )),
+                        new Translation2d(
+                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + (Math.cos(drive.getRotation().getRadians() + turret.getAngle().plus(Degrees.of(180)).in(Radians))*Math.cos(angle)*launchvel),
+                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + (Math.sin(drive.getRotation().getRadians() + turret.getAngle().plus(Degrees.of(180)).in(Radians))*Math.cos(angle)*launchvel)
+                        ),
+                        Units.inchesToMeters(20),
+                        Math.sin(angle)*launchvel,
+                        new Rotation3d()
+                        );
+                
+                fuel.withTouchGroundHeight(Inches.of(3).in(Meters));
+                fuel.enableBecomesGamePieceOnFieldAfterTouchGround();
+                SimulatedArena.getInstance().addGamePieceProjectile(fuel);
+        }).andThen(new WaitCommand(0.1)).repeatedly();
     }
 }

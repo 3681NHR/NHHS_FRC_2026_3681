@@ -9,6 +9,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
+import frc.utils.ExtraMath;
 import frc.utils.controlWrappers.PID;
 import frc.utils.controlWrappers.SimpleFF;
 
@@ -28,7 +29,7 @@ public class LauncherIOSim implements LauncherIO {
     private PID pid = new PID(LAUNCHER_PID_GAINS);
     private SimpleFF ff = new SimpleFF(LAUNCHER_FF_GAINS);
     
-    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(LAUNCHER_ID_GAINS.kV, LAUNCHER_ID_GAINS.kA);
+    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(LAUNCHER_ID_GAINS.kV/((1/60.0)*2*Math.PI), LAUNCHER_ID_GAINS.kA/((1/60.0)*2*Math.PI));
     private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.01, 0.1);
     @Override
     public void updateInputs(LauncherIOInputs input){
@@ -39,8 +40,9 @@ public class LauncherIOSim implements LauncherIO {
             vout = Volts.of(pid.calculate(speed.in(RPM), goal.in(RPM)));
             vout = vout.plus(Volts.of(ff.calculate(goal.in(RPM))));
             //set min out to 0v
-            vout = Volts.of(Math.max(0, vout.in(Volts)));
+            // vout = Volts.of(Math.max(0, vout.in(Volts)));
         }
+        // vout = ExtraMath.clamp(vout, Volts.of(0), Volts.of(12));
         if(DriverStation.isEnabled()){
             sim.setInput(vout.in(Volts) - Math.min(LAUNCHER_ID_GAINS.kS, Math.abs(vout.in(Volts)))*Math.signum(sim.getOutput().get(1,0)));
         } else {

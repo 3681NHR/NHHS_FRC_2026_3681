@@ -22,17 +22,21 @@ public final class TurretConstants {
     public static final int TURRET_ENCODER_1_ID = 31;
     public static final int TURRET_ENCODER_2_ID = 32;
 
-    public static final int TURRET_MAIN_GEAR_TEETH = 200;
-    public static final int TURRET_ENCODER_1_GEAR_TEETH = 35;
-    public static final int TURRET_ENCODER_2_GEAR_TEETH = 34;
-    public static final int TURRET_MOTOR_GEAR_TEETH = 20;
+    public static final double TURRET_MAIN_GEAR_TEETH = 200;
+    public static final double TURRET_ENCODER_1_GEAR_TEETH = 35;
+    public static final double TURRET_ENCODER_2_GEAR_TEETH = 34;
+    public static final double TURRET_MOTOR_GEAR_TEETH = 20;
+
+    public static final double SLOPE = (TURRET_ENCODER_2_GEAR_TEETH * TURRET_ENCODER_1_GEAR_TEETH)
+            / ((TURRET_ENCODER_1_GEAR_TEETH - TURRET_ENCODER_2_GEAR_TEETH) * TURRET_MAIN_GEAR_TEETH);
+
 
     public static final Current TURRET_CURRENT_LIM = Amps.of(30);
     public static final boolean TURRET_MOTOR_INVERT = true;
 
     public static final Angle TURRET_ANGLE_OFFSET = Degrees.of(0);
-    public static final Angle TURRET_ANGLE_FORWARD_LIM = Degrees.of(360);//soft limit before unwind(from center)
-    public static final Angle TURRET_ANGLE_REVERSE_LIM = Degrees.of(-360);//soft limit before unwind(from center)
+    public static final Angle TURRET_ANGLE_FORWARD_LIM = Degrees.of(200);//soft limit before unwind(from center)
+    public static final Angle TURRET_ANGLE_REVERSE_LIM = Degrees.of(-200);//soft limit before unwind(from center)
 
     public static final SimpleFF TURRET_ID_GAINS = new SimpleFF(0.219, 1.25, 0.00001);//gains from sysid for state space model
 
