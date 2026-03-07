@@ -12,7 +12,7 @@ import frc.robot.subsystems.LaunchLUT.ShotParams;
 import frc.robot.subsystems.swerve.Drive;
 import frc.utils.ExtraMath;
 
-public class SOTMSolver extends SubsystemBase{
+public final class SOTMSolver extends SubsystemBase{
     private static SOTMSolver instance;
     private ShotParams params = new ShotParams(Meters.of(0), Radians.of(0), RPM.of(0), Seconds.of(0));
     private Translation2d target = new Translation2d();

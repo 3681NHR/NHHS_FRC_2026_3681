@@ -99,11 +99,11 @@ public class DriveConstants {
             MASS,
             MOI,
             new ModuleConfig(
-                    module.WHEEL_RAD.in(Meters),
+                    Module.WHEEL_RAD.in(Meters),
                     MAX_SPEED_PP.in(MetersPerSecond),
                     COF,
-                    module.DRIVE_GEARBOX.withReduction(module.DRIVE_REDUCTION),
-                    module.DRIVE_MAX_CURRENT.in(Amps),
+                    Module.DRIVE_GEARBOX.withReduction(Module.DRIVE_REDUCTION),
+                    Module.DRIVE_MAX_CURRENT.in(Amps),
                     1),
             MODULE_POSITIONS);
 
@@ -119,7 +119,7 @@ public class DriveConstants {
     // Device CAN IDs
     public static final int GYRO_ID = 30;
 
-    public static final class module {
+    public static final class Module {
 
         public static final int FL_DRIVE_ID = 11;
         public static final int FR_DRIVE_ID = 12;

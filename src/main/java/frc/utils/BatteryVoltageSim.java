@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 /*
  * singleton class to manage current draw for all simulated parts of the robot
  */
-public class BatteryVoltageSim {
+public final class BatteryVoltageSim {
     private static BatteryVoltageSim instance;
 
     private double voltage = 11.5;//unloaded voltage
@@ -38,9 +38,9 @@ public class BatteryVoltageSim {
             current += currentSource.getAsDouble();
         }
 
-        double Loadvoltage = BatterySim.calculateLoadedBatteryVoltage(voltage, 0.015, current);
+        double loadVoltage = BatterySim.calculateLoadedBatteryVoltage(voltage, 0.015, current);
         RoboRioSim.setVInVoltage(voltage);
-        return Loadvoltage;
+        return loadVoltage;
     }    
 
 }

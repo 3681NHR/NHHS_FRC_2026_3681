@@ -8,7 +8,7 @@ import com.ctre.phoenix6.hardware.traits.SupportsMusic;
 /**
  * singleton for playing music on connected TalonFX devices
  */
-public class Symphony {
+public final class Symphony {
     private final Orchestra orchestra = new Orchestra();
 
     private HashMap<Long, SupportsMusic> instruments = new HashMap<>();
