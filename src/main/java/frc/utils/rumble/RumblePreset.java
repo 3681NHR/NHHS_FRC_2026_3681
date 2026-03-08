@@ -31,7 +31,6 @@ public enum RumblePreset {
                     new Rumble(0.1, 0),
                     new Rumble(0.2, 1),
                 };
-        
             default:
                 return new Rumble[]{};
         }
