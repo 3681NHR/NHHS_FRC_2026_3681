@@ -82,6 +82,9 @@ public class Drive extends SubsystemBase {
     private PID angleController = new PID(
             RobotBase.isReal() ? ANGLE_PID : ANGLE_PID_SIM);
 
+    private PID vyController = new PID(
+            RobotBase.isReal() ? TRANS_PID : TRANS_PID_SIM);
+
     public PPHolonomicDriveController autoController = new PPHolonomicDriveController(
             new PIDConstants(TRANS_PID.kP, TRANS_PID.kI, TRANS_PID.kD),
             new PIDConstants(AUTO_ANGLE_PID.kP, AUTO_ANGLE_PID.kI, AUTO_ANGLE_PID.kD));
@@ -210,9 +213,15 @@ public class Drive extends SubsystemBase {
         //update and log gyro and module IOs
         gyroIO.updateInputs(gyroInputs);
         Logger.processInputs("IO/Drive/Gyro", gyroInputs);
+
+        boolean disabled = DriverStation.isDisabled();
         for (var module : modules) {
             module.periodic();
+            if(disabled){
+                module.stop();
+            }
         }
+
         if (USE_VISION) {
             for (VisionEstimate e : vision.getPose()) {
                 poseEstimator.addVisionMeasurement(
@@ -221,17 +230,9 @@ public class Drive extends SubsystemBase {
         }
         odometryLock.unlock();
 
-        Logger.recordOutput("Subsystems/Swerve/tilt", ExtraMath.getTip(gyroInputs.angle));
-
         Logger.recordOutput("Subsystems/Swerve/CurrentCommand",
                 getCurrentCommand() != null ? getCurrentCommand().getName() : "none");
 
-        // Stop moving when disabled
-        if (DriverStation.isDisabled()) {
-            for(int i=0; i<4; i++){
-                modules[i].stop();
-            }
-        }
 
         // Update odometry
         double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
@@ -241,7 +242,7 @@ public class Drive extends SubsystemBase {
             SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
             SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
             for (int moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
-                modulePositions[moduleIndex] = modules[moduleIndex].getOdometryPositions()[i];
+                modulePositions[moduleIndex] = modules[moduleIndex].getOdometryPosition(i);
                 moduleDeltas[moduleIndex] = new SwerveModulePosition(
                         modulePositions[moduleIndex].distanceMeters
                                 - lastModulePositions[moduleIndex].distanceMeters,
@@ -367,6 +368,37 @@ public class Drive extends SubsystemBase {
             }
         }, this)
         .withName("Teleop drive");
+    }
+    
+    public Command TrenchAlignDrive(){
+        return new InstantCommand(() -> {
+            angleController.reset();
+            vyController.reset();
+        }).andThen(Commands.run(() -> {
+            double headingRad = 0;
+            double trench = Inches.of(49.86).div(2).in(Meters);
+            if (getPose().getMeasureY().gte(Inches.of(316.64).div(2))) {
+                trench = Inches.of(316.64).minus(Inches.of(49.86).div(2)).in(Meters);
+            }
+            double vy = MathUtil.clamp(vyController.calculate(getPose().getY(), trench),
+                        -MAX_SPEED_PP.in(MetersPerSecond), MAX_SPEED_PP.in(MetersPerSecond));
+
+            double theta = MathUtil.clamp(angleController.calculate(getRotation().getRadians(), headingRad),
+                        -ANGLE_MAX_VELOCITY.in(RadiansPerSecond), ANGLE_MAX_VELOCITY.in(RadiansPerSecond));
+            if (FODEnabled) {
+                runVelocity(new ChassisSpeeds(getSpeedsFromController().vxMetersPerSecond,
+                vy,
+                theta
+                ));
+            } else {
+                runVelocity(new ChassisSpeeds(
+                        driverSticks.ly.getAsDouble() * getMaxLinearSpeedMetersPerSec(),
+                        vy,
+                        theta
+                        ));
+            }
+        }, this))
+        .withName("Trench align tele drive");
     }
 
     public Command getAutoAlign(Supplier<Pose2d> p) {

@@ -76,7 +76,7 @@ public class Led extends SubsystemBase {
             LEDPattern.solid(drive.getFOD() ? new Color() : Color.kBlue).atBrightness(Percent.of(50)).applyTo(sideBuffer);
         }
 
-        led.setData(buffer);
+        // led.setData(buffer);
 
         String[] leds = new String[buffer.getLength()];
         for (int i = 0; i < buffer.getLength(); i++) {
