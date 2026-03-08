@@ -6,6 +6,7 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.IntakeConstants;
 
@@ -51,8 +52,10 @@ public class Intake extends SubsystemBase {
      * Spins the roller at the configured intake velocity setpoint (closed-loop).
      */
     public Command intake() {
-        return velocityControl(IntakeConstants.INTAKE_VELOCITY)
-                .withName("Intake");
+        return new ParallelCommandGroup(
+                deploy(),
+                velocityControl(IntakeConstants.INTAKE_VELOCITY)
+                ).withName("Intake");
     }
 
     /**
@@ -67,11 +70,6 @@ public class Intake extends SubsystemBase {
     public Command stopRoller() {
         return runOnce(() -> io.setRollerVoltage(Units.Volts.zero()))
                 .withName("Stop Roller");
-    }
-
-    /** Returns true when the roller is within tolerance of its velocity setpoint. */
-    public boolean rollerAtSetpoint() {
-        return in.rollerAtSetpoint;
     }
 
     // ── Pivot commands ────────────────────────────────────────────────────────
@@ -90,21 +88,11 @@ public class Intake extends SubsystemBase {
      * Returns immediately; the pivot tracks the goal in {@link #periodic}.
      */
     public Command retract() {
-        return runOnce(() -> io.setPivotGoal(IntakeConstants.STOWED_ANGLE))
+        return new ParallelCommandGroup(runOnce(() -> io.setPivotGoal(IntakeConstants.STOWED_ANGLE)), velocityControl(Units.RPM.zero()))
                 .withName("Retract Intake");
     }
 
-    /**
-     * Zeroes the pivot encoder at the current mechanical position.
-     * Use when the pivot is manually confirmed to be at the stow hard-stop.
-     */
-    public Command zeroPivot() {
-        return runOnce(io::zeroPivot)
-                .withName("Zero Pivot");
-    }
-
-    /** Returns true when the pivot is within tolerance of its goal. */
-    public boolean pivotAtSetpoint() {
-        return in.pivotAtSetpoint;
+    public Command defaultCommand() {
+        return new ParallelCommandGroup(voltageControl(Units.Volts.zero()), runOnce(() -> io.setPivotVoltage(Units.Volts.zero())));
     }
 }

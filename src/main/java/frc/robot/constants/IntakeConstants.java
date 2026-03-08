@@ -12,7 +12,7 @@ public class IntakeConstants {
     // ── CAN IDs ───────────────────────────────────────────────────────────────
     public static final int INTAKE_MOTOR_ID = 42; // TODO: set real CAN ID
     public static final int PIVOT_MOTOR_ID  = 52; // TODO: set real CAN ID
-
+    public static final int INTAKE_ENCODER_ID = 34; // TODO: set real CAN ID
     // ── Roller ────────────────────────────────────────────────────────────────
     public static final boolean ROLLER_INVERTED           = false;
     public static final int     ROLLER_SMART_CURRENT_LIMIT = 40; // amps
@@ -26,13 +26,9 @@ public class IntakeConstants {
     /** Eject velocity setpoint (negative = reverse). */
     public static final AngularVelocity EJECT_VELOCITY = RPM.of(-500.0); // TODO: tune
 
-    public static final PIDGains.ProfiledPID ROLLER_PID_GAINS =
-            new PIDGains.ProfiledPID(0.0, 0.0, 0.0, 2000.0, 5000.0)
-                    .makeTunable("Intake/Roller PID");
-
     public static final PIDGains.SimpleFF ROLLER_FF_GAINS =
             new PIDGains.SimpleFF(0.0, 0.0, 0.0)
-                    .makeTunable("Intake/Roller FF");
+                    .makeTunable("Tuning/Intake/Roller/FF");
 
     // ── Pivot ─────────────────────────────────────────────────────────────────
     public static final boolean PIVOT_INVERTED            = false;
@@ -58,9 +54,9 @@ public class IntakeConstants {
 
     public static final PIDGains.ProfiledPID PIVOT_PID_GAINS =
             new PIDGains.ProfiledPID(0.0, 0.0, 0.0, 5.0, 10.0)
-                    .makeTunable("Intake/Pivot PID");
+                    .makeTunable("Tuning/Intake/Pivot/PID");
 
     public static final PIDGains.GravityFF PIVOT_FF_GAINS =
             new PIDGains.GravityFF(0.0, 0.0, 0.0, 0.0)
-                    .makeTunable("Intake/Pivot FF");
+                    .makeTunable("Tuning/Intake/Pivot/FF");
 }

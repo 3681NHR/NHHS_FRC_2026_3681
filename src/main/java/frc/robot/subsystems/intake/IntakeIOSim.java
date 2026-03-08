@@ -15,7 +15,6 @@ import frc.utils.controlWrappers.SimpleFF;
 public class IntakeIOSim implements IntakeIO {
 
     // ── Roller ────────────────────────────────────────────────────────────────
-    private final ProfiledPID rollerPID = new ProfiledPID(IntakeConstants.ROLLER_PID_GAINS);
     private final SimpleFF rollerFF = new SimpleFF(IntakeConstants.ROLLER_FF_GAINS);
     private boolean rollerOpenLoop = false;
     private AngularVelocity rollerSetpoint = Units.RPM.zero();
@@ -32,7 +31,6 @@ public class IntakeIOSim implements IntakeIO {
     private double pivotAppliedVolts = 0.0;
 
     public IntakeIOSim() {
-        rollerPID.setTolerance(IntakeConstants.ROLLER_TOLERANCE.in(Units.RPM));
         pivotPID.setTolerance(IntakeConstants.PIVOT_TOLERANCE.in(Units.Radians));
     }
 
@@ -43,9 +41,8 @@ public class IntakeIOSim implements IntakeIO {
 
         // ── Roller ─────────────────────────────────────────────────────────────
         if (!rollerOpenLoop) {
-            double pid = rollerPID.calculate(rollerVelocity.in(Units.RPM), rollerSetpoint.in(Units.RPM));
-            double ff = rollerFF.calculate(rollerVelocity.in(Units.RPM));
-            rollerAppliedVolts = MathUtil.clamp(pid + ff, -battery, battery);
+            double ff = rollerFF.calculate(rollerSetpoint.in(Units.RPM));
+            rollerAppliedVolts = MathUtil.clamp(ff, -battery, battery);
         }
         // First-order lag: time constant ~0.05 s; NEO free-speed ~5880 RPM @ 12 V
         double targetRPM = (rollerAppliedVolts / 12.0) * 5880.0;
@@ -57,7 +54,6 @@ public class IntakeIOSim implements IntakeIO {
         input.rollerTemp = Units.Celsius.zero();
         input.rollerVelocity = rollerVelocity;
         input.rollerVelocitySetpoint = rollerSetpoint;
-        input.rollerAtSetpoint = rollerPID.atSetpoint();
         input.rollerOpenLoop = rollerOpenLoop;
 
         // ── Pivot ───────────────────────────────────────────────────────────────
@@ -108,11 +104,5 @@ public class IntakeIOSim implements IntakeIO {
         pivotOpenLoop = true;
         pivotAppliedVolts = MathUtil.clamp(voltage.in(Units.Volts),
                 -RobotController.getBatteryVoltage(), RobotController.getBatteryVoltage());
-    }
-
-    @Override
-    public void zeroPivot() {
-        pivotAngle = Units.Radians.zero();
-        pivotVelocity = Units.RadiansPerSecond.zero();
     }
 }

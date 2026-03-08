@@ -1,5 +1,6 @@
 package frc.robot.subsystems.intake;
 
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.PersistMode;
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
@@ -25,7 +26,6 @@ public class IntakeIOReal implements IntakeIO {
     // ── Roller ────────────────────────────────────────────────────────────────
     private final SparkMax rollerMotor = new SparkMax(IntakeConstants.INTAKE_MOTOR_ID, MotorType.kBrushless);
     private final RelativeEncoder rollerEncoder = rollerMotor.getEncoder();
-    private final ProfiledPID rollerPID = new ProfiledPID(IntakeConstants.ROLLER_PID_GAINS);
     private final SimpleFF rollerFF = new SimpleFF(IntakeConstants.ROLLER_FF_GAINS);
     private final Alert rollerDisconnect = new Alert(
             "Intake roller Spark disconnected, id: " + IntakeConstants.INTAKE_MOTOR_ID, AlertType.kError);
@@ -34,7 +34,7 @@ public class IntakeIOReal implements IntakeIO {
 
     // ── Pivot ─────────────────────────────────────────────────────────────────
     private final SparkMax pivotMotor = new SparkMax(IntakeConstants.PIVOT_MOTOR_ID, MotorType.kBrushless);
-    private final RelativeEncoder pivotEncoder = pivotMotor.getEncoder();
+    private final CANcoder pivotEncoder = new CANcoder(IntakeConstants.INTAKE_ENCODER_ID);
     private final ProfiledPID pivotPID = new ProfiledPID(IntakeConstants.PIVOT_PID_GAINS);
     private ArmFF pivotFF = new ArmFF(IntakeConstants.PIVOT_FF_GAINS);
     private final Alert pivotDisconnect = new Alert(
@@ -44,7 +44,6 @@ public class IntakeIOReal implements IntakeIO {
 
     public IntakeIOReal() {
         // Live-tuning callbacks
-        IntakeConstants.ROLLER_PID_GAINS.withCallback(() -> rollerPID.setGains(IntakeConstants.ROLLER_PID_GAINS));
         IntakeConstants.ROLLER_FF_GAINS.withCallback(() -> {
             rollerFF.setKs(IntakeConstants.ROLLER_FF_GAINS.kS);
             rollerFF.setKv(IntakeConstants.ROLLER_FF_GAINS.kV);
@@ -58,7 +57,6 @@ public class IntakeIOReal implements IntakeIO {
             pivotFF.setKa(IntakeConstants.PIVOT_FF_GAINS.kA);
         });
 
-        rollerPID.setTolerance(IntakeConstants.ROLLER_TOLERANCE.in(Units.RPM));
         pivotPID.setTolerance(IntakeConstants.PIVOT_TOLERANCE.in(Units.Radians));
 
         // Roller motor config
@@ -83,9 +81,8 @@ public class IntakeIOReal implements IntakeIO {
     public void updateInputs(IntakeIOInputs input) {
         // ── Roller closed-loop ─────────────────────────────────────────────────
         if (!rollerOpenLoop) {
-            double pid = rollerPID.calculate(rollerEncoder.getVelocity(), rollerSetpoint.in(Units.RPM));
-            double ff = rollerFF.calculate(rollerPID.getSetpoint().velocity);
-            rollerMotor.setVoltage(Units.Volts.of(pid + ff));
+            double ff = rollerFF.calculate(rollerSetpoint.in(Units.RPM));
+            rollerMotor.setVoltage(Units.Volts.of(ff));
         }
         input.rollerConnected = rollerMotor.getLastError() != REVLibError.kCANDisconnected;
         input.rollerVoltageOut = Units.Volts.of(rollerMotor.getAppliedOutput() * rollerMotor.getBusVoltage());
@@ -93,13 +90,12 @@ public class IntakeIOReal implements IntakeIO {
         input.rollerTemp = Units.Celsius.of(rollerMotor.getMotorTemperature());
         input.rollerVelocity = Units.RPM.of(rollerEncoder.getVelocity());
         input.rollerVelocitySetpoint = rollerSetpoint;
-        input.rollerAtSetpoint = rollerPID.atSetpoint();
         input.rollerOpenLoop = rollerOpenLoop;
         rollerDisconnect.set(!input.rollerConnected);
 
         // ── Pivot closed-loop ──────────────────────────────────────────────────
         if (!pivotOpenLoop) {
-            double pid = pivotPID.calculate(pivotEncoder.getPosition(), pivotGoal.in(Units.Radians));
+            double pid = pivotPID.calculate(pivotEncoder.getAbsolutePosition().getValue().in(Units.Radians), pivotGoal.in(Units.Radians));
             double ff = pivotFF.calculate(pivotPID.getSetpoint().position, pivotPID.getSetpoint().velocity);
             pivotMotor.setVoltage(Units.Volts.of(pid + ff));
         }
@@ -107,8 +103,8 @@ public class IntakeIOReal implements IntakeIO {
         input.pivotVoltageOut = Units.Volts.of(pivotMotor.getAppliedOutput() * pivotMotor.getBusVoltage());
         input.pivotCurrentOut = Units.Amps.of(pivotMotor.getOutputCurrent());
         input.pivotTemp = Units.Celsius.of(pivotMotor.getMotorTemperature());
-        input.pivotAngle = Units.Radians.of(pivotEncoder.getPosition());
-        input.pivotVelocity = Units.RadiansPerSecond.of(pivotEncoder.getVelocity());
+        input.pivotAngle = pivotEncoder.getAbsolutePosition().getValue();
+        input.pivotVelocity = pivotEncoder.getVelocity().getValue();
         input.pivotGoal = pivotGoal;
         input.pivotSetpointPos = Units.Radians.of(pivotPID.getSetpoint().position);
         input.pivotSetpointVel = Units.RadiansPerSecond.of(pivotPID.getSetpoint().velocity);
@@ -141,8 +137,4 @@ public class IntakeIOReal implements IntakeIO {
         pivotMotor.setVoltage(voltage);
     }
 
-    @Override
-    public void zeroPivot() {
-        pivotEncoder.setPosition(0.0);
-    }
 }

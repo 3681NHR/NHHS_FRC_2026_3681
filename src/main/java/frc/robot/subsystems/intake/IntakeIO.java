@@ -28,9 +28,6 @@ public interface IntakeIO {
     /** Open-loop: applies a fixed voltage to the pivot. */
     public default void setPivotVoltage(Voltage voltage) {}
 
-    /** Zeroes the pivot encoder at the current position. */
-    public default void zeroPivot() {}
-
     @AutoLog
     public class IntakeIOInputs {
         // Roller
@@ -39,7 +36,6 @@ public interface IntakeIO {
         public Temperature rollerTemp = Celsius.zero();
         public AngularVelocity rollerVelocity = RPM.zero();
         public AngularVelocity rollerVelocitySetpoint = RPM.zero();
-        public boolean rollerAtSetpoint = false;
         public boolean rollerOpenLoop = false;
         public boolean rollerConnected = false;
 
