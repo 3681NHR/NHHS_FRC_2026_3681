@@ -23,7 +23,7 @@ import frc.utils.motorWrappers.SparkMax;
 
 public class IntakeIOReal implements IntakeIO {
 
-    // ── Roller ────────────────────────────────────────────────────────────────
+    //  Roller 
     private final SparkMax rollerMotor = new SparkMax(IntakeConstants.INTAKE_MOTOR_ID, MotorType.kBrushless);
     private final RelativeEncoder rollerEncoder = rollerMotor.getEncoder();
     private final SimpleFF rollerFF = new SimpleFF(IntakeConstants.ROLLER_FF_GAINS);
@@ -32,7 +32,7 @@ public class IntakeIOReal implements IntakeIO {
     private boolean rollerOpenLoop = false;
     private AngularVelocity rollerSetpoint = Units.RPM.zero();
 
-    // ── Pivot ─────────────────────────────────────────────────────────────────
+    //  Pivot 
     private final SparkMax pivotMotor = new SparkMax(IntakeConstants.PIVOT_MOTOR_ID, MotorType.kBrushless);
     private final CANcoder pivotEncoder = new CANcoder(IntakeConstants.INTAKE_ENCODER_ID);
     private final ProfiledPID pivotPID = new ProfiledPID(IntakeConstants.PIVOT_PID_GAINS);
@@ -79,7 +79,7 @@ public class IntakeIOReal implements IntakeIO {
 
     @Override
     public void updateInputs(IntakeIOInputs input) {
-        // ── Roller closed-loop ─────────────────────────────────────────────────
+        //  Roller closed-loop 
         if (!rollerOpenLoop) {
             double ff = rollerFF.calculate(rollerSetpoint.in(Units.RPM));
             rollerMotor.setVoltage(Units.Volts.of(ff));
@@ -93,7 +93,7 @@ public class IntakeIOReal implements IntakeIO {
         input.rollerOpenLoop = rollerOpenLoop;
         rollerDisconnect.set(!input.rollerConnected);
 
-        // ── Pivot closed-loop ──────────────────────────────────────────────────
+        //  Pivot closed-loop 
         if (!pivotOpenLoop) {
             double pid = pivotPID.calculate(pivotEncoder.getAbsolutePosition().getValue().in(Units.Radians), pivotGoal.in(Units.Radians));
             double ff = pivotFF.calculate(pivotPID.getSetpoint().position, pivotPID.getSetpoint().velocity);
