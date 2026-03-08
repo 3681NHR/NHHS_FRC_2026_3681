@@ -119,7 +119,7 @@ public class RobotContainer {
     private Climber climber;
     private Hood hood;
 
-    private Led led = new Led(launcher, hood, turret, drive);
+    private Led led;
 
     private final XboxController driverController = new XboxController(OperatorConstants.DRIVER_CONTROLLER_PORT);
     private final XboxController operatorController = new XboxController(OperatorConstants.OPERATOR_CONTROLLER_PORT);
@@ -311,6 +311,7 @@ public class RobotContainer {
                 hood = new Hood(new HoodIO() {});
                 break;
         }
+        led = new Led(launcher, hood, turret, drive);
 
         // build pathplanner autos and put in dashboard
         // autoChooser = new LoggedDashboardChooser<>("Auto Choices",

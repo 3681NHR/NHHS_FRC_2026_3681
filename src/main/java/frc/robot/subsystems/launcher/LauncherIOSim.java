@@ -16,6 +16,7 @@ import frc.utils.controlWrappers.SimpleFF;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.LauncherConstants.*;
 
@@ -37,8 +38,8 @@ public class LauncherIOSim implements LauncherIO {
         speed = RadiansPerSecond.of(sim.getOutput().get(1,0));
 
         if(!openLoop){
-            vout = Volts.of(pid.calculate(speed.in(RPM), goal.in(RPM)));
-            vout = vout.plus(Volts.of(ff.calculate(goal.in(RPM))));
+            vout = Volts.of(pid.calculate(speed.in(RotationsPerSecond), goal.in(RotationsPerSecond)));
+            vout = vout.plus(Volts.of(ff.calculate(goal.in(RotationsPerSecond))));
             //set min out to 0v
             // vout = Volts.of(Math.max(0, vout.in(Volts)));
         }
