@@ -295,7 +295,10 @@ public class ModuleIOCrackingSpark implements ModuleIO {
     public void setTurnPosition(Angle rotation) {
         turnGoal = Radians.of(MathUtil.inputModulus(rotation.in(Radians), Module.TURN_MIN_POS.in(Radians), Module.TURN_MAX_POS.in(Radians)));
         turnClosedLoop = true;
+        // First, advance the profiled PID to the new goal to update its internal setpoint
+        double pidVolts = turnPID.calculate(turnEncoder.getPosition(), turnGoal.in(Radians));
+        // Then compute feedforward from the updated setpoint velocity
         double ffVolts = turnFF.calculate(turnPID.getSetpoint().velocity);
-        turnSpark.setVoltage(ffVolts + turnPID.calculate(turnEncoder.getPosition(), turnGoal.in(Radians)));
+        turnSpark.setVoltage(ffVolts + pidVolts);
     }
 }
