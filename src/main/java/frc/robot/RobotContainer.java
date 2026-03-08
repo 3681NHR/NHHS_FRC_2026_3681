@@ -120,6 +120,7 @@ public class RobotContainer {
     private Hood hood;
 
     private Led led;
+    private boolean manual = true;
 
     private final XboxController driverController = new XboxController(OperatorConstants.DRIVER_CONTROLLER_PORT);
     private final XboxController operatorController = new XboxController(OperatorConstants.OPERATOR_CONTROLLER_PORT);
@@ -311,7 +312,7 @@ public class RobotContainer {
                 hood = new Hood(new HoodIO() {});
                 break;
         }
-        led = new Led(launcher, hood, turret, drive);
+        led = new Led(launcher, hood, turret, drive, () -> manual);
 
         // build pathplanner autos and put in dashboard
         // autoChooser = new LoggedDashboardChooser<>("Auto Choices",
@@ -517,23 +518,36 @@ public class RobotContainer {
             new ParallelCommandGroup(
                 turret.trackWithLead(),
                 launcher.velocityControl(() -> SOTMSolver.getInstance().getParams(false).speed()),
-                hood.positionControl(() -> SOTMSolver.getInstance().getParams(false).hoodAngle())
+                hood.positionControl(() -> SOTMSolver.getInstance().getParams(false).hoodAngle()),
+                new InstantCommand(() -> {
+                    manual = false;
+                })
             ).withName("track with lead"),
 
             new ParallelCommandGroup(
                 turret.track(() -> target),
                 launcher.velocityControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).speed()),
-                hood.positionControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).hoodAngle())
+                hood.positionControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).hoodAngle()),
+                new InstantCommand(() -> {
+                    manual = false;
+                })
             ).withName("track without lead"),
-        useLead::get);
+        useLead::get).finallyDo(() -> {
+            manual = true;
+        });
     }
 
     public Command getManShooterCommand(){
         return new ParallelCommandGroup(
             turret.manPos(() -> Degrees.of(manTurretDegrees.getAsDouble()), false),
             launcher.velocityControl(() -> RPM.of(manShooterRPM.getAsDouble())),
-            hood.positionControl(() -> Degrees.of(manHoodDegrees.getAsDouble()))
-        ).withName("manual targeting");
+            hood.positionControl(() -> Degrees.of(manHoodDegrees.getAsDouble())),
+            new InstantCommand(() -> {
+                manual = true;
+            })
+        ).finallyDo(() -> {
+            manual = false;
+        }).withName("manual targeting");
     }
 
     public Command getSimFireCommand(){

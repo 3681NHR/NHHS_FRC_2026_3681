@@ -22,7 +22,6 @@ public class Hood extends SubsystemBase {
     HoodIOInputsAutoLogged in = new HoodIOInputsAutoLogged();
 
     boolean homing = false;
-    boolean manual = false;
 
     public Hood(HoodIO io){
         this.io = io;
@@ -37,23 +36,15 @@ public class Hood extends SubsystemBase {
         
     }
 
-    public Command trackWithLead(){
-        return positionControl(() -> SOTMSolver.getInstance().getParams(false).hoodAngle()).withName("SOTM position control");
-    }
-
     /**
      * position control, soft limits apply, and setpoint is clamped
      * @param pos
      * @return
      */
     public Command positionControl(Supplier<Angle> pos){
-        return new InstantCommand(() -> {
-            manual = true;
-        }).andThen(Commands.run(() -> {
+        return Commands.run(() -> {
             io.setGoal(ExtraMath.clamp(pos.get(), HOOD_MIN_ANGLE, HOOD_MAX_ANGLE));
-        }, this)).finallyDo(() -> {
-            manual = false;
-        }).withName("position control");
+        }, this).withName("position control");
     }
 
     /**
@@ -120,7 +111,4 @@ public class Hood extends SubsystemBase {
         return homing;
     }
 
-    public boolean isManual(){
-        return manual;
-    }
 }

@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.Percent;
 
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
@@ -25,6 +26,8 @@ public class Led extends SubsystemBase {
     Turret turret;
     Drive drive;
 
+    BooleanSupplier manualSupplier;
+
     private AddressableLED led = new AddressableLED(0);
     private AddressableLEDBuffer buffer = new AddressableLEDBuffer(71+47);
     private AddressableLEDBufferView sideBuffer = new AddressableLEDBufferView(buffer, 71, 71+46);
@@ -35,7 +38,8 @@ public class Led extends SubsystemBase {
     public Led(Launcher launcher,
     Hood hood,
     Turret turret,
-    Drive drive) {
+    Drive drive,
+    BooleanSupplier manualSupplier) {
 
         led.setLength(buffer.getLength());
 
@@ -45,13 +49,14 @@ public class Led extends SubsystemBase {
         this.hood =  hood;
         this.turret =  turret;
         this.drive =  drive;
+        this.manualSupplier = manualSupplier;
     }
 
     @Override
     public void periodic() {
 
         Color turretState = turret.isReady() && launcher.isReady() && hood.isReady() ? Color.kGreen : Color.kBlack;
-        if(hood.isManual()){
+        if(manualSupplier.getAsBoolean()){
             turretState = Color.kWhite;
         }
         if(!hood.isHomed()){
