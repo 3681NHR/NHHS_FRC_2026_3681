@@ -14,14 +14,14 @@ public interface IntakeIO {
 
     public default void updateInputs(IntakeIOInputs input) {}
 
-    // ── Roller ───────────────────────────────────────────────────────────────
+    //  Roller 
     /** Closed-loop: sets the roller velocity setpoint. */
     public default void setRollerVelocity(AngularVelocity velocity) {}
 
     /** Open-loop: applies a fixed voltage to the roller. */
     public default void setRollerVoltage(Voltage voltage) {}
 
-    // ── Pivot ─────────────────────────────────────────────────────────────────
+    //  Pivot 
     /** Closed-loop: sets the pivot goal angle. */
     public default void setPivotGoal(Angle goal) {}
 

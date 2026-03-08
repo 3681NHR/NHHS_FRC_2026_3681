@@ -28,7 +28,7 @@ public class Intake extends SubsystemBase {
                 getCurrentCommand() == null ? "none" : getCurrentCommand().getName());
     }
 
-    // ── Roller commands ───────────────────────────────────────────────────────
+    //  Roller commands 
 
     /**
      * Closed-loop: spins the roller at the given velocity setpoint continuously.
@@ -72,7 +72,7 @@ public class Intake extends SubsystemBase {
                 .withName("Stop Roller");
     }
 
-    // ── Pivot commands ────────────────────────────────────────────────────────
+    //  Pivot commands 
 
     /**
      * Deploys the intake pivot to the floor-facing position (closed-loop).

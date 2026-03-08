@@ -9,11 +9,11 @@ import frc.utils.controlWrappers.PIDGains;
 
 public class IntakeConstants {
 
-    // ── CAN IDs ───────────────────────────────────────────────────────────────
+    //  CAN IDs 
     public static final int INTAKE_MOTOR_ID = 42; // TODO: set real CAN ID
     public static final int PIVOT_MOTOR_ID  = 52; // TODO: set real CAN ID
     public static final int INTAKE_ENCODER_ID = 34; // TODO: set real CAN ID
-    // ── Roller ────────────────────────────────────────────────────────────────
+    //  Roller 
     public static final boolean ROLLER_INVERTED           = false;
     public static final int     ROLLER_SMART_CURRENT_LIMIT = 40; // amps
 
@@ -30,7 +30,7 @@ public class IntakeConstants {
             new PIDGains.SimpleFF(0.0, 0.0, 0.0)
                     .makeTunable("Tuning/Intake/Roller/FF");
 
-    // ── Pivot ─────────────────────────────────────────────────────────────────
+    //  Pivot 
     public static final boolean PIVOT_INVERTED            = false;
     public static final int     PIVOT_SMART_CURRENT_LIMIT = 30; // amps
 

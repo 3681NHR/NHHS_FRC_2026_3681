@@ -14,14 +14,14 @@ import frc.utils.controlWrappers.SimpleFF;
 
 public class IntakeIOSim implements IntakeIO {
 
-    // ── Roller ────────────────────────────────────────────────────────────────
+    //  Roller 
     private final SimpleFF rollerFF = new SimpleFF(IntakeConstants.ROLLER_FF_GAINS);
     private boolean rollerOpenLoop = false;
     private AngularVelocity rollerSetpoint = Units.RPM.zero();
     private AngularVelocity rollerVelocity = Units.RPM.zero();
     private double rollerAppliedVolts = 0.0;
 
-    // ── Pivot ─────────────────────────────────────────────────────────────────
+    //  Pivot 
     private final ProfiledPID pivotPID = new ProfiledPID(IntakeConstants.PIVOT_PID_GAINS);
     private final ArmFF pivotFF = new ArmFF(IntakeConstants.PIVOT_FF_GAINS);
     private boolean pivotOpenLoop = false;
@@ -39,7 +39,7 @@ public class IntakeIOSim implements IntakeIO {
         double battery = RobotController.getBatteryVoltage();
         double dt = Constants.EVENT_LOOP_TIME;
 
-        // ── Roller ─────────────────────────────────────────────────────────────
+        //  Roller 
         if (!rollerOpenLoop) {
             double ff = rollerFF.calculate(rollerSetpoint.in(Units.RPM));
             rollerAppliedVolts = MathUtil.clamp(ff, -battery, battery);
@@ -56,7 +56,7 @@ public class IntakeIOSim implements IntakeIO {
         input.rollerVelocitySetpoint = rollerSetpoint;
         input.rollerOpenLoop = rollerOpenLoop;
 
-        // ── Pivot ───────────────────────────────────────────────────────────────
+        //  Pivot 
         if (!pivotOpenLoop) {
             double pid = pivotPID.calculate(pivotAngle.in(Units.Radians), pivotGoal.in(Units.Radians));
             double ff = pivotFF.calculate(pivotPID.getSetpoint().position, pivotPID.getSetpoint().velocity);
