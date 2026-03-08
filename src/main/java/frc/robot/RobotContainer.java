@@ -407,9 +407,9 @@ public class RobotContainer {
             getSimFireCommand()
         );
         // intake :3
-        new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5).whileTrue(new InstantCommand(() -> {
-            intake.intake();
-        })).onFalse(intake.retract());
+        new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5)
+                .whileTrue(intake.intake())
+                .onFalse(intake.retract());
 
         // TODO: placeholder binding to shooting in sim, remove before running on robot
         // new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7).whileTrue(new InstantCommand(() -> {
