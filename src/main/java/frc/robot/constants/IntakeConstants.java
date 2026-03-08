@@ -37,10 +37,10 @@ public class IntakeConstants {
     /** Gear ratio between the motor and the pivot joint. */
     private static final double PIVOT_GEAR_RATIO = 1.0; // TODO: set real gear ratio
 
-    /** Converts encoder rotations → radians at the pivot joint. */
+    /** Converts encoder rotations -> radians at the pivot joint. */
     public static final double PIVOT_POSITION_CONVERSION_FACTOR = (2.0 * Math.PI) / PIVOT_GEAR_RATIO;
 
-    /** Converts encoder RPM → rad/s at the pivot joint. */
+    /** Converts encoder RPM -> rad/s at the pivot joint. */
     public static final double PIVOT_VELOCITY_CONVERSION_FACTOR = PIVOT_POSITION_CONVERSION_FACTOR / 60.0;
 
     /** Goal angle tolerance. */
