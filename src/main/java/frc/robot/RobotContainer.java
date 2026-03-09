@@ -107,6 +107,11 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.subsystems.kicker.Kicker;
+import frc.robot.subsystems.kicker.KickerIO;
+import frc.robot.subsystems.kicker.KickerIOReal;
+import frc.robot.subsystems.kicker.KickerIOSim;
+import frc.robot.constants.Constants.RobotMode;
 
 public class RobotContainer {
     private LoggedDashboardChooser<Command> sysidChooser = new LoggedDashboardChooser<Command>("sysid auto chooser");
@@ -122,6 +127,7 @@ public class RobotContainer {
     private Climber climber;
     private Hood hood;
     private Intake intake;
+    private Kicker kicker;
 
     private Led led;
     private boolean manual = true;
@@ -239,6 +245,7 @@ public class RobotContainer {
                 launcher = new Launcher(new LauncherIOReal());
                 hood = new Hood(new HoodIOReal());
                 climber = new Climber(new ClimberIOReal());
+                kicker = new Kicker(new KickerIOReal());
                 break;
 
             case SIM:
@@ -264,17 +271,18 @@ public class RobotContainer {
                             vision,
                             driverSticks,
                             led);
-                SOTMSolver.getInstance().setDrive(drive);
-                SOTMSolver.getInstance().calculate();
+                    SOTMSolver.getInstance().setDrive(drive);
+                    SOTMSolver.getInstance().calculate();
                 
                     fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG,
                             driveSim::getSimulatedDriveTrainPose), drive::getPose);
-                    turret = new Turret(new TurretIOSim(), drive);
-                    launcher = new Launcher(new LauncherIOSim());
-                    hood = new Hood(new HoodIOSim());
-                    intake = new Intake(new IntakeIOSim());
-                    climber = new Climber(new ClimberIOSim());
                 }
+                turret = new Turret(new TurretIOSim(), drive);
+                launcher = new Launcher(new LauncherIOSim());
+                hood = new Hood(new HoodIOSim());
+                intake = new Intake(new IntakeIOSim());
+                climber = new Climber(new ClimberIOSim());
+                kicker = new Kicker(new KickerIOSim());
                 break;
 
             default:
@@ -313,6 +321,8 @@ public class RobotContainer {
                 climber = new Climber(new ClimberIO() {
                 });
                 hood = new Hood(new HoodIO() {});
+                
+                kicker = new Kicker(new KickerIO() {});
                 break;
         }
         led = new Led(launcher, hood, turret, drive, () -> manual);
@@ -383,10 +393,6 @@ public class RobotContainer {
             opRumbler.overrideQue(RumblePreset.TAP.load());
         }));
 
-        // ------------------------------------------------------------------------------
-        // driver controls
-        // ------------------------------------------------------------------------------
-
         // move wheels to X, makes robot hard to push
         new Trigger(() -> driverController.getRawButton(LOGO_RIGHT)).whileTrue(new InstantCommand(() -> {
             drive.stopWithX();
@@ -406,36 +412,16 @@ public class RobotContainer {
         
         // TODO: add real feed command
         new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7 && turret.isReady() && launcher.isReady() && hood.isReady()).whileTrue(
-            getSimFireCommand()
+            new HiddenConditionalCommand(
+                getSimFireCommand(),
+                kicker.run(),
+                () -> Constants.MODE == RobotMode.SIM
+            )
         );
         // intake :3
         new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5)
                 .whileTrue(intake.intake());
                 // .onFalse(intake.retract());
-
-        // TODO: placeholder binding to shooting in sim, remove before running on robot
-        // new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7).whileTrue(new InstantCommand(() -> {
-        //         double launchvel = (launcher.getSpeed().in(RPM)-2500)*2*Math.PI*Units.inchesToMeters(2)/60;
-        //         double angle = launchLUT.get(target.getDistance(turret.getFieldPos()), true, launchLUT.LUTHub)[0];
-        //         GamePieceProjectile fuel = new GamePieceProjectile(
-        //                 RebuiltFuelOnField.REBUILT_FUEL_INFO,
-        //                 driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
-        //                         Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
-        //                         Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()
-        //                 )),
-        //                 new Translation2d(
-        //                         ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + Math.cos(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel,
-        //                         ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + Math.sin(drive.getRotation().getRadians() + turret.getAngle().in(Radians))*Math.cos(angle)*launchvel
-        //                 ),
-        //                 Units.inchesToMeters(20),
-        //                 Math.sin(angle)*launchvel,
-        //                 new Rotation3d()
-        //                 );
-                
-        //         fuel.withTouchGroundHeight(Inches.of(3).in(Meters));
-        //         fuel.enableBecomesGamePieceOnFieldAfterTouchGround();
-        //         SimulatedArena.getInstance().addGamePieceProjectile(fuel);
-        // }).andThen(new WaitCommand(0.1)).repeatedly());
 
         // force teleop drive
         new Trigger(() -> driverController.getPOV() == ControllerMap.UP).onTrue(drive.teleopDrive());
@@ -454,22 +440,16 @@ public class RobotContainer {
         new Trigger(() -> driverController.getRawButton(A)).onTrue(
             getManShooterCommand()
         );
-        //intake
-        // new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5).whileTrue(
-        // null// TODO: intake
-        // );
         // //lower hood for trench(should be auto also)(hold)
         // new Trigger(() -> driverController.getRawButton(X)).whileTrue(
         // null // TODO: lower hood for trench(should be auto also)(hold)
         // );
-        // climber? i hardly know 'er
 
-        new Trigger(() -> driverController.getPOV() == ControllerMap.RIGHT).onTrue(climber.extend());
-        new Trigger(() -> driverController.getPOV() == ControllerMap.DOWN).onTrue(climber.retract());
-
-        // ------------------------------------------------------------------------------
-        // operator controls
-        // ------------------------------------------------------------------------------
+        new Trigger(() -> driverController.getPOV() == ControllerMap.RIGHT).onTrue(hood.home());
+        new Trigger(() -> driverController.getPOV() == ControllerMap.LEFT).onTrue(climber.home());
+        
+        new Trigger(() -> driverController.getRawButton(LB)).onTrue(climber.extend());
+        new Trigger(() -> driverController.getRawButton(RB)).onTrue(climber.retract());
 
     }
 

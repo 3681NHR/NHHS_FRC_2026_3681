@@ -1,62 +1,38 @@
 package frc.robot.constants;
 
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Radians;
-
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import frc.utils.controlWrappers.PIDGains;
 
 public class IntakeConstants {
 
-    //  CAN IDs 
-    public static final int INTAKE_MOTOR_ID = 42; // TODO: set real CAN ID
-    public static final int PIVOT_MOTOR_ID  = 52; // TODO: set real CAN ID
-    public static final int INTAKE_ENCODER_ID = 34; // TODO: set real CAN ID
-    //  Roller 
-    public static final boolean ROLLER_INVERTED           = false;
-    public static final int     ROLLER_SMART_CURRENT_LIMIT = 40; // amps
+    public static final int INTAKE_ROLLER_MOTOR_ID = 42;
 
-    /** Velocity setpoint tolerance. */
-    public static final AngularVelocity ROLLER_TOLERANCE = RPM.of(50.0);
+    public static final int INTAKE_PIVOT_MOTOR_ID  = 52;
+    public static final int INTAKE_PIVOT_ENCODER_ID = 34;
 
-    /** Intake velocity setpoint. */
-    public static final AngularVelocity INTAKE_VELOCITY = RPM.of(1000.0); // TODO: tune
+    public static final boolean INTAKE_ROLLER_INVERTED = false;
+    public static final Current INTAKE_ROLLER_CURRENT_LIM = Amps.of(30);
+    
+    public static final boolean INTAKE_PIVOT_INVERTED = false;
+    public static final Current INTAKE_PIVOT_CURRENT_LIMIT = Amps.of(30);
 
-    /** Eject velocity setpoint (negative = reverse). */
-    public static final AngularVelocity EJECT_VELOCITY = RPM.of(-500.0); // TODO: tune
+    public static final AngularVelocity INTAKE_RUN_VELOCITY = RPM.of(1000.0); // TODO: tune(10/kv should work)
+    public static final AngularVelocity INTAKE_EJECT_VELOCITY = RPM.of(-500.0); // TODO: tune
 
-    public static final PIDGains.SimpleFF ROLLER_FF_GAINS =
-            new PIDGains.SimpleFF(0.0, 0.0, 0.0)
-                    .makeTunable("Tuning/Intake/Roller/FF");
+    public static final PIDGains.SimpleFF INTAKE_ROLLER_FF_GAINS = new PIDGains.SimpleFF(0.0, 0.0, 0.0).makeTunable("Tuning/Intake/Roller/FF");
+    
+    public static final Angle INTAKE_STOWED_ANGLE = Degrees.of(0);   // TODO: tune
+    public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(90);   // TODO: tune
 
-    //  Pivot 
-    public static final boolean PIVOT_INVERTED            = false;
-    public static final int     PIVOT_SMART_CURRENT_LIMIT = 30; // amps
+    public static final Angle INTAKE_PIVOT_TOLERANCE = Degrees.of(5);// TODO: tune
 
-    /** Gear ratio between the motor and the pivot joint. */
-    private static final double PIVOT_GEAR_RATIO = 1.0; // TODO: set real gear ratio
+    public static final PIDGains.GravityFF INTAKE_PIVOT_ID_GAINS =new PIDGains.GravityFF(0.0, 0.0, 0.1, 0.001);
 
-    /** Converts encoder rotations -> radians at the pivot joint. */
-    public static final double PIVOT_POSITION_CONVERSION_FACTOR = (2.0 * Math.PI) / PIVOT_GEAR_RATIO;
-
-    /** Converts encoder RPM -> rad/s at the pivot joint. */
-    public static final double PIVOT_VELOCITY_CONVERSION_FACTOR = PIVOT_POSITION_CONVERSION_FACTOR / 60.0;
-
-    /** Goal angle tolerance. */
-    public static final Angle PIVOT_TOLERANCE = Radians.of(0.05); // ~3 degrees
-
-    /** Stowed (retracted) pivot angle. */
-    public static final Angle STOWED_ANGLE   = Radians.of(0.0);   // TODO: tune
-
-    /** Deployed (floor-facing) pivot angle. */
-    public static final Angle DEPLOYED_ANGLE = Radians.of(1.5);   // TODO: tune (~86 degrees)
-
-    public static final PIDGains.ProfiledPID PIVOT_PID_GAINS =
-            new PIDGains.ProfiledPID(0.0, 0.0, 0.0, 5.0, 10.0)
-                    .makeTunable("Tuning/Intake/Pivot/PID");
-
-    public static final PIDGains.GravityFF PIVOT_FF_GAINS =
-            new PIDGains.GravityFF(0.0, 0.0, 0.0, 0.0)
-                    .makeTunable("Tuning/Intake/Pivot/FF");
+    public static final PIDGains.GravityFF INTAKE_PIVOT_FF_GAINS =new PIDGains.GravityFF(0.0, 0.0, 0.0, 0.0).makeTunable("Tuning/Intake/Pivot/FF");
+    public static final PIDGains.ProfiledPID INTAKE_PIVOT_PID_GAINS = new PIDGains.ProfiledPID(0.0, 0.0, 0.0, 5.0, 10.0).makeTunable("Tuning/Intake/Pivot/PID");
 }

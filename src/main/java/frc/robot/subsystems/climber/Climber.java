@@ -2,10 +2,14 @@ package frc.robot.subsystems.climber;
 
 import static edu.wpi.first.units.Units.Meters;
 
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ClimbConstants;
 
@@ -24,26 +28,51 @@ public class Climber extends SubsystemBase {
         Logger.processInputs("IO/Climber", in);
         Logger.recordOutput("Subsystems/Climber/state", (getCurrentCommand() == null ? "none" : getCurrentCommand().getName()));
     }
-    /**
-     * extends the climber to 1.0 (placeholder value, will be tuned later)
-     */
-    public Command extend() {
-        // FIXME: placeholder value
-        return runOnce(() -> io.setGoal(ClimbConstants.EXTEND_POSITION));
+
+    public Command voltageControl(Supplier<Voltage> volts) {
+        return run(() -> io.setVoltage(volts));
     }
-    /**
-     * retracts the climber to 0
-     */
-    public Command retract() {
-        return runOnce(() -> io.setGoal(ClimbConstants.MIN_POSITION));
+
+    public Command positionControl(Supplier<Distance> pos) {
+        return run(() -> io.setGoal(pos));
     }
-    /**
-     * set encoder position to 0 (for button)
-     */
+    
     public Command zeroEncoder() {
         return runOnce(() -> io.zeroEncoder());
     }
-    public Command setVoltage(Voltage volts) {
-        return runOnce(() -> io.setVoltage(volts));
+
+    
+    /**
+     * reset angle to min value and set homed to true
+     * @return
+     */
+    public Command forceHome(){
+        return new InstantCommand(() -> {
+            io.setHomed(true);
+            io.setPos(CLIMBER_MIN_POS);
+        }, this).withName("force home");
+    }
+
+    /**
+     * uses voltage commands to auto home
+     * @return
+     */
+    public Command home(){
+
+        Command c = new InstantCommand(() -> {
+            io.setHomed(false);
+        }).andThen(new HomeCommand(
+            CLIMBER_HOME_VOLTAGE, 
+            CLIMBER_HOME_STOP_TIME, 
+            () -> HOOD_HOME_STOP_THRESH.gte(in.velocity),
+            v -> io.setVout(v),
+            () -> {
+                io.setPos(HOOD_MIN_ANGLE);
+                io.setHomed(true);
+                io.setGoal(HOOD_MIN_ANGLE);
+            }));
+        c.addRequirements(this);
+        c.setName("auto home");
+        return c;
     }
 }

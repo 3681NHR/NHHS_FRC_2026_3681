@@ -94,6 +94,7 @@ public class Hood extends SubsystemBase {
         c.setName("auto home");
         return c;
     }
+    
     public Angle getAngle(){
         return in.angle;
     }
