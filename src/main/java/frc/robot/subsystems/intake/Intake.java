@@ -1,8 +1,11 @@
 package frc.robot.subsystems.intake;
 
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -52,10 +55,7 @@ public class Intake extends SubsystemBase {
      * Spins the roller at the configured intake velocity setpoint (closed-loop).
      */
     public Command intake() {
-        return new ParallelCommandGroup(
-                deploy(),
-                velocityControl(IntakeConstants.INTAKE_VELOCITY)
-                ).withName("Intake");
+        return pivotPositionControl(() -> IntakeConstants.DEPLOYED_ANGLE).andThen(velocityControl(IntakeConstants.INTAKE_VELOCITY)).withName("Intake");
     }
 
     /**
@@ -74,25 +74,8 @@ public class Intake extends SubsystemBase {
 
     //  Pivot commands 
 
-    /**
-     * Deploys the intake pivot to the floor-facing position (closed-loop).
-     * Returns immediately; the pivot tracks the goal in {@link #periodic}.
-     */
-    public Command deploy() {
-        return runOnce(() -> io.setPivotGoal(IntakeConstants.DEPLOYED_ANGLE))
-                .withName("Deploy Intake");
-    }
-
-    /**
-     * Retracts the intake pivot to the stowed position (closed-loop).
-     * Returns immediately; the pivot tracks the goal in {@link #periodic}.
-     */
-    public Command retract() {
-        return new ParallelCommandGroup(runOnce(() -> io.setPivotGoal(IntakeConstants.STOWED_ANGLE)), velocityControl(Units.RPM.zero()))
-                .withName("Retract Intake");
-    }
-
-    public Command defaultCommand() {
-        return new ParallelCommandGroup(voltageControl(Units.Volts.zero()), runOnce(() -> io.setPivotVoltage(Units.Volts.zero())));
+    public Command pivotPositionControl(Supplier<Angle> pos) {
+        return runOnce(() -> io.setPivotGoal(pos.get()))
+                .withName("Intake pivot control");
     }
 }

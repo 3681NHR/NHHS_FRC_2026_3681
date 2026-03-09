@@ -27,6 +27,7 @@ import frc.robot.subsystems.hood.HoodIOReal;
 import frc.robot.subsystems.hood.HoodIOSim;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIOReal;
+import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.launcher.Launcher;
 import frc.robot.subsystems.launcher.LauncherIO;
 import frc.robot.subsystems.launcher.LauncherIOReal;
@@ -234,12 +235,9 @@ public class RobotContainer {
                 fuelVision = new FuelVision(new FuelVisionIOPhoton(FuelVisionConstants.CAMERA_CONFIG), drive::getPose);
 
                 turret = new Turret(new TurretIOReal(), drive);
-                // turret = new Turret(new TurretIO() {}, drive);
                 intake = new Intake(new IntakeIOReal());
                 launcher = new Launcher(new LauncherIOReal());
-                // launcher = new Launcher(new LauncherIO(){});
                 hood = new Hood(new HoodIOReal());
-                // hood = new Hood(new HoodIO(){});
                 climber = new Climber(new ClimberIOReal());
                 break;
 
@@ -273,7 +271,8 @@ public class RobotContainer {
                             driveSim::getSimulatedDriveTrainPose), drive::getPose);
                     turret = new Turret(new TurretIOSim(), drive);
                     launcher = new Launcher(new LauncherIOSim());
-                hood = new Hood(new HoodIOSim());
+                    hood = new Hood(new HoodIOSim());
+                    intake = new Intake(new IntakeIOSim());
                     climber = new Climber(new ClimberIOSim());
                 }
                 break;
@@ -364,7 +363,7 @@ public class RobotContainer {
 
         hood.setDefaultCommand(hood.positionControl(() -> hood.getAngle()).ignoringDisable(true));
         
-        intake.setDefaultCommand(intake.defaultCommand());
+        intake.setDefaultCommand(intake.stopRoller());
 
         climber.setDefaultCommand(climber.setVoltage(Volts.zero()));
     }
@@ -411,8 +410,8 @@ public class RobotContainer {
         );
         // intake :3
         new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5)
-                .whileTrue(intake.intake())
-                .onFalse(intake.retract());
+                .whileTrue(intake.intake());
+                // .onFalse(intake.retract());
 
         // TODO: placeholder binding to shooting in sim, remove before running on robot
         // new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7).whileTrue(new InstantCommand(() -> {
