@@ -15,56 +15,49 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Kicker extends SubsystemBase {
-
-  KickerIO io;
-  KickerIOInputsAutoLogged in = new KickerIOInputsAutoLogged();
-
-  private LoggedNetworkBoolean preloadEnabled = new LoggedNetworkBoolean("Overrides/Kicker Preload", true);
-
-  public Kicker(KickerIO io) {
-    this.io = io;
-  }
-
-  @Override
-  public void periodic() {
-    io.updateInputs(in);
-    Logger.processInputs("IO/Kicker", in);
-    Logger.recordOutput("Subsystems/Kicker/state",
-        (getCurrentCommand() == null ? "none" : getCurrentCommand().getName()));
-  }
-
-  public Command hold() {
-    return Commands.run(() -> {
-      if (preloadEnabled.get()) {
-        if (in.distance.lte(PRELOAD_DISTANCE_THRESHOLD)) {
-          io.setGoal(MetersPerSecond.zero());
-        } else if (in.distance.lte(PRELOAD_MAX_DISTANCE)) {
-          io.setGoal(PRELOAD_VELOCITY);
-        } else {
-          io.setGoal(MetersPerSecond.zero());
-        }
-      } else {
-        io.setGoal(MetersPerSecond.zero());
-      }
-    }, this).withName("Hold Ball");
-  }
-
-  public Command run() {
-    return Commands.run(() -> {
-      io.setGoal(SHOOT_VELOCITY);
-    }, this).withName("Run Kicker");
-  }
-
-  public Command velocityControl(Supplier<LinearVelocity> velocity) {
-    return Commands.run(() -> {
-      io.setGoal(velocity.get());
-    }, this).withName("Velocity Control");
-  }
-
-  public Command voltageControl(Supplier<Voltage> volt) {
-    return Commands.run(() -> {
-      io.setVout(volt.get());
-    }, this)
-        .withName("Voltage Control");
-  }
+	
+	KickerIO io;
+	KickerIOInputsAutoLogged in = new KickerIOInputsAutoLogged();
+	
+	private LoggedNetworkBoolean preloadEnabled = new LoggedNetworkBoolean("Overrides/Kicker Preload", true);
+	
+	public Kicker(KickerIO io) {
+		this.io = io;
+	}
+	
+	@Override
+	public void periodic() {
+		io.updateInputs(in);
+		Logger.processInputs("IO/Kicker", in);
+		Logger.recordOutput("Subsystems/Kicker/state", (getCurrentCommand() == null ? "none" : getCurrentCommand().getName()));
+	}
+	
+	public Command hold() {
+		return Commands.run(() -> {
+			if (preloadEnabled.get() && in.distance.lte(KICKER_PRELOAD_MAX_DISTANCE) && in.distance.gte(KICKER_PRELOAD_STOP_DISTANCE)) {
+				io.setGoal(KICKER_PRELOAD_VELOCITY);
+			} else {
+				io.setGoal(MetersPerSecond.zero());
+			}
+		}, this).withName("Hold");
+	}
+	
+	public Command run() {
+		return Commands.run(() -> {
+			io.setGoal(KICKER_FEED_VELOCITY);
+		}, this).withName("Feed");
+	}
+	
+	public Command velocityControl(Supplier<LinearVelocity> velocity) {
+		return Commands.run(() -> {
+			io.setGoal(velocity.get());
+		}, this).withName("Velocity Control");
+	}
+	
+	public Command voltageControl(Supplier<Voltage> volt) {
+		return Commands.run(() -> {
+			io.setVout(volt.get());
+		}, this)
+		.withName("Voltage Control");
+	}
 }

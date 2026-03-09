@@ -2,7 +2,7 @@ package frc.robot.constants;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Centimeters;
-import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Current;
@@ -20,8 +20,8 @@ public final class KickerConstants {
     public static final Distance KICKER_PRELOAD_STOP_DISTANCE = Centimeters.of(5);
     public static final Distance KICKER_PRELOAD_MAX_DISTANCE = Centimeters.of(22); // if the can range isnt detecting anything within this range, don't preload
 
-    public static final LinearVelocity KICKER_PRELOAD_VELOCITY = Centimeters.per(Second).of(1);
-    public static final LinearVelocity KICKER_FEED_VELOCITY = Centimeters.per(Second).of(1);
+    public static final LinearVelocity KICKER_PRELOAD_VELOCITY = Centimeters.per(Seconds).of(1);
+    public static final LinearVelocity KICKER_FEED_VELOCITY = Centimeters.per(Seconds).of(1);
 
     public static final PIDGains.SimpleFF KICKER_ID_GAINS = new PIDGains.SimpleFF(0.0, 0.1, 0.001);
 

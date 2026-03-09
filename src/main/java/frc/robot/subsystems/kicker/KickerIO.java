@@ -36,5 +36,7 @@ public interface KickerIO {
         public LinearVelocity goal = MetersPerSecond.zero();
 
         public boolean openLoop = false;
+        public boolean motorConnected = false;
+        public boolean sensorConnected = false;
     }
 }
