@@ -1,7 +1,5 @@
 package frc.robot.subsystems.climber;
 
-import static edu.wpi.first.units.Units.Meters;
-
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
@@ -11,7 +9,9 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.constants.ClimbConstants;
+import frc.robot.commands.HomeCommand;
+
+import static frc.robot.constants.ClimberConstants.*;
 
 public class Climber extends SubsystemBase {
     
@@ -30,26 +30,24 @@ public class Climber extends SubsystemBase {
     }
 
     public Command voltageControl(Supplier<Voltage> volts) {
-        return run(() -> io.setVoltage(volts));
+        return run(() -> io.setVoltage(volts.get()));
     }
 
     public Command positionControl(Supplier<Distance> pos) {
-        return run(() -> io.setGoal(pos));
+        return run(() -> io.setGoal(pos.get()));
     }
-    
-    public Command zeroEncoder() {
-        return runOnce(() -> io.zeroEncoder());
+    public Distance getPosition(){
+        return in.position;
     }
-
     
     /**
-     * reset angle to min value and set homed to true
+     * reset position to min value and set homed to true
      * @return
      */
     public Command forceHome(){
         return new InstantCommand(() -> {
             io.setHomed(true);
-            io.setPos(CLIMBER_MIN_POS);
+            io.setPosition(CLIMBER_MIN_POSITION);
         }, this).withName("force home");
     }
 
@@ -64,12 +62,12 @@ public class Climber extends SubsystemBase {
         }).andThen(new HomeCommand(
             CLIMBER_HOME_VOLTAGE, 
             CLIMBER_HOME_STOP_TIME, 
-            () -> HOOD_HOME_STOP_THRESH.gte(in.velocity),
-            v -> io.setVout(v),
+            () -> CLIMBER_HOME_STOP_THRESH.gte(in.velocity),
+            v -> io.setVoltage(v),
             () -> {
-                io.setPos(HOOD_MIN_ANGLE);
+                io.setPosition(CLIMBER_MIN_POSITION);
                 io.setHomed(true);
-                io.setGoal(HOOD_MIN_ANGLE);
+                io.setGoal(CLIMBER_MIN_POSITION);
             }));
         c.addRequirements(this);
         c.setName("auto home");

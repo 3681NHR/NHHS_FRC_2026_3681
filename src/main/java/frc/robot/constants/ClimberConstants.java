@@ -20,7 +20,7 @@ public class ClimberConstants {
     public static final boolean CLIMBER_INVERTED = false;
     public static final Current CLIMBER_CURRENT_LIM = Amps.of(30);
 
-    public static final Distance CLIMBER_EXTEND_POSITION = Meters.of(1);
+    public static final Distance CLIMBER_MAX_POSITION = Meters.of(1);
     public static final Distance CLIMBER_MIN_POSITION = Meters.of(0);
 
     public static final Distance CLIMBER_SETPOINT_TOLERANCE = Inches.of(1);
