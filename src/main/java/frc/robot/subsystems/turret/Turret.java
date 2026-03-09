@@ -22,7 +22,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.SOTMSolver;
-import frc.robot.subsystems.LaunchLUT;
 import frc.robot.subsystems.swerve.Drive;
 import frc.utils.ExtraMath;
 import edu.wpi.first.wpilibj.Alert;

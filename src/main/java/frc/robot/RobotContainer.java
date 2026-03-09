@@ -86,11 +86,9 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -129,7 +127,8 @@ public class RobotContainer {
     private Intake intake;
     private Kicker kicker;
 
-    private Led led;
+    @SuppressWarnings("unused")
+	private Led led;
     private boolean manual = true;
 
     private final XboxController driverController = new XboxController(OperatorConstants.DRIVER_CONTROLLER_PORT);
@@ -233,8 +232,7 @@ public class RobotContainer {
                         new ModuleIOCrackingSpark(2),
                         new ModuleIOCrackingSpark(3),
                         vision,
-                        driverSticks,
-                        led);
+                        driverSticks);
                 SOTMSolver.getInstance().setDrive(drive);
                 SOTMSolver.getInstance().calculate();
                 
@@ -269,8 +267,7 @@ public class RobotContainer {
                             new ModuleIOSim(driveSim.getModules()[2]),
                             new ModuleIOSim(driveSim.getModules()[3]),
                             vision,
-                            driverSticks,
-                            led);
+                            driverSticks);
                     SOTMSolver.getInstance().setDrive(drive);
                     SOTMSolver.getInstance().calculate();
                 
@@ -309,8 +306,7 @@ public class RobotContainer {
                         new ModuleIO() {
                         },
                         vision,
-                        driverSticks,
-                        led);
+                        driverSticks);
                 SOTMSolver.getInstance().setDrive(drive);
                 SOTMSolver.getInstance().calculate();
 

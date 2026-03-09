@@ -2,7 +2,6 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Percent;
 
-import java.util.Map;
 import java.util.function.BooleanSupplier;
 
 import org.littletonrobotics.junction.Logger;

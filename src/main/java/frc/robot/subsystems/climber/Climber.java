@@ -73,4 +73,12 @@ public class Climber extends SubsystemBase {
         c.setName("auto home");
         return c;
     }
+
+    public Command extend(){
+        return positionControl(() -> CLIMBER_MAX_POSITION);
+    }
+    
+    public Command retract(){
+        return positionControl(() -> CLIMBER_MIN_POSITION);
+    }
 }
