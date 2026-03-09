@@ -19,15 +19,20 @@ public class IntakeConstants {
     public static final Current INTAKE_ROLLER_CURRENT_LIM = Amps.of(30);
     
     public static final boolean INTAKE_PIVOT_INVERTED = false;
-    public static final Current INTAKE_PIVOT_CURRENT_LIMIT = Amps.of(30);
+    public static final Current INTAKE_PIVOT_CURRENT_LIM = Amps.of(30);
 
     public static final AngularVelocity INTAKE_RUN_VELOCITY = RPM.of(1000.0); // TODO: tune(10/kv should work)
     public static final AngularVelocity INTAKE_EJECT_VELOCITY = RPM.of(-500.0); // TODO: tune
 
     public static final PIDGains.SimpleFF INTAKE_ROLLER_FF_GAINS = new PIDGains.SimpleFF(0.0, 0.0, 0.0).makeTunable("Tuning/Intake/Roller/FF");
     
-    public static final Angle INTAKE_STOWED_ANGLE = Degrees.of(0);   // TODO: tune
-    public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(90);   // TODO: tune
+    //setpoints
+    public static final Angle INTAKE_STOWED_ANGLE = Degrees.of(100);   // TODO: tune
+    public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(0);   // TODO: tune
+
+    //hard stops
+    public static final Angle INTAKE_PIVOT_MIN_ANGLE = Degrees.of(-5);   // TODO: tune
+    public static final Angle INTAKE_PIVOT_MAX_ANGLE = Degrees.of(120);   // TODO: tune
 
     public static final Angle INTAKE_PIVOT_TOLERANCE = Degrees.of(5);// TODO: tune
 

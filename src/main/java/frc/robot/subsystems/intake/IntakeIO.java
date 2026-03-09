@@ -14,42 +14,41 @@ public interface IntakeIO {
 
     public default void updateInputs(IntakeIOInputs input) {}
 
-    //  Roller 
-    /** Closed-loop: sets the roller velocity setpoint. */
     public default void setRollerVelocity(AngularVelocity velocity) {}
 
-    /** Open-loop: applies a fixed voltage to the roller. */
     public default void setRollerVoltage(Voltage voltage) {}
 
-    //  Pivot 
-    /** Closed-loop: sets the pivot goal angle. */
     public default void setPivotGoal(Angle goal) {}
-
-    /** Open-loop: applies a fixed voltage to the pivot. */
     public default void setPivotVoltage(Voltage voltage) {}
 
     @AutoLog
     public class IntakeIOInputs {
         // Roller
+        public AngularVelocity rollerVelocity = RPM.zero();
+        public AngularVelocity rollerGoal = RPM.zero();
+
         public Voltage rollerVoltageOut = Volts.zero();
         public Current rollerCurrentOut = Amps.zero();
         public Temperature rollerTemp = Celsius.zero();
-        public AngularVelocity rollerVelocity = RPM.zero();
-        public AngularVelocity rollerVelocitySetpoint = RPM.zero();
+
         public boolean rollerOpenLoop = false;
         public boolean rollerConnected = false;
 
         // Pivot
         public Angle pivotAngle = Radians.zero();
         public AngularVelocity pivotVelocity = RadiansPerSecond.zero();
+
         public Voltage pivotVoltageOut = Volts.zero();
         public Current pivotCurrentOut = Amps.zero();
         public Temperature pivotTemp = Celsius.zero();
+
         public Angle pivotGoal = Radians.zero();
         public Angle pivotSetpointPos = Radians.zero();
         public AngularVelocity pivotSetpointVel = RadiansPerSecond.zero();
         public boolean pivotAtSetpoint = false;
+
         public boolean pivotOpenLoop = false;
-        public boolean pivotConnected = false;
+        public boolean pivotMotorConnected = false;
+        public boolean pivotEncoderConnected = false;
     }
 }

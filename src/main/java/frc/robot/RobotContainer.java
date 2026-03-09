@@ -373,9 +373,9 @@ public class RobotContainer {
 
         hood.setDefaultCommand(hood.positionControl(() -> hood.getAngle()).ignoringDisable(true));
         
-        intake.setDefaultCommand(intake.stopRoller());
+        intake.setDefaultCommand(intake.voltageControl(() ->Volts.zero(), () -> Volts.zero()).ignoringDisable(true));
 
-        climber.setDefaultCommand(climber.setVoltage(Volts.zero()));
+        climber.setDefaultCommand(climber.voltageControl(() -> Volts.zero()).ignoringDisable(true));
     }
 
     private void configureBindings() {
@@ -421,7 +421,6 @@ public class RobotContainer {
         // intake :3
         new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5)
                 .whileTrue(intake.intake());
-                // .onFalse(intake.retract());
 
         // force teleop drive
         new Trigger(() -> driverController.getPOV() == ControllerMap.UP).onTrue(drive.teleopDrive());
@@ -429,8 +428,6 @@ public class RobotContainer {
         new Trigger(() -> driverController.getRawButton(X)).whileTrue(//lower hood
             hood.positionControl(() -> HoodConstants.HOOD_MIN_ANGLE).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
         );
-
-        new Trigger(() -> driverController.getRawButton(LB)).onTrue(hood.home());
 
         //set turret to auto track mode
         new Trigger(() -> driverController.getRawButton(B)).onTrue(

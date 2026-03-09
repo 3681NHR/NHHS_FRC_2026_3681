@@ -15,83 +15,89 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import frc.robot.constants.IntakeConstants;
 import frc.utils.controlWrappers.ArmFF;
 import frc.utils.controlWrappers.ProfiledPID;
 import frc.utils.controlWrappers.SimpleFF;
 import frc.utils.motorWrappers.SparkMax;
 
+import static edu.wpi.first.units.Units.Amps;
+import static frc.robot.constants.IntakeConstants.*;
+
 public class IntakeIOReal implements IntakeIO {
 
     //  Roller 
-    private final SparkMax rollerMotor = new SparkMax(IntakeConstants.INTAKE_MOTOR_ID, MotorType.kBrushless);
+    private final SparkMax rollerMotor = new SparkMax(INTAKE_ROLLER_MOTOR_ID, MotorType.kBrushless);
     private final RelativeEncoder rollerEncoder = rollerMotor.getEncoder();
-    private final SimpleFF rollerFF = new SimpleFF(IntakeConstants.ROLLER_FF_GAINS);
-    private final Alert rollerDisconnect = new Alert(
-            "Intake roller Spark disconnected, id: " + IntakeConstants.INTAKE_MOTOR_ID, AlertType.kError);
+
+    private final SimpleFF rollerFF = new SimpleFF(INTAKE_ROLLER_FF_GAINS);
+    private final Alert rollerMotorDisconnect = new Alert("Intake roller Spark disconnected!", AlertType.kError);
+
     private boolean rollerOpenLoop = false;
-    private AngularVelocity rollerSetpoint = Units.RPM.zero();
+    private AngularVelocity rollerGoal = Units.RPM.zero();
 
     //  Pivot 
-    private final SparkMax pivotMotor = new SparkMax(IntakeConstants.PIVOT_MOTOR_ID, MotorType.kBrushless);
-    private final CANcoder pivotEncoder = new CANcoder(IntakeConstants.INTAKE_ENCODER_ID);
-    private final ProfiledPID pivotPID = new ProfiledPID(IntakeConstants.PIVOT_PID_GAINS);
-    private ArmFF pivotFF = new ArmFF(IntakeConstants.PIVOT_FF_GAINS);
-    private final Alert pivotDisconnect = new Alert(
-            "Intake pivot Spark disconnected, id: " + IntakeConstants.PIVOT_MOTOR_ID, AlertType.kError);
+    private final SparkMax pivotMotor = new SparkMax(INTAKE_PIVOT_MOTOR_ID, MotorType.kBrushless);
+    private final CANcoder pivotEncoder = new CANcoder(INTAKE_PIVOT_ENCODER_ID);
+
+    private final ProfiledPID pivotPID = new ProfiledPID(INTAKE_PIVOT_PID_GAINS);
+    private ArmFF pivotFF = new ArmFF(INTAKE_PIVOT_FF_GAINS);
+
+    private final Alert pivotMotorDisconnect = new Alert("Intake pivot Spark disconnected!", AlertType.kError);
+    private final Alert pivotEncoderDisconnect = new Alert("Intake pivot encoder disconnected!", AlertType.kError);
+
     private boolean pivotOpenLoop = false;
-    private Angle pivotGoal = IntakeConstants.STOWED_ANGLE;
+    private Angle pivotGoal = INTAKE_STOWED_ANGLE;
 
     public IntakeIOReal() {
         // Live-tuning callbacks
-        IntakeConstants.ROLLER_FF_GAINS.withCallback(() -> {
-            rollerFF.setKs(IntakeConstants.ROLLER_FF_GAINS.kS);
-            rollerFF.setKv(IntakeConstants.ROLLER_FF_GAINS.kV);
-            rollerFF.setKa(IntakeConstants.ROLLER_FF_GAINS.kA);
+        INTAKE_ROLLER_FF_GAINS.withCallback(() -> {
+            rollerFF.setKs(INTAKE_ROLLER_FF_GAINS.kS);
+            rollerFF.setKv(INTAKE_ROLLER_FF_GAINS.kV);
+            rollerFF.setKa(INTAKE_ROLLER_FF_GAINS.kA);
         });
-        IntakeConstants.PIVOT_PID_GAINS.withCallback(() -> pivotPID.setGains(IntakeConstants.PIVOT_PID_GAINS));
-        IntakeConstants.PIVOT_FF_GAINS.withCallback(() -> {
-            pivotFF.setKs(IntakeConstants.PIVOT_FF_GAINS.kS);
-            pivotFF.setKg(IntakeConstants.PIVOT_FF_GAINS.kG);
-            pivotFF.setKv(IntakeConstants.PIVOT_FF_GAINS.kV);
-            pivotFF.setKa(IntakeConstants.PIVOT_FF_GAINS.kA);
+        INTAKE_PIVOT_PID_GAINS.withCallback(() -> pivotPID.setGains(INTAKE_PIVOT_PID_GAINS));
+        INTAKE_PIVOT_FF_GAINS.withCallback(() -> {
+            pivotFF.setKs(INTAKE_PIVOT_FF_GAINS.kS);
+            pivotFF.setKg(INTAKE_PIVOT_FF_GAINS.kG);
+            pivotFF.setKv(INTAKE_PIVOT_FF_GAINS.kV);
+            pivotFF.setKa(INTAKE_PIVOT_FF_GAINS.kA);
         });
 
-        pivotPID.setTolerance(IntakeConstants.PIVOT_TOLERANCE.in(Units.Radians));
+        pivotPID.setTolerance(INTAKE_PIVOT_TOLERANCE.in(Units.Radians));
 
         // Roller motor config
         SparkMaxConfig rollerCfg = new SparkMaxConfig();
         rollerCfg.idleMode(IdleMode.kBrake)
-                 .inverted(IntakeConstants.ROLLER_INVERTED)
-                 .smartCurrentLimit(IntakeConstants.ROLLER_SMART_CURRENT_LIMIT);
-        rollerMotor.configure(rollerCfg, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+                 .inverted(INTAKE_ROLLER_INVERTED)
+                 .smartCurrentLimit((int)INTAKE_ROLLER_CURRENT_LIM.in(Amps));
+        rollerMotor.configure(rollerCfg, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         // Pivot motor config
         SparkMaxConfig pivotCfg = new SparkMaxConfig();
         pivotCfg.idleMode(IdleMode.kBrake)
-                .inverted(IntakeConstants.PIVOT_INVERTED)
-                .smartCurrentLimit(IntakeConstants.PIVOT_SMART_CURRENT_LIMIT);
-        pivotCfg.encoder
-                .positionConversionFactor(IntakeConstants.PIVOT_POSITION_CONVERSION_FACTOR)
-                .velocityConversionFactor(IntakeConstants.PIVOT_VELOCITY_CONVERSION_FACTOR);
-        pivotMotor.configure(pivotCfg, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+                .inverted(INTAKE_PIVOT_INVERTED)
+                .smartCurrentLimit((int)INTAKE_PIVOT_CURRENT_LIM.in(Amps));
+        pivotMotor.configure(pivotCfg, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     @Override
     public void updateInputs(IntakeIOInputs input) {
         //  Roller closed-loop 
         if (!rollerOpenLoop) {
-            double ff = rollerFF.calculate(rollerSetpoint.in(Units.RPM));
+            double ff = rollerFF.calculate(rollerGoal.in(Units.RPM));
             rollerMotor.setVoltage(Units.Volts.of(ff));
         }
-        input.rollerConnected = rollerMotor.getLastError() != REVLibError.kCANDisconnected;
+
+        input.rollerVelocity = Units.RPM.of(rollerEncoder.getVelocity());
+        input.rollerGoal = rollerGoal;
+
         input.rollerVoltageOut = Units.Volts.of(rollerMotor.getAppliedOutput() * rollerMotor.getBusVoltage());
         input.rollerCurrentOut = Units.Amps.of(rollerMotor.getOutputCurrent());
         input.rollerTemp = Units.Celsius.of(rollerMotor.getMotorTemperature());
-        input.rollerVelocity = Units.RPM.of(rollerEncoder.getVelocity());
-        input.rollerVelocitySetpoint = rollerSetpoint;
+        
+        input.rollerConnected = rollerMotor.getLastError() != REVLibError.kCANDisconnected;
         input.rollerOpenLoop = rollerOpenLoop;
-        rollerDisconnect.set(!input.rollerConnected);
+        rollerMotorDisconnect.set(!input.rollerConnected);
 
         //  Pivot closed-loop 
         if (!pivotOpenLoop) {
@@ -99,24 +105,30 @@ public class IntakeIOReal implements IntakeIO {
             double ff = pivotFF.calculate(pivotPID.getSetpoint().position, pivotPID.getSetpoint().velocity);
             pivotMotor.setVoltage(Units.Volts.of(pid + ff));
         }
-        input.pivotConnected = pivotMotor.getLastError() != REVLibError.kCANDisconnected;
-        input.pivotVoltageOut = Units.Volts.of(pivotMotor.getAppliedOutput() * pivotMotor.getBusVoltage());
-        input.pivotCurrentOut = Units.Amps.of(pivotMotor.getOutputCurrent());
-        input.pivotTemp = Units.Celsius.of(pivotMotor.getMotorTemperature());
         input.pivotAngle = pivotEncoder.getAbsolutePosition().getValue();
         input.pivotVelocity = pivotEncoder.getVelocity().getValue();
+
         input.pivotGoal = pivotGoal;
         input.pivotSetpointPos = Units.Radians.of(pivotPID.getSetpoint().position);
         input.pivotSetpointVel = Units.RadiansPerSecond.of(pivotPID.getSetpoint().velocity);
         input.pivotAtSetpoint = pivotPID.atSetpoint();
+
+        input.pivotVoltageOut = Units.Volts.of(pivotMotor.getAppliedOutput() * pivotMotor.getBusVoltage());
+        input.pivotCurrentOut = Units.Amps.of(pivotMotor.getOutputCurrent());
+        input.pivotTemp = Units.Celsius.of(pivotMotor.getMotorTemperature());
+        
+        input.pivotMotorConnected = pivotMotor.getLastError() != REVLibError.kCANDisconnected;
+        input.pivotEncoderConnected = pivotEncoder.isConnected();
         input.pivotOpenLoop = pivotOpenLoop;
-        pivotDisconnect.set(!input.pivotConnected);
+        pivotMotorDisconnect.set(!input.pivotMotorConnected);
+        pivotEncoderDisconnect.set(!input.pivotEncoderConnected);
+
     }
 
     @Override
     public void setRollerVelocity(AngularVelocity velocity) {
         rollerOpenLoop = false;
-        rollerSetpoint = velocity;
+        rollerGoal = velocity;
     }
 
     @Override
