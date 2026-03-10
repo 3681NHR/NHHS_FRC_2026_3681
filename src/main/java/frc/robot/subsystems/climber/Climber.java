@@ -7,6 +7,7 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.commands.HomeCommand;
@@ -80,5 +81,13 @@ public class Climber extends SubsystemBase {
     
     public Command retract(){
         return positionControl(() -> CLIMBER_MIN_POSITION);
+    }
+
+    public Command toggle(){
+        return new ConditionalCommand(
+            extend(),
+            retract(),
+            () -> in.goal.baseUnitMagnitude() <= (CLIMBER_MAX_POSITION.baseUnitMagnitude()/2.0)
+        );
     }
 }

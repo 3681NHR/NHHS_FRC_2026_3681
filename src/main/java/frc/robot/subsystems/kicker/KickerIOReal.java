@@ -2,7 +2,7 @@ package frc.robot.subsystems.kicker;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Celsius;
-import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.utils.SparkUtil.tryUntilOk;
 import static frc.robot.constants.KickerConstants.*;
@@ -18,24 +18,15 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
-import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import frc.utils.controlWrappers.SimpleFF;
 
 public class KickerIOReal implements KickerIO {
 
     private final SparkMax motor;
     private final RelativeEncoder encoder;
     private final CANrange sensor;
-
-    private final SimpleFF FF = new SimpleFF(KICKER_FF_GAINS);
-
-    LinearVelocity goal = MetersPerSecond.zero();
-    Voltage vout = Volts.zero();
-
-    private boolean openLoop = false;
 
     private Alert motorDisconnectAlert = new Alert("Kicker motor disconnected!", AlertType.kError);
     private Alert sensorDisconnectAlert = new Alert("Kicker CANRange disconnected!", AlertType.kError);
@@ -55,28 +46,16 @@ public class KickerIOReal implements KickerIO {
         tryUntilOk(motor, 5, () -> motor.configure(kickerConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters));
 
-        KICKER_FF_GAINS.withCallback(() -> {
-            FF.setGains(KICKER_FF_GAINS);
-        });
     }
 
     @Override
     public void updateInputs(KickerIOInputs input) {
-        
-        if (!openLoop) {
-            vout = Volts.of(FF.calculate(input.goal.in(MetersPerSecond)));
-        }
-        motor.setVoltage(vout);
 
-        input.speed = MetersPerSecond.of(encoder.getVelocity());
+        input.speed = RPM.of(encoder.getVelocity());
 
         input.motorCurrentOut = Amps.of(motor.getOutputCurrent());
         input.motorVoltageOut = Volts.of(motor.getAppliedOutput()*motor.getBusVoltage());
         input.motorTemp = Celsius.of(motor.getMotorTemperature());
-
-        input.goal = goal;
-
-        input.openLoop = openLoop;
 
         input.distance = sensor.getDistance().getValue();
         input.hasBall = input.distance.lte(KICKER_PRELOAD_STOP_DISTANCE);
@@ -89,13 +68,6 @@ public class KickerIOReal implements KickerIO {
 
     @Override
     public void setVout(Voltage vout) {
-        this.openLoop = true;
-        this.vout = vout;
-    }
-
-    @Override
-    public void setGoal(LinearVelocity goal) {
-        this.openLoop = false;
-        this.goal = goal;
+        motor.setVoltage(vout);
     }
 }

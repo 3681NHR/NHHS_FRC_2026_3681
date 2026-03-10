@@ -97,13 +97,20 @@ public class HoodIOSim implements HoodIO {
         this.vout = vout;
     }
 
+    @Override
     public void setPos(Angle pos){
         encoderOffset = encoderAngle.minus(encoderOffset).unaryMinus().plus(pos);
         encoderAngle = Radians.of(sim.getOutput().get(0,0)).plus(encoderOffset);
         pid.reset(encoderAngle.in(Rotations));
     }
     
+    @Override
     public void setHomed(boolean homed){
         this.homed = homed;
+    }
+    
+    @Override
+    public void reset(){
+        pid.reset(encoderAngle.in(Rotations));
     }
 }

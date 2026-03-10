@@ -1,7 +1,6 @@
 package frc.robot.constants;
 
 import static edu.wpi.first.units.Units.Celsius;
-import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
@@ -18,10 +17,10 @@ public final class LauncherConstants {
     
     public static final int LAUNCHER_MOTOR_ID = 40;
 
-    public static final PIDGains.SimpleFF LAUNCHER_ID_GAINS = new PIDGains.SimpleFF(0.0,0.1,0.4);//gains from sysid for state space model
+    public static final PIDGains.SimpleFF LAUNCHER_ID_GAINS = new PIDGains.SimpleFF(0.0,0.19,2.3);//gains from sysid for state space model
 
     public static final PIDGains.SimpleFF LAUNCHER_FF_GAINS = LAUNCHER_ID_GAINS;
-    public static final PIDGains.PID LAUNCHER_PID_GAINS = new PIDGains.PID(0.0,0,0.0);
+    public static final PIDGains.PID LAUNCHER_PID_GAINS = new PIDGains.PID(0.4,0,0.0);
 
     public static final AngularVelocity LAUNCHER_SETPOINT_TOLERANCE = RotationsPerSecond.of(50);
     public static final Temperature LAUNCHER_MAX_TEMP = Celsius.of(40);

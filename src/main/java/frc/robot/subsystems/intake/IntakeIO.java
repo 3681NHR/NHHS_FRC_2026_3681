@@ -14,8 +14,6 @@ public interface IntakeIO {
 
     public default void updateInputs(IntakeIOInputs input) {}
 
-    public default void setRollerVelocity(AngularVelocity velocity) {}
-
     public default void setRollerVoltage(Voltage voltage) {}
 
     public default void setPivotGoal(Angle goal) {}
@@ -25,13 +23,11 @@ public interface IntakeIO {
     public class IntakeIOInputs {
         // Roller
         public AngularVelocity rollerVelocity = RPM.zero();
-        public AngularVelocity rollerGoal = RPM.zero();
 
         public Voltage rollerVoltageOut = Volts.zero();
         public Current rollerCurrentOut = Amps.zero();
         public Temperature rollerTemp = Celsius.zero();
-
-        public boolean rollerOpenLoop = false;
+        
         public boolean rollerConnected = false;
 
         // Pivot

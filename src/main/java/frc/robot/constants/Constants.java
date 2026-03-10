@@ -1,6 +1,5 @@
 package frc.robot.constants;
 
-import static edu.wpi.first.units.Units.Milliseconds;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Seconds;
 
@@ -33,7 +32,7 @@ public final class Constants {
     // public static final Time LOOP_TIME = Seconds.of(0.13); // 20ms + 110ms spark max velocity lag
     // 3742, thanks Mr. B
     public static final int ELASTIC_LAYOUT_PORT = 3742;
-    
+
     public static class OperatorConstants {
         // Joystick Deadbands, radial from center
         public static final double LEFT_DEADBAND = 0.1;

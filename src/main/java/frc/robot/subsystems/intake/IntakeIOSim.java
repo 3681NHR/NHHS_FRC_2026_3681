@@ -8,29 +8,28 @@ import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
 import frc.robot.constants.Constants;
 import frc.utils.ExtraMath;
 import frc.utils.controlWrappers.ArmFF;
 import frc.utils.controlWrappers.ProfiledPID;
-import frc.utils.controlWrappers.SimpleFF;
+
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.IntakeConstants.*;
+
+import org.ironmaple.simulation.IntakeSimulation;
+import org.ironmaple.simulation.IntakeSimulation.IntakeSide;
+import org.ironmaple.simulation.drivesims.AbstractDriveTrainSimulation;
 
 public class IntakeIOSim implements IntakeIO {
 
     //  Roller 
-
-    private final SimpleFF rollerFF = new SimpleFF(INTAKE_ROLLER_FF_GAINS);
-
-    private boolean rollerOpenLoop = false;
-    private AngularVelocity rollerGoal = Units.RPM.zero();
-
     private Voltage rollerVout = Volts.zero();
 
     //  Pivot 
@@ -46,13 +45,10 @@ public class IntakeIOSim implements IntakeIO {
     private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(INTAKE_PIVOT_ID_GAINS.kV, INTAKE_PIVOT_ID_GAINS.kA);
     private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.0, 0.0);
 
-    public IntakeIOSim() {
+    private IntakeSimulation mapleSimIntake;
+
+    public IntakeIOSim(AbstractDriveTrainSimulation drive) {
         // Live-tuning callbacks
-        INTAKE_ROLLER_FF_GAINS.withCallback(() -> {
-            rollerFF.setKs(INTAKE_ROLLER_FF_GAINS.kS);
-            rollerFF.setKv(INTAKE_ROLLER_FF_GAINS.kV);
-            rollerFF.setKa(INTAKE_ROLLER_FF_GAINS.kA);
-        });
         INTAKE_PIVOT_PID_GAINS.withCallback(() -> pivotPID.setGains(INTAKE_PIVOT_PID_GAINS));
         INTAKE_PIVOT_FF_GAINS.withCallback(() -> {
             pivotFF.setKs(INTAKE_PIVOT_FF_GAINS.kS);
@@ -63,23 +59,26 @@ public class IntakeIOSim implements IntakeIO {
 
         pivotPID.setTolerance(INTAKE_PIVOT_TOLERANCE.in(Units.Radians));
 
+        mapleSimIntake = IntakeSimulation.OverTheBumperIntake(
+            "Fuel",
+            drive,
+            Inches.of(25),
+            Inches.of(6),
+            IntakeSide.FRONT,
+            10
+        );
     }
 
     @Override
     public void updateInputs(IntakeIOInputs input) {
         sim.update(Constants.EVENT_LOOP_TIME);
-        //  Roller closed-loop 
-        if (!rollerOpenLoop) {
-            rollerVout = Volts.of(rollerFF.calculate(rollerGoal.in(Units.RPM)));
-        }
 
-        input.rollerVelocity = rollerGoal;
-        input.rollerGoal = rollerGoal;
+        //TODO, kv from recalc, test on bot
+        input.rollerVelocity = RPM.of(124.075*rollerVout.in(Volts));
 
         input.rollerVoltageOut = rollerVout;
         
         input.rollerConnected = true;
-        input.rollerOpenLoop = rollerOpenLoop;
 
         //  Pivot closed-loop 
         if (!pivotOpenLoop) {
@@ -114,17 +113,18 @@ public class IntakeIOSim implements IntakeIO {
         input.pivotMotorConnected = true;
         input.pivotEncoderConnected = true;
         input.pivotOpenLoop = pivotOpenLoop;
-    }
 
-    @Override
-    public void setRollerVelocity(AngularVelocity velocity) {
-        rollerOpenLoop = false;
-        rollerGoal = velocity;
+        //run maple sim intake
+        if(input.pivotAngle.lte(Degrees.of(10))
+        && input.rollerVoltageOut.gte(Volts.of(3))){
+            mapleSimIntake.startIntake();
+        } else {
+            mapleSimIntake.stopIntake();
+        }
     }
 
     @Override
     public void setRollerVoltage(Voltage voltage) {
-        rollerOpenLoop = true;
         rollerVout = voltage;
     }
 

@@ -11,13 +11,11 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.utils.controlWrappers.ArmFF;
 import frc.utils.controlWrappers.ProfiledPID;
-import frc.utils.controlWrappers.SimpleFF;
 import frc.utils.motorWrappers.SparkMax;
 
 import static edu.wpi.first.units.Units.Amps;
@@ -30,11 +28,7 @@ public class IntakeIOReal implements IntakeIO {
     private final SparkMax rollerMotor = new SparkMax(INTAKE_ROLLER_MOTOR_ID, MotorType.kBrushless);
     private final RelativeEncoder rollerEncoder = rollerMotor.getEncoder();
 
-    private final SimpleFF rollerFF = new SimpleFF(INTAKE_ROLLER_FF_GAINS);
     private final Alert rollerMotorDisconnect = new Alert("Intake roller Spark disconnected!", AlertType.kError);
-
-    private boolean rollerOpenLoop = false;
-    private AngularVelocity rollerGoal = Units.RPM.zero();
 
     //  Pivot 
     private final SparkMax pivotMotor = new SparkMax(INTAKE_PIVOT_MOTOR_ID, MotorType.kBrushless);
@@ -51,11 +45,6 @@ public class IntakeIOReal implements IntakeIO {
 
     public IntakeIOReal() {
         // Live-tuning callbacks
-        INTAKE_ROLLER_FF_GAINS.withCallback(() -> {
-            rollerFF.setKs(INTAKE_ROLLER_FF_GAINS.kS);
-            rollerFF.setKv(INTAKE_ROLLER_FF_GAINS.kV);
-            rollerFF.setKa(INTAKE_ROLLER_FF_GAINS.kA);
-        });
         INTAKE_PIVOT_PID_GAINS.withCallback(() -> pivotPID.setGains(INTAKE_PIVOT_PID_GAINS));
         INTAKE_PIVOT_FF_GAINS.withCallback(() -> {
             pivotFF.setKs(INTAKE_PIVOT_FF_GAINS.kS);
@@ -83,21 +72,14 @@ public class IntakeIOReal implements IntakeIO {
 
     @Override
     public void updateInputs(IntakeIOInputs input) {
-        //  Roller closed-loop 
-        if (!rollerOpenLoop) {
-            double ff = rollerFF.calculate(rollerGoal.in(Units.RPM));
-            rollerMotor.setVoltage(Units.Volts.of(ff));
-        }
-
+        //  Roller closed-loop
         input.rollerVelocity = Units.RPM.of(rollerEncoder.getVelocity());
-        input.rollerGoal = rollerGoal;
 
         input.rollerVoltageOut = Units.Volts.of(rollerMotor.getAppliedOutput() * rollerMotor.getBusVoltage());
         input.rollerCurrentOut = Units.Amps.of(rollerMotor.getOutputCurrent());
         input.rollerTemp = Units.Celsius.of(rollerMotor.getMotorTemperature());
         
         input.rollerConnected = rollerMotor.getLastError() != REVLibError.kCANDisconnected;
-        input.rollerOpenLoop = rollerOpenLoop;
         rollerMotorDisconnect.set(!input.rollerConnected);
 
         //  Pivot closed-loop 
@@ -127,14 +109,7 @@ public class IntakeIOReal implements IntakeIO {
     }
 
     @Override
-    public void setRollerVelocity(AngularVelocity velocity) {
-        rollerOpenLoop = false;
-        rollerGoal = velocity;
-    }
-
-    @Override
     public void setRollerVoltage(Voltage voltage) {
-        rollerOpenLoop = true;
         rollerMotor.setVoltage(voltage);
     }
 

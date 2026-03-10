@@ -1,6 +1,5 @@
 package frc.robot.subsystems.kicker;
 
-import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.KickerConstants.*;
 
@@ -9,7 +8,6 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
-import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -35,24 +33,27 @@ public class Kicker extends SubsystemBase {
 	
 	public Command hold() {
 		return Commands.run(() -> {
-			if (preloadEnabled.get() && in.distance.lte(KICKER_PRELOAD_MAX_DISTANCE) && in.distance.gte(KICKER_PRELOAD_STOP_DISTANCE)) {
-				io.setGoal(KICKER_PRELOAD_VELOCITY);
+			if (preloadEnabled.get() && 
+				in.distance.lte(KICKER_PRELOAD_MAX_DISTANCE) && 
+				in.hasBall &&
+				in.sensorConnected) {
+
+				io.setVout(KICKER_PRELOAD_VOLTAGE);
 			} else {
-				io.setGoal(MetersPerSecond.zero());
+				io.setVout(Volts.zero());
 			}
 		}, this).withName("Hold");
 	}
 	
-	public Command run() {
+	public Command feed() {
 		return Commands.run(() -> {
-			io.setVout(Volts.of(10));
+			io.setVout(KICKER_FEED_VOLTAGE);
 		}, this).withName("Feed");
 	}
-	
-	public Command velocityControl(Supplier<LinearVelocity> velocity) {
+	public Command reverse() {
 		return Commands.run(() -> {
-			io.setGoal(velocity.get());
-		}, this).withName("Velocity Control");
+			io.setVout(KICKER_FEED_VOLTAGE.unaryMinus());
+		}, this).withName("Feed");
 	}
 	
 	public Command voltageControl(Supplier<Voltage> volt) {

@@ -277,11 +277,11 @@ public class RobotContainer {
                 
                     fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG,
                             driveSim::getSimulatedDriveTrainPose), drive::getPose);
+                    intake = new Intake(new IntakeIOSim(driveSim));
+                    turret = new Turret(new TurretIOSim(), drive);
                 }
-                turret = new Turret(new TurretIOSim(), drive);
                 launcher = new Launcher(new LauncherIOSim());
                 hood = new Hood(new HoodIOSim());
-                intake = new Intake(new IntakeIOSim());
                 climber = new Climber(new ClimberIOSim());
                 kicker = new Kicker(new KickerIOSim());
                 break;
@@ -413,7 +413,7 @@ public class RobotContainer {
         new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7 && turret.isReady() && launcher.isReady() && hood.isReady()).whileTrue(
             new HiddenConditionalCommand(
                 getSimFireCommand(),
-                kicker.run(),
+                kicker.feed(),
                 () -> Constants.MODE == RobotMode.SIM
             )
         );
@@ -436,24 +436,20 @@ public class RobotContainer {
         new Trigger(() -> driverController.getRawButton(A)).onTrue(
             getManShooterCommand()
         );
-        // //lower hood for trench(should be auto also)(hold)
-        // new Trigger(() -> driverController.getRawButton(X)).whileTrue(
-        // null // TODO: lower hood for trench(should be auto also)(hold)
-        // );
 
         new Trigger(() -> driverController.getPOV() == ControllerMap.RIGHT).onTrue(hood.home());
         new Trigger(() -> driverController.getPOV() == ControllerMap.LEFT).onTrue(climber.home());
-        new Trigger(() -> driverController.getRawButton(LB)).whileTrue(kicker.voltageControl(() -> Volts.of(-10)));
-        
-        // new Trigger(() -> driverController.getRawButton(LB)).onTrue(climber.extend());
-        // new Trigger(() -> driverController.getRawButton(RB)).onTrue(climber.retract());
 
-        new Trigger(() -> inTrench()).whileTrue(
+        new Trigger(() -> driverController.getRawButton(RB)).whileTrue(kicker.reverse());
+        
+        new Trigger(() -> driverController.getPOV() == ControllerMap.DOWN).onTrue(climber.toggle());
+
+        new Trigger(() -> inTrench() || driverController.getRawButton(X)).whileTrue(
             new InstantCommand(() -> {
                 oldHoodCmd = hood.getCurrentCommand();
             }).andThen(
             drive.TrenchAlignDrive()
-            .alongWith(hood.positionControl(() -> HOOD_MIN_ANGLE)))
+            .alongWith(hood.positionControl(() -> HOOD_MIN_ANGLE))).withName("trench mode")
         ).onFalse(oldHoodCmd);
     }
 

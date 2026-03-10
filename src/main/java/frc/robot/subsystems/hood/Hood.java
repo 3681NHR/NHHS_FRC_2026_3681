@@ -86,6 +86,7 @@ public class Hood extends SubsystemBase {
                 io.setPos(HOOD_MIN_ANGLE);
                 io.setHomed(true);
                 io.setGoal(HOOD_MIN_ANGLE);
+                io.reset();
             })).andThen(new InstantCommand(() -> {
                 homing = false;
             }));
