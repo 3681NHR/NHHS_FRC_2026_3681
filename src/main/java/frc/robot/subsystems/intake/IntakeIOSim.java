@@ -26,6 +26,9 @@ import static frc.robot.constants.IntakeConstants.*;
 import org.ironmaple.simulation.IntakeSimulation;
 import org.ironmaple.simulation.IntakeSimulation.IntakeSide;
 import org.ironmaple.simulation.drivesims.AbstractDriveTrainSimulation;
+import org.littletonrobotics.junction.Logger;
+
+import frc.robot.subsystems.SimFuelManager;
 
 public class IntakeIOSim implements IntakeIO {
 
@@ -67,6 +70,8 @@ public class IntakeIOSim implements IntakeIO {
             IntakeSide.FRONT,
             10
         );
+
+        SimFuelManager.getInstance().intake = mapleSimIntake;
     }
 
     @Override
@@ -121,6 +126,7 @@ public class IntakeIOSim implements IntakeIO {
         } else {
             mapleSimIntake.stopIntake();
         }
+        Logger.recordOutput("sim/held fuel", mapleSimIntake.getGamePiecesAmount());
     }
 
     @Override

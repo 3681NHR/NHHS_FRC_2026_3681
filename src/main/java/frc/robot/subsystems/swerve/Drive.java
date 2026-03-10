@@ -369,7 +369,7 @@ public class Drive extends SubsystemBase {
             angleController.reset();
             vyController.reset();
         }).andThen(Commands.run(() -> {
-            double headingRad = 0;
+            double headingRad = Math.round(getRotation().getRadians()/(Math.PI/2.0))*(Math.PI/2.0);
             double trench = Inches.of(49.86).div(2).in(Meters);
             if (getPose().getMeasureY().gte(Inches.of(316.64).div(2))) {
                 trench = Inches.of(316.64).minus(Inches.of(49.86).div(2)).in(Meters);
@@ -379,18 +379,13 @@ public class Drive extends SubsystemBase {
 
             double theta = MathUtil.clamp(angleController.calculate(getRotation().getRadians(), headingRad),
                         -ANGLE_MAX_VELOCITY.in(RadiansPerSecond), ANGLE_MAX_VELOCITY.in(RadiansPerSecond));
-            if (FODEnabled) {
-                runVelocity(new ChassisSpeeds(getSpeedsFromController().vxMetersPerSecond,
+
+            ChassisSpeeds speeds = new ChassisSpeeds(
+                driverSticks.ly.getAsDouble() * getMaxLinearSpeedMetersPerSec() * (DriverStation.getAlliance().orElse(Alliance.Blue)==Alliance.Red ? -1 : 1),
                 vy,
                 theta
-                ));
-            } else {
-                runVelocity(new ChassisSpeeds(
-                        driverSticks.ly.getAsDouble() * getMaxLinearSpeedMetersPerSec(),
-                        vy,
-                        theta
-                        ));
-            }
+            );
+            runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getRotation()));
         }, this))
         .withName("Trench align tele drive");
     }

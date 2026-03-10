@@ -24,10 +24,10 @@ public final class HoodConstants {
     
     public static final PIDGains.SimpleFF HOOD_ID_GAINS = new PIDGains.SimpleFF(0.3,35,0.0000001);//from sysid
     
-    public static final PIDGains.ProfiledPID HOOD_PID_GAINS = new PIDGains.ProfiledPID(35, 15, 5, 0.2, 3).makeTunable("Tuning/Hood/PID");
+    public static final PIDGains.ProfiledPID HOOD_PID_GAINS = new PIDGains.ProfiledPID(35, 0, 5, 0.2, 3).makeTunable("Tuning/Hood/PID");
     public static final PIDGains.SimpleFF HOOD_FF_GAINS = new PIDGains.SimpleFF(0.3,35,0.0).makeTunable("Tuning/Hood/FF");
     
-    public static final boolean HOOD_HOME_ON_START = false; 
+    public static final boolean HOOD_HOME_ON_START = false;
     public static final Voltage HOOD_HOME_VOLTAGE = Volts.of(-2);
     public static final Time HOOD_HOME_STOP_TIME = Seconds.of(0.5);
     public static final AngularVelocity HOOD_HOME_STOP_THRESH = RadiansPerSecond.of(0.01);

@@ -13,6 +13,7 @@ import frc.robot.constants.Constants.OperatorConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.subsystems.Led;
 import frc.robot.subsystems.SOTMSolver;
+import frc.robot.subsystems.SimFuelManager;
 import frc.robot.subsystems.LaunchLUT;
 import frc.robot.subsystems.climber.Climber;
 import frc.robot.subsystems.climber.ClimberIO;
@@ -77,6 +78,7 @@ import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.ironmaple.simulation.gamepieces.GamePieceProjectile;
 import org.ironmaple.simulation.seasonspecific.rebuilt2026.RebuiltFuelOnField;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.LoggedPowerDistribution;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -567,6 +569,7 @@ public class RobotContainer {
 
     public Command getSimFireCommand(){
         return new InstantCommand(() -> {
+            if(SimFuelManager.getInstance().intake.obtainGamePieceFromIntake()){
                 double launchvel = (launcher.getSpeed().in(RPM))*2*Math.PI*Units.inchesToMeters(2)/60.0;
                 double angle = hood.getAngle().plus(Degrees.of(90)).in(Radians);
                 GamePieceProjectile fuel = new GamePieceProjectile(
@@ -587,18 +590,20 @@ public class RobotContainer {
                 fuel.withTouchGroundHeight(Inches.of(3).in(Meters));
                 fuel.enableBecomesGamePieceOnFieldAfterTouchGround();
                 SimulatedArena.getInstance().addGamePieceProjectile(fuel);
-        }).andThen(new WaitCommand(0.1)).repeatedly();
+            }
+        }).andThen(new WaitCommand(0.25)).repeatedly();
     }
 
+    @AutoLogOutput
     private boolean inTrench(){
         Translation2d center = new Translation2d(8.269, 4.038);
         Translation2d pos = drive.getPose().getTranslation();
 
-        double width = 1.6;
-        double height = 1;
+        double width = 1.75;
+        double height = 2;
 
-        double xOffset = 2.86;
-        double yOffset = 2.971;
+        double xOffset = 2.61;
+        double yOffset = 2.5;
 
         return 
         (pos.getX() > center.getX()+xOffset && pos.getX() < center.getX()+xOffset+width && pos.getY() > center.getY()+yOffset && pos.getY() < center.getY()+yOffset+height) ||

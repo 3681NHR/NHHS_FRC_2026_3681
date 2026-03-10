@@ -44,7 +44,7 @@ public class HoodIOSim implements HoodIO {
         sim.update(0.02);
         encoderAngle = Radians.of(sim.getOutput().get(0,0)).plus(encoderOffset);
 
-        if(!openloop){
+        if(!openloop && homed){
             vout = Volts.of(pid.calculate(encoderAngle.in(Rotations), goal.in(Rotations)));
             vout = vout.plus(Volts.of(ff.calculate(pid.getSetpoint().velocity)));
         }

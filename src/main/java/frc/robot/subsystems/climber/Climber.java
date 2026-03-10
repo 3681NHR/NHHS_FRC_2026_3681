@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.commands.HomeCommand;
+import frc.utils.HiddenConditionalCommand;
 
 import static frc.robot.constants.ClimberConstants.*;
 
@@ -84,7 +85,7 @@ public class Climber extends SubsystemBase {
     }
 
     public Command toggle(){
-        return new ConditionalCommand(
+        return new HiddenConditionalCommand(
             extend(),
             retract(),
             () -> in.goal.baseUnitMagnitude() <= (CLIMBER_MAX_POSITION.baseUnitMagnitude()/2.0)

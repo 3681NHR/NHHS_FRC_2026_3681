@@ -39,7 +39,7 @@ public class IntakeConstants {
     public static final PIDGains.GravityFF INTAKE_PIVOT_ID_GAINS =new PIDGains.GravityFF(0.0, 0.1, 0.1, 0.1);
 
     public static final PIDGains.GravityFF INTAKE_PIVOT_FF_GAINS =new PIDGains.GravityFF(0.0, 0.1, 0.1, 0.1).makeTunable("Tuning/Intake/Pivot/FF");
-    public static final PIDGains.ProfiledPID INTAKE_PIVOT_PID_GAINS = new PIDGains.ProfiledPID(0.0, 0.0, 0.0, 10.0, 15.0).makeTunable("Tuning/Intake/Pivot/PID");
+    public static final PIDGains.ProfiledPID INTAKE_PIVOT_PID_GAINS = new PIDGains.ProfiledPID(0.0, 0.0, 0.0, 30.0, 15.0).makeTunable("Tuning/Intake/Pivot/PID");
 
     //ascope offset
     public static final Translation3d INTAKE_OFFSET = new Translation3d(0.292100,0,0.191);
