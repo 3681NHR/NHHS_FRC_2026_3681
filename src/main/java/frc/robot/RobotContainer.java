@@ -26,6 +26,7 @@ import frc.robot.subsystems.hood.HoodIO;
 import frc.robot.subsystems.hood.HoodIOReal;
 import frc.robot.subsystems.hood.HoodIOSim;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOReal;
 import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.launcher.Launcher;
@@ -242,10 +243,10 @@ public class RobotContainer {
                 fuelVision = new FuelVision(new FuelVisionIOPhoton(FuelVisionConstants.CAMERA_CONFIG), drive::getPose);
 
                 turret = new Turret(new TurretIOReal(), drive);
-                intake = new Intake(new IntakeIOReal());
+                intake = new Intake(new IntakeIO(){});//FIXME
                 launcher = new Launcher(new LauncherIOReal());
                 hood = new Hood(new HoodIOReal());
-                climber = new Climber(new ClimberIOReal());
+                climber = new Climber(new ClimberIO(){});//FIXME
                 kicker = new Kicker(new KickerIOReal());
                 break;
 
@@ -367,6 +368,7 @@ public class RobotContainer {
         launcher.setDefaultCommand(
             launcher.voltageControl(() -> Volts.of(0))
         );
+        kicker.setDefaultCommand(kicker.hold().ignoringDisable(true));
 
         drive.setDefaultCommand(drive.teleopDrive().ignoringDisable(true));
 
@@ -441,9 +443,10 @@ public class RobotContainer {
 
         new Trigger(() -> driverController.getPOV() == ControllerMap.RIGHT).onTrue(hood.home());
         new Trigger(() -> driverController.getPOV() == ControllerMap.LEFT).onTrue(climber.home());
+        new Trigger(() -> driverController.getRawButton(LB)).whileTrue(kicker.voltageControl(() -> Volts.of(-10)));
         
-        new Trigger(() -> driverController.getRawButton(LB)).onTrue(climber.extend());
-        new Trigger(() -> driverController.getRawButton(RB)).onTrue(climber.retract());
+        // new Trigger(() -> driverController.getRawButton(LB)).onTrue(climber.extend());
+        // new Trigger(() -> driverController.getRawButton(RB)).onTrue(climber.retract());
 
         new Trigger(() -> inTrench()).whileTrue(
             new InstantCommand(() -> {

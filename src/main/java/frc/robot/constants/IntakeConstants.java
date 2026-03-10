@@ -18,10 +18,10 @@ public class IntakeConstants {
     public static final int INTAKE_PIVOT_ENCODER_ID = 34;
 
     public static final boolean INTAKE_ROLLER_INVERTED = false;
-    public static final Current INTAKE_ROLLER_CURRENT_LIM = Amps.of(30);
+    public static final Current INTAKE_ROLLER_CURRENT_LIM = Amps.of(40);
     
     public static final boolean INTAKE_PIVOT_INVERTED = false;
-    public static final Current INTAKE_PIVOT_CURRENT_LIM = Amps.of(30);
+    public static final Current INTAKE_PIVOT_CURRENT_LIM = Amps.of(40);
 
     public static final AngularVelocity INTAKE_RUN_VELOCITY = RPM.of(1000.0); // TODO: tune(10/kv should work)
     public static final AngularVelocity INTAKE_EJECT_VELOCITY = RPM.of(-500.0); // TODO: tune

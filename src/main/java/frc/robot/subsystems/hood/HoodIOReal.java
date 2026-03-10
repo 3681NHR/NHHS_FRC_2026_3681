@@ -65,7 +65,7 @@ public class HoodIOReal implements HoodIO {
     
     @Override
     public void updateInputs(HoodIOInputs input){
-        if(!openloop){
+        if(!openloop && homed){
             vout = Volts.of(pid.calculate(encoder.getPosition(), goal.in(Rotations)));
             vout = vout.plus(Volts.of(ff.calculate(pid.getSetpoint().velocity)));
         }

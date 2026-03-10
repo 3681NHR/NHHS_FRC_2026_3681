@@ -1,6 +1,7 @@
 package frc.robot.subsystems.kicker;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.KickerConstants.*;
 
 import java.util.function.Supplier;
@@ -19,7 +20,7 @@ public class Kicker extends SubsystemBase {
 	KickerIO io;
 	KickerIOInputsAutoLogged in = new KickerIOInputsAutoLogged();
 	
-	private LoggedNetworkBoolean preloadEnabled = new LoggedNetworkBoolean("Overrides/Kicker Preload", true);
+	private LoggedNetworkBoolean preloadEnabled = new LoggedNetworkBoolean("Overrides/Kicker Preload", false);
 	
 	public Kicker(KickerIO io) {
 		this.io = io;
@@ -44,7 +45,7 @@ public class Kicker extends SubsystemBase {
 	
 	public Command run() {
 		return Commands.run(() -> {
-			io.setGoal(KICKER_FEED_VELOCITY);
+			io.setVout(Volts.of(10));
 		}, this).withName("Feed");
 	}
 	
