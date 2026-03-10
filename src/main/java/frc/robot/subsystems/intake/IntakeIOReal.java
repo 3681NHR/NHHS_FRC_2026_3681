@@ -21,6 +21,7 @@ import frc.utils.controlWrappers.SimpleFF;
 import frc.utils.motorWrappers.SparkMax;
 
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Radians;
 import static frc.robot.constants.IntakeConstants.*;
 
 public class IntakeIOReal implements IntakeIO {
@@ -102,7 +103,7 @@ public class IntakeIOReal implements IntakeIO {
         //  Pivot closed-loop 
         if (!pivotOpenLoop) {
             double pid = pivotPID.calculate(pivotEncoder.getAbsolutePosition().getValue().in(Units.Radians), pivotGoal.in(Units.Radians));
-            double ff = pivotFF.calculate(pivotPID.getSetpoint().position, pivotPID.getSetpoint().velocity);
+            double ff = pivotFF.calculate(pivotEncoder.getAbsolutePosition().getValue().in(Radians), pivotPID.getSetpoint().velocity);
             pivotMotor.setVoltage(Units.Volts.of(pid + ff));
         }
         input.pivotAngle = pivotEncoder.getAbsolutePosition().getValue();

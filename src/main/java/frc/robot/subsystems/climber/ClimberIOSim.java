@@ -23,7 +23,7 @@ import frc.utils.controlWrappers.ProfiledPID;
 public class ClimberIOSim implements ClimberIO {
 
     private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(CLIMBER_ID_GAINS.kV, CLIMBER_ID_GAINS.kA);
-    private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.01, 0.1);
+    private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.0, 0.001);
 
     private final ProfiledPID pid = new ProfiledPID(CLIMBER_PID_GAINS);
     private final ElevatorFF ff = new ElevatorFF(CLIMBER_FF_GAINS);
@@ -56,12 +56,12 @@ public class ClimberIOSim implements ClimberIO {
             voltageInput  = -CLIMBER_ID_GAINS.kG;
         }
         
-        if(Meters.of(sim.getOutput().get(0,0)).gt(CLIMBER_MIN_POSITION)){
+        if(Meters.of(sim.getOutput().get(0,0)).gt(CLIMBER_MAX_POSITION)){
             sim.setState(VecBuilder.fill(CLIMBER_MAX_POSITION.in(Meters),0));
             sim.setInput(MathUtil.clamp(voltageInput, -12, 0));
 
         } else if(Meters.of(sim.getOutput().get(0,0)).lt(CLIMBER_MIN_POSITION)){
-            sim.setState(VecBuilder.fill(CLIMBER_MAX_POSITION.in(Meters),0));
+            sim.setState(VecBuilder.fill(CLIMBER_MIN_POSITION.in(Meters),0));
             sim.setInput(MathUtil.clamp(voltageInput, 0, 12));
         } else {
             sim.setInput(voltageInput);

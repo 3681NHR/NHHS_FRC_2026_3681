@@ -27,7 +27,7 @@ public class HoodIOSim implements HoodIO {
     private SimpleFF ff = new SimpleFF(HOOD_FF_GAINS);
 
     private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(HOOD_ID_GAINS.kV/(Math.PI*2), HOOD_ID_GAINS.kA/(Math.PI*2));
-    private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.0001, 0.001);
+    private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.0, 0.0);
 
     Angle encoderAngle = Degrees.of(0);
     Angle encoderOffset = Degrees.of(0);

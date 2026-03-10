@@ -74,4 +74,7 @@ public class Intake extends SubsystemBase {
         .withName("manual voltage");
     }
 
+    public Angle getAngle(){
+        return in.pivotAngle;
+    }
 }

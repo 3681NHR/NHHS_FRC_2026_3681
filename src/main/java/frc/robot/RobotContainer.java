@@ -63,6 +63,8 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Volts;
+import static frc.robot.constants.HoodConstants.HOOD_MIN_ANGLE;
+import static frc.robot.constants.IntakeConstants.INTAKE_OFFSET;
 import static frc.robot.constants.TurretConstants.*;
 
 import static frc.utils.ControllerMap.*;
@@ -142,6 +144,7 @@ public class RobotContainer {
 
     private PowerDistribution pdp = new PowerDistribution(1, ModuleType.kRev);
 
+    private Command oldHoodCmd = new InstantCommand(() -> {});
 
     private Translation2d target = new Translation2d();
 
@@ -368,8 +371,6 @@ public class RobotContainer {
         drive.setDefaultCommand(drive.teleopDrive().ignoringDisable(true));
 
         hood.setDefaultCommand(hood.positionControl(() -> hood.getAngle()).ignoringDisable(true));
-        
-        intake.setDefaultCommand(intake.voltageControl(() ->Volts.zero(), () -> Volts.zero()).ignoringDisable(true));
 
         climber.setDefaultCommand(climber.voltageControl(() -> Volts.zero()).ignoringDisable(true));
     }
@@ -444,6 +445,13 @@ public class RobotContainer {
         new Trigger(() -> driverController.getRawButton(LB)).onTrue(climber.extend());
         new Trigger(() -> driverController.getRawButton(RB)).onTrue(climber.retract());
 
+        new Trigger(() -> inTrench()).whileTrue(
+            new InstantCommand(() -> {
+                oldHoodCmd = hood.getCurrentCommand();
+            }).andThen(
+            drive.TrenchAlignDrive()
+            .alongWith(hood.positionControl(() -> HOOD_MIN_ANGLE)))
+        ).onFalse(oldHoodCmd);
     }
 
     public void periodic() {
@@ -466,14 +474,14 @@ public class RobotContainer {
         autoChooser.update();
 
         Logger.recordOutput("AScope/Components", new Pose3d[]{
-                new Pose3d(),
-                new Pose3d(),
-                new Pose3d(TURRET_OFFSET, new Rotation3d(0,0,turret.getAngle().in(Radians))),
-                new Pose3d(TURRET_OFFSET
-                        .plus(HOOD_TO_TURRET_OFFSET.rotateBy(new Rotation3d(0,0,turret.getAngle().in(Radians)))),
-                        new Rotation3d(0, 
-                            hood.getAngle().minus(Degrees.of(25)).in(Radians), 
-                            turret.getAngle().in(Radians))),
+            new Pose3d(0,0,climber.getPosition().in(Meters),new Rotation3d()),
+            new Pose3d(INTAKE_OFFSET, new Rotation3d(Radians.zero(),intake.getAngle(),Degrees.of(180))),
+            new Pose3d(TURRET_OFFSET, new Rotation3d(0,0,turret.getAngle().in(Radians))),
+            new Pose3d(TURRET_OFFSET
+                    .plus(HOOD_TO_TURRET_OFFSET.rotateBy(new Rotation3d(0,0,turret.getAngle().in(Radians)))),
+                    new Rotation3d(0, 
+                        hood.getAngle().minus(Degrees.of(25)).in(Radians), 
+                        turret.getAngle().in(Radians))),
         });
         Logger.recordOutput("target dist", Meters.of(target.getDistance(drive.getPose().getTranslation())));
     }
@@ -581,5 +589,22 @@ public class RobotContainer {
                 fuel.enableBecomesGamePieceOnFieldAfterTouchGround();
                 SimulatedArena.getInstance().addGamePieceProjectile(fuel);
         }).andThen(new WaitCommand(0.1)).repeatedly();
+    }
+
+    private boolean inTrench(){
+        Translation2d center = new Translation2d(8.269, 4.038);
+        Translation2d pos = drive.getPose().getTranslation();
+
+        double width = 1.6;
+        double height = 1;
+
+        double xOffset = 2.86;
+        double yOffset = 2.971;
+
+        return 
+        (pos.getX() > center.getX()+xOffset && pos.getX() < center.getX()+xOffset+width && pos.getY() > center.getY()+yOffset && pos.getY() < center.getY()+yOffset+height) ||
+        (pos.getX() > center.getX()+xOffset && pos.getX() < center.getX()+xOffset+width && pos.getY() < center.getY()-yOffset && pos.getY() > center.getY()-yOffset-height) ||
+        (pos.getX() < center.getX()-xOffset && pos.getX() > center.getX()-xOffset-width && pos.getY() < center.getY()-yOffset && pos.getY() > center.getY()-yOffset-height) ||
+        (pos.getX() < center.getX()-xOffset && pos.getX() > center.getX()-xOffset-width && pos.getY() > center.getY()+yOffset && pos.getY() < center.getY()+yOffset+height);
     }
 }

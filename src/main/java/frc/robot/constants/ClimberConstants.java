@@ -20,7 +20,7 @@ public class ClimberConstants {
     public static final boolean CLIMBER_INVERTED = false;
     public static final Current CLIMBER_CURRENT_LIM = Amps.of(30);
 
-    public static final Distance CLIMBER_MAX_POSITION = Meters.of(1);
+    public static final Distance CLIMBER_MAX_POSITION = Inches.of(16);
     public static final Distance CLIMBER_MIN_POSITION = Meters.of(0);
 
     public static final Distance CLIMBER_SETPOINT_TOLERANCE = Inches.of(1);
@@ -28,7 +28,7 @@ public class ClimberConstants {
     public static final PIDGains.GravityFF CLIMBER_ID_GAINS = new PIDGains.GravityFF(0.1, 0, 0.1, 0.0001);
 
     public static final PIDGains.GravityFF CLIMBER_FF_GAINS = new PIDGains.GravityFF(0.1, 0, 0.1, 0).makeTunable("Tuning/Climber/FF");
-    public static final PIDGains.ProfiledPID CLIMBER_PID_GAINS = new PIDGains.ProfiledPID(1, 1, 1, 100, 100).makeTunable("Tuning/Climber/PID");
+    public static final PIDGains.ProfiledPID CLIMBER_PID_GAINS = new PIDGains.ProfiledPID(0.1, 0, 0, 10, 100).makeTunable("Tuning/Climber/PID");
 
     private static final Distance CLIMBER_SPOOL_RADIUS = Inches.of(1); //TODO: get actual radius later
     private static final double CLIMBER_GEAR_RATIO = 80.0;

@@ -43,8 +43,8 @@ public class IntakeIOSim implements IntakeIO {
 
     private Voltage pivotVout = Volts.zero();
 
-    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(INTAKE_PIVOT_ID_GAINS.kV/(Math.PI*2), INTAKE_PIVOT_ID_GAINS.kA/(Math.PI*2));
-    private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.0001, 0.001);
+    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(INTAKE_PIVOT_ID_GAINS.kV, INTAKE_PIVOT_ID_GAINS.kA);
+    private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.0, 0.0);
 
     public IntakeIOSim() {
         // Live-tuning callbacks
@@ -67,7 +67,7 @@ public class IntakeIOSim implements IntakeIO {
 
     @Override
     public void updateInputs(IntakeIOInputs input) {
-        sim.update(Constants.LOOP_TIME.in(Seconds));
+        sim.update(Constants.EVENT_LOOP_TIME);
         //  Roller closed-loop 
         if (!rollerOpenLoop) {
             rollerVout = Volts.of(rollerFF.calculate(rollerGoal.in(Units.RPM)));
@@ -84,11 +84,11 @@ public class IntakeIOSim implements IntakeIO {
         //  Pivot closed-loop 
         if (!pivotOpenLoop) {
             pivotVout = Volts.of(pivotPID.calculate(sim.getOutput().get(0,0), pivotGoal.in(Units.Radians)));
-            pivotVout = pivotVout.plus(Volts.of(pivotFF.calculate(pivotPID.getSetpoint().position, pivotPID.getSetpoint().velocity)));
+            pivotVout = pivotVout.plus(Volts.of(pivotFF.calculate(sim.getOutput().get(0,0), pivotPID.getSetpoint().velocity)));
         }
         pivotVout = Volts.of(pivotVout.in(Volts) 
         - ExtraMath.lesser(INTAKE_PIVOT_ID_GAINS.kS*Math.signum(sim.getOutput().get(1,0)), pivotVout.in(Volts))
-        - INTAKE_PIVOT_ID_GAINS.kG
+        - INTAKE_PIVOT_ID_GAINS.kG*Math.cos(sim.getOutput().get(0,0))
         );
         if(Radians.of(sim.getOutput().get(0,0)).gt(INTAKE_PIVOT_MAX_ANGLE)){
             sim.setState(VecBuilder.fill(INTAKE_PIVOT_MAX_ANGLE.in(Radians),0));
