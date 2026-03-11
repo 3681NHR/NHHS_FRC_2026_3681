@@ -1,96 +1,137 @@
 package frc.robot.subsystems.intake;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N2;
+import edu.wpi.first.math.system.LinearSystem;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
 import frc.robot.constants.Constants;
-import frc.robot.constants.IntakeConstants;
+import frc.utils.ExtraMath;
 import frc.utils.controlWrappers.ArmFF;
 import frc.utils.controlWrappers.ProfiledPID;
-import frc.utils.controlWrappers.SimpleFF;
+
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+import static frc.robot.constants.IntakeConstants.*;
+
+import org.ironmaple.simulation.IntakeSimulation;
+import org.ironmaple.simulation.IntakeSimulation.IntakeSide;
+import org.ironmaple.simulation.drivesims.AbstractDriveTrainSimulation;
+import org.littletonrobotics.junction.Logger;
+
+import frc.robot.subsystems.SimFuelManager;
 
 public class IntakeIOSim implements IntakeIO {
 
     //  Roller 
-    private final SimpleFF rollerFF = new SimpleFF(IntakeConstants.ROLLER_FF_GAINS);
-    private boolean rollerOpenLoop = false;
-    private AngularVelocity rollerSetpoint = Units.RPM.zero();
-    private AngularVelocity rollerVelocity = Units.RPM.zero();
-    private double rollerAppliedVolts = 0.0;
+    private Voltage rollerVout = Volts.zero();
 
     //  Pivot 
-    private final ProfiledPID pivotPID = new ProfiledPID(IntakeConstants.PIVOT_PID_GAINS);
-    private final ArmFF pivotFF = new ArmFF(IntakeConstants.PIVOT_FF_GAINS);
-    private boolean pivotOpenLoop = false;
-    private Angle pivotGoal = IntakeConstants.STOWED_ANGLE;
-    private Angle pivotAngle = IntakeConstants.STOWED_ANGLE;
-    private AngularVelocity pivotVelocity = Units.RadiansPerSecond.zero();
-    private double pivotAppliedVolts = 0.0;
 
-    public IntakeIOSim() {
-        pivotPID.setTolerance(IntakeConstants.PIVOT_TOLERANCE.in(Units.Radians));
+    private final ProfiledPID pivotPID = new ProfiledPID(INTAKE_PIVOT_PID_GAINS);
+    private ArmFF pivotFF = new ArmFF(INTAKE_PIVOT_FF_GAINS);
+
+    private boolean pivotOpenLoop = false;
+    private Angle pivotGoal = INTAKE_STOWED_ANGLE;
+
+    private Voltage pivotVout = Volts.zero();
+
+    private final LinearSystem<N2, N1, N2> model = LinearSystemId.identifyPositionSystem(INTAKE_PIVOT_ID_GAINS.kV, INTAKE_PIVOT_ID_GAINS.kA);
+    private final LinearSystemSim<N2, N1, N2> sim = new LinearSystemSim<N2, N1, N2>(model, 0.0, 0.0);
+
+    private IntakeSimulation mapleSimIntake;
+
+    public IntakeIOSim(AbstractDriveTrainSimulation drive) {
+        // Live-tuning callbacks
+        INTAKE_PIVOT_PID_GAINS.withCallback(() -> pivotPID.setGains(INTAKE_PIVOT_PID_GAINS));
+        INTAKE_PIVOT_FF_GAINS.withCallback(() -> {
+            pivotFF.setKs(INTAKE_PIVOT_FF_GAINS.kS);
+            pivotFF.setKg(INTAKE_PIVOT_FF_GAINS.kG);
+            pivotFF.setKv(INTAKE_PIVOT_FF_GAINS.kV);
+            pivotFF.setKa(INTAKE_PIVOT_FF_GAINS.kA);
+        });
+
+        pivotPID.setTolerance(INTAKE_PIVOT_TOLERANCE.in(Units.Radians));
+
+        mapleSimIntake = IntakeSimulation.OverTheBumperIntake(
+            "Fuel",
+            drive,
+            Inches.of(25),
+            Inches.of(6),
+            IntakeSide.FRONT,
+            10
+        );
+
+        SimFuelManager.getInstance().intake = mapleSimIntake;
     }
 
     @Override
     public void updateInputs(IntakeIOInputs input) {
-        double battery = RobotController.getBatteryVoltage();
-        double dt = Constants.EVENT_LOOP_TIME;
+        sim.update(Constants.EVENT_LOOP_TIME);
 
-        //  Roller 
-        if (!rollerOpenLoop) {
-            double ff = rollerFF.calculate(rollerSetpoint.in(Units.RPM));
-            rollerAppliedVolts = MathUtil.clamp(ff, -battery, battery);
-        }
-        // First-order lag: time constant ~0.05 s; NEO free-speed ~5880 RPM @ 12 V
-        double targetRPM = (rollerAppliedVolts / 12.0) * 5880.0;
-        rollerVelocity = Units.RPM.of(rollerVelocity.in(Units.RPM) + (targetRPM - rollerVelocity.in(Units.RPM)) * dt / 0.05);
+        //TODO, kv from recalc, test on bot
+        input.rollerVelocity = RPM.of(124.075*rollerVout.in(Volts));
 
+        input.rollerVoltageOut = rollerVout;
+        
         input.rollerConnected = true;
-        input.rollerVoltageOut = Units.Volts.of(rollerAppliedVolts);
-        input.rollerCurrentOut = Units.Amps.zero();
-        input.rollerTemp = Units.Celsius.zero();
-        input.rollerVelocity = rollerVelocity;
-        input.rollerVelocitySetpoint = rollerSetpoint;
-        input.rollerOpenLoop = rollerOpenLoop;
 
-        //  Pivot 
+        //  Pivot closed-loop 
         if (!pivotOpenLoop) {
-            double pid = pivotPID.calculate(pivotAngle.in(Units.Radians), pivotGoal.in(Units.Radians));
-            double ff = pivotFF.calculate(pivotPID.getSetpoint().position, pivotPID.getSetpoint().velocity);
-            pivotAppliedVolts = MathUtil.clamp(pid + ff, -battery, battery);
+            pivotVout = Volts.of(pivotPID.calculate(sim.getOutput().get(0,0), pivotGoal.in(Units.Radians)));
+            pivotVout = pivotVout.plus(Volts.of(pivotFF.calculate(sim.getOutput().get(0,0), pivotPID.getSetpoint().velocity)));
         }
-        // Simple Euler integration: kVeff = 5.0 rad/s/V
-        final double kVeff = 5.0;
-        pivotVelocity = Units.RadiansPerSecond.of(pivotAppliedVolts * kVeff);
-        pivotAngle = pivotAngle.plus(Units.Radians.of(pivotVelocity.in(Units.RadiansPerSecond) * dt));
+        pivotVout = Volts.of(pivotVout.in(Volts) 
+        - ExtraMath.lesser(INTAKE_PIVOT_ID_GAINS.kS*Math.signum(sim.getOutput().get(1,0)), pivotVout.in(Volts))
+        - INTAKE_PIVOT_ID_GAINS.kG*Math.cos(sim.getOutput().get(0,0))
+        );
+        if(Radians.of(sim.getOutput().get(0,0)).gt(INTAKE_PIVOT_MAX_ANGLE)){
+            sim.setState(VecBuilder.fill(INTAKE_PIVOT_MAX_ANGLE.in(Radians),0));
+            sim.setInput(MathUtil.clamp(pivotVout.in(Volts), -12, 0));
 
-        input.pivotConnected = true;
-        input.pivotVoltageOut = Units.Volts.of(pivotAppliedVolts);
-        input.pivotCurrentOut = Units.Amps.zero();
-        input.pivotTemp = Units.Celsius.zero();
-        input.pivotAngle = pivotAngle;
-        input.pivotVelocity = pivotVelocity;
+        } else if(Radians.of(sim.getOutput().get(0,0)).lt(INTAKE_PIVOT_MIN_ANGLE)){
+            sim.setState(VecBuilder.fill(INTAKE_PIVOT_MIN_ANGLE.in(Radians),0));
+            sim.setInput(MathUtil.clamp(pivotVout.in(Volts), 0, 12));
+        } else {
+            sim.setInput(pivotVout.in(Volts));
+        }
+
+        input.pivotAngle = Radians.of(sim.getOutput().get(0,0));
+        input.pivotVelocity = RadiansPerSecond.of(sim.getOutput().get(1,0));
+
         input.pivotGoal = pivotGoal;
         input.pivotSetpointPos = Units.Radians.of(pivotPID.getSetpoint().position);
         input.pivotSetpointVel = Units.RadiansPerSecond.of(pivotPID.getSetpoint().velocity);
         input.pivotAtSetpoint = pivotPID.atSetpoint();
-        input.pivotOpenLoop = pivotOpenLoop;
-    }
 
-    @Override
-    public void setRollerVelocity(AngularVelocity velocity) {
-        rollerOpenLoop = false;
-        rollerSetpoint = velocity;
+        input.pivotVoltageOut = pivotVout;
+        
+        input.pivotMotorConnected = true;
+        input.pivotEncoderConnected = true;
+        input.pivotOpenLoop = pivotOpenLoop;
+
+        //run maple sim intake
+        if(input.pivotAngle.lte(Degrees.of(10))
+        && input.rollerVoltageOut.gte(Volts.of(3))){
+            mapleSimIntake.startIntake();
+        } else {
+            mapleSimIntake.stopIntake();
+        }
+        Logger.recordOutput("sim/held fuel", mapleSimIntake.getGamePiecesAmount());
     }
 
     @Override
     public void setRollerVoltage(Voltage voltage) {
-        rollerOpenLoop = true;
-        rollerAppliedVolts = MathUtil.clamp(voltage.in(Units.Volts),
-                -RobotController.getBatteryVoltage(), RobotController.getBatteryVoltage());
+        rollerVout = voltage;
     }
 
     @Override
@@ -102,7 +143,6 @@ public class IntakeIOSim implements IntakeIO {
     @Override
     public void setPivotVoltage(Voltage voltage) {
         pivotOpenLoop = true;
-        pivotAppliedVolts = MathUtil.clamp(voltage.in(Units.Volts),
-                -RobotController.getBatteryVoltage(), RobotController.getBatteryVoltage());
+        pivotVout = voltage;
     }
 }

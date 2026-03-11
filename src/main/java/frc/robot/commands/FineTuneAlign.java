@@ -12,7 +12,6 @@ import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.constants.DriveConstants;
-import frc.robot.subsystems.Led;
 import frc.robot.subsystems.swerve.Drive;
 
 /**
@@ -30,16 +29,14 @@ public class FineTuneAlign extends Command {
 
     private Supplier<Pose2d> target;
     private Drive drive;
-    private Led led;
 
     private PathPlannerTrajectoryState state;
 
     private boolean done = false;
 
-    public FineTuneAlign(Supplier<Pose2d> target, Drive drive, Led led) {
+    public FineTuneAlign(Supplier<Pose2d> target, Drive drive) {
         this.target = target;
         this.drive = drive;
-        this.led = led;
 
         addRequirements(drive);
     }
@@ -61,7 +58,7 @@ public class FineTuneAlign extends Command {
                 Math.abs(drive.getPose().getRotation().minus(target.get().getRotation())
                         .getDegrees()) <= DriveConstants.AUTO_ALIGN_ANGLE_MAX_OFFSET.in(Radians);
 
-        led.alignInPos = done;
+        // led.alignInPos = done;
         Logger.recordOutput("Subsystems/Swerve/Align/Fine tune/good", done);
         Logger.recordOutput("Subsystems/Swerve/Align/Fine tune/distance to target",
                 drive.getPose().getTranslation().getDistance(target.get().getTranslation()));
@@ -73,7 +70,7 @@ public class FineTuneAlign extends Command {
 
     @Override
     public void end(boolean interrupted) {
-        led.aligningReef = false;
+        // led.aligningReef = false;
     }
 
     @Override

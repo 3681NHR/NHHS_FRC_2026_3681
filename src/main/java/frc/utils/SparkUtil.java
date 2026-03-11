@@ -19,9 +19,6 @@ import com.revrobotics.REVLibError;
 import com.revrobotics.spark.SparkBase;
 
 import edu.wpi.first.wpilibj.Timer;
-import java.util.function.Consumer;
-import java.util.function.DoubleConsumer;
-import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.ironmaple.simulation.SimulatedArena;
 

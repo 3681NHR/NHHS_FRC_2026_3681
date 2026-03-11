@@ -1,145 +1,86 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Percent;
+
+import java.util.function.BooleanSupplier;
+
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
+import edu.wpi.first.wpilibj.AddressableLEDBufferView;
+import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.utils.LEDAnim.LEDAnim;
-import frc.utils.LEDAnim.RainbowAnim;
+import frc.robot.subsystems.hood.Hood;
+import frc.robot.subsystems.launcher.Launcher;
+import frc.robot.subsystems.swerve.Drive;
+import frc.robot.subsystems.turret.Turret;
 
 public class Led extends SubsystemBase {
 
-    public boolean hasCoral = false;
-    public boolean rotLock = false;
-    public boolean aligningReef = false;
-    public boolean homing = false;
-    public boolean climbMode = false;
-    public boolean homed = false;
-    public boolean affectorInPos = false;
-    public boolean alignInPos = false;
-    public boolean intakeSensorFault = false;
+    Launcher launcher;
+    Hood hood;
+    Turret turret;
+    Drive drive;
 
-    private boolean intakeRunning = false;
+    BooleanSupplier manualSupplier;
 
     private AddressableLED led = new AddressableLED(0);
-    private AddressableLEDBuffer buffer = new AddressableLEDBuffer(50);
+    private AddressableLEDBuffer buffer = new AddressableLEDBuffer(71+47);
+    private AddressableLEDBufferView sideBuffer = new AddressableLEDBufferView(buffer, 71, 71+46);
+    private AddressableLEDBufferView turretBuffer = new AddressableLEDBufferView(buffer, 0, 71);
 
     private LoggedNetworkBoolean rainbow = new LoggedNetworkBoolean("Debug/LED override", false);
 
-    private LEDAnim b = new RainbowAnim(50);
+    public Led(Launcher launcher,
+    Hood hood,
+    Turret turret,
+    Drive drive,
+    BooleanSupplier manualSupplier) {
 
-
-    public Led() {
         led.setLength(buffer.getLength());
 
         led.start();
 
-        b.scroll(10);
-
+        this.launcher =  launcher;
+        this.hood =  hood;
+        this.turret =  turret;
+        this.drive =  drive;
+        this.manualSupplier = manualSupplier;
     }
 
     @Override
     public void periodic() {
-        // Color status = Color.kBlack;
-        // Color state = Color.kBlack;
 
-        // // if(affectorInPos){
-        // // status = Color.kBlack;
-        // // }
-        // if (homing) {
-        //     state = new Color(255, 0, 0);
-        //     // state = state.mask(LEDPattern.steps(Map.of(0, Color.kBlack, 0.45,
-        //     // Color.kWhite, 0.55, Color.kBlack)));
-        //     // state = state.scrollAtRelativeSpeed(Percent.per(Second).of(0.25));
-        // }
-        // if (hasCoral) {
-        //     state = new Color(0, 255, 0);
-        // } else {
-        //     state = new Color(255, 50, 0);
-        //     alignInPos = false;
-        // }
-        // if (intakeSensorFault) {
-        //     state = new Color(0, 0, 255);
-        // }
-        // if (intakeRunning) {
-        //     state = new Color(255, 255, 0);
-        // }
-
-        // if (rotLock) {
-        //     status = new Color(255, 255, 255);
-        //     alignInPos = false;
-        // }
-        // if (aligningReef) {
-        //     status = new Color(0, 0, 255);
-        //     alignInPos = false;
-        // }
-        // if (alignInPos) {
-        //     status = new Color(0, 255, 255);
-        // }
-        // if (!homed) {
-        //     state = new Color(255, 0, 0);
-        //     // status = status.breathe(Seconds.of(1));
-        // }
-        // if (climbMode) {
-        //     state = Color.kMagenta;
-        //     status = Color.kMagenta;
-        // }
-
-        // // if(intakeRunning){
-        // // pattern = pattern.blink(Seconds.of(.125));
-        // // }
-
-        b.update();
-        if (rainbow.get()) {
-            for (int i = 0; i < buffer.getLength(); i++) {
-                buffer.setLED(i, b.getLEDs()[i]);
-            }
+        Color turretState = turret.isReady() && launcher.isReady() && hood.isReady() ? Color.kGreen : Color.kBlack;
+        if(manualSupplier.getAsBoolean()){
+            turretState = Color.kWhite;
+        }
+        if(!hood.isHomed()){
+            turretState = Color.kRed;
+        }
+        if(hood.isHoming()){
+            turretState = Color.kOrange;
+        }
+        
+        
+        if(rainbow.get()){
+            LEDPattern.rainbow(255, 255).applyTo(turretBuffer);
+            LEDPattern.rainbow(255, 255).applyTo(sideBuffer);
         } else {
-            for (int i = 0; i < buffer.getLength(); i++) {
-                // buffer.setLED(i, i < (double) buffer.getLength() / 2.0 ? status : state);// overlayOn is broken, so we use this
-            }
+            LEDPattern.solid(turretState).atBrightness(Percent.of(50)).applyTo(turretBuffer);
+
+            LEDPattern.solid(drive.getFOD() ? new Color() : Color.kBlue).atBrightness(Percent.of(50)).applyTo(sideBuffer);
         }
 
-        // led.setData(buffer);
+        led.setData(buffer);
 
-        // Logger.recordOutput("Subsystems/led/status", buffer.getLED(0).toHexString());
-        // Logger.recordOutput("Subsystems/led/state", buffer.getLED(49).toHexString());
-        // Logger.recordOutput("Subsystems/led/status", buffer.getLED(0).toHexString());
-        // Logger.recordOutput("Subsystems/led/state", buffer.getLED(49).toHexString());
-
-        // Logger.recordOutput("Subsystems/led/hasCoral", hasCoral);
-        // Logger.recordOutput("Subsystems/led/rotLock", rotLock);
-        // Logger.recordOutput("Subsystems/led/aligningReef", aligningReef);
-        // Logger.recordOutput("Subsystems/led/homing", homing);
-        // Logger.recordOutput("Subsystems/led/climbing", climbMode);
-        // Logger.recordOutput("Subsystems/led/homed", homed);
-        // Logger.recordOutput("Subsystems/led/affectorInPos", affectorInPos);
-        // Logger.recordOutput("Subsystems/led/alignInPos", alignInPos);
-        // Logger.recordOutput("Subsystems/led/intakerunning", intakeRunning);
-        // Logger.recordOutput("Subsystems/led/Sensor fault", intakeSensorFault);
-
+        String[] leds = new String[buffer.getLength()];
         for (int i = 0; i < buffer.getLength(); i++) {
-            // Logger.recordOutput("Subsystems/led/leds/" + i, buffer.getLED(i).toHexString());//FIXME: toHexString is slow
+            leds[i] = buffer.getLED(i).toHexString();
         }
+        Logger.recordOutput("Leds/list", leds);
     }
-
-    public void setRunning(boolean in) {
-        this.intakeRunning = in;
-    }
-    // public void setColor(Color c){
-    // this.c = c;
-    // }
-    // public void setState(LEDState state){
-    // // if(state.getPriority() > currentState.getPriority()){
-    // this.currentState = state;
-    // // }
-    // }
-    // public void setStatus(LEDStatus status){
-    // // if(status.getPriority() > currentStatus.getPriority()){
-    // this.currentStatus = status;
-    // // }
-    // }
 }

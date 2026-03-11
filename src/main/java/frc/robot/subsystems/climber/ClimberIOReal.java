@@ -16,80 +16,93 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import frc.robot.constants.ClimbConstants;
 import frc.utils.controlWrappers.ProfiledPID;
 import frc.utils.controlWrappers.ElevatorFF;
 
+import static frc.robot.constants.ClimberConstants.*;
+
 public class ClimberIOReal implements ClimberIO {
-    private final SparkMax doom = new SparkMax(ClimbConstants.MOTOR_ID, MotorType.kBrushless);
-    private final RelativeEncoder despair = doom.getEncoder();
-    private final ProfiledPID pid = new ProfiledPID(ClimbConstants.CLIMB_PID_GAINS);
-    private final ElevatorFF ff = new ElevatorFF(ClimbConstants.FF);
+    private final SparkMax motor = new SparkMax(CLIMBER_MOTOR_ID, MotorType.kBrushless);
+    private final RelativeEncoder encoder = motor.getEncoder();
+
+    private final ProfiledPID pid = new ProfiledPID(CLIMBER_PID_GAINS);
+    private final ElevatorFF ff = new ElevatorFF(CLIMBER_FF_GAINS);
+
     private boolean openLoop = false;
-    private Alert disconnect = new Alert("climber Spark is disconnected, id: " + ClimbConstants.MOTOR_ID, AlertType.kError);
-    private double goal = 0.0;
+    private Alert disconnect = new Alert("Climber Spark is disconnected!", AlertType.kError);
+    
+    private Distance goal = CLIMBER_MIN_POSITION;
+
+    private boolean homed = CLIMBER_HOME_ON_START;
     
     public ClimberIOReal() {
-        ClimbConstants.CLIMB_PID_GAINS.withCallback(() -> {
-            pid.setGains(ClimbConstants.CLIMB_PID_GAINS);
+        CLIMBER_PID_GAINS.withCallback(() -> {
+            pid.setGains(CLIMBER_PID_GAINS);
         });
-        ClimbConstants.FF.withCallback(() -> {
-            ff.setKs(ClimbConstants.FF.kS);
-            ff.setKv(ClimbConstants.FF.kV);
-            ff.setKa(ClimbConstants.FF.kA);
-            ff.setKg(ClimbConstants.FF.kG);
+        CLIMBER_FF_GAINS.withCallback(() -> {
+            ff.setKs(CLIMBER_FF_GAINS.kS);
+            ff.setKv(CLIMBER_FF_GAINS.kV);
+            ff.setKa(CLIMBER_FF_GAINS.kA);
+            ff.setKg(CLIMBER_FF_GAINS.kG);
         });
         
         
-        SparkMaxConfig doomConfig = new SparkMaxConfig();
+        SparkMaxConfig motorConfig = new SparkMaxConfig();
 
-        // motor configuration
-        doomConfig.idleMode(IdleMode.kBrake).inverted(ClimbConstants.INVERTED);
-        // relative encoder configuration
-        doomConfig.encoder.positionConversionFactor(ClimbConstants.POSITION_CONVERSION_FACTOR).velocityConversionFactor(ClimbConstants.VELOCITY_CONVERSION_FACTOR);
+        motorConfig.idleMode(IdleMode.kBrake).inverted(CLIMBER_INVERTED);
+        motorConfig.encoder
+            .positionConversionFactor(CLIMBER_POSITION_CONVERSION_FACTOR)
+            .velocityConversionFactor(CLIMBER_VELOCITY_CONVERSION_FACTOR);
 
-        doom.configure(doomConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+        motor.configure(motorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        pid.setTolerance(ClimbConstants.SETPOINT_TOLERANCE.in(Meters));
+        pid.setTolerance(CLIMBER_SETPOINT_TOLERANCE.in(Meters));
     }
     
     @Override
     public void updateInputs(ClimberIOInputs input){
-        if (!openLoop) {
-            doom.setVoltage(Units.Volts.of(pid.calculate(despair.getPosition(), goal) + ff.calculate(pid.getSetpoint().velocity)));
+        if (!openLoop && homed) {
+            motor.setVoltage(Units.Volts.of(pid.calculate(encoder.getPosition(), goal.in(Meters)) + ff.calculate(pid.getSetpoint().velocity)));
         }
-        input.motorCurrentOut = Units.Amps.of(doom.getOutputCurrent());
-        input.motorTemp = Units.Celsius.of(doom.getMotorTemperature());
-        input.encoderPosition = Units.Meters.of(despair.getPosition());
-        input.encoderVelocity = Units.MetersPerSecond.of(despair.getVelocity());
-        input.goal = Units.Meters.of(goal);
+        input.position = Units.Meters.of(encoder.getPosition());
+        input.velocity = Units.MetersPerSecond.of(encoder.getVelocity());
+
+        input.motorVoltageOut = Units.Volts.of(motor.getAppliedOutput() * motor.getBusVoltage());
+        input.motorCurrentOut = Units.Amps.of(motor.getOutputCurrent());
+        input.motorTemp = Units.Celsius.of(motor.getMotorTemperature());
+        
+        input.goal = goal;
+        input.positionSetpoint = Units.Meters.of(pid.getSetpoint().position);
+        input.velocitySetpoint = Units.MetersPerSecond.of(pid.getSetpoint().velocity);
         input.atSetpoint = pid.atSetpoint();
-        input.connected = doom.getLastError() != REVLibError.kCANDisconnected;
-        input.motorVoltageOut = Units.Volts.of(doom.getAppliedOutput() * doom.getBusVoltage());
+        
+        input.connected = motor.getLastError() != REVLibError.kCANDisconnected;
         input.openLoop = openLoop;
-        input.climbVelocitySetpoint = Units.MetersPerSecond.of(pid.getSetpoint().velocity);
-        input.climbPositionSetpoint = Units.Meters.of(pid.getSetpoint().position);
+        input.homed = homed;
+
         disconnect.set(!input.connected);
     }
 
-    /** sets the voltage for the climber. */
     @Override
     public void setVoltage(Voltage voltage){
         openLoop = true;
-        doom.setVoltage(voltage);
+        motor.setVoltage(voltage);
     }
-    /** sets the goal position for the climber. */
+
     @Override
     public void setGoal(Distance goal){
         openLoop = false;
-        this.goal = goal.in(Meters);
+        this.goal = goal;
     }
-    /**
-     * zeros the encoder position. (for button)
-     */
+
     @Override
-     public void zeroEncoder() {
-        despair.setPosition(0);
+    public void setHomed(boolean homed){
+        this.homed = homed;
+    }
+
+    @Override
+    public void setPosition(Distance position){
+        encoder.setPosition(position.in(Meters));
     }
 }
 

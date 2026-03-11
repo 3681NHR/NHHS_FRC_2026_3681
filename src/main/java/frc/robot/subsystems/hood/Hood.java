@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.commands.HomeCommand;
-import frc.robot.subsystems.SOTMSolver;
 import frc.utils.ExtraMath;
 
 import static frc.robot.constants.HoodConstants.*;
@@ -21,6 +20,8 @@ public class Hood extends SubsystemBase {
     HoodIO io;
     HoodIOInputsAutoLogged in = new HoodIOInputsAutoLogged();
 
+    boolean homing = false;
+
     public Hood(HoodIO io){
         this.io = io;
     }
@@ -30,12 +31,8 @@ public class Hood extends SubsystemBase {
         io.updateInputs(in);
         Logger.processInputs("IO/Hood", in);
 
-        Logger.recordOutput("Subsystems/Hood/state", (getCurrentCommand() == null ? "none" : getCurrentCommand().getName()));
+        Logger.recordOutput("Subsystems/Hood/state", getCurrentCommand() == null ? "none" : getCurrentCommand().getName());
         
-    }
-
-    public Command trackWithLead(){
-        return positionControl(() -> SOTMSolver.getInstance().getParams(false).hoodAngle()).withName("SOTM position control");
     }
 
     /**
@@ -79,6 +76,7 @@ public class Hood extends SubsystemBase {
 
         Command c = new InstantCommand(() -> {
             io.setHomed(false);
+            homing = true;
         }).andThen(new HomeCommand(
             HOOD_HOME_VOLTAGE, 
             HOOD_HOME_STOP_TIME, 
@@ -88,17 +86,30 @@ public class Hood extends SubsystemBase {
                 io.setPos(HOOD_MIN_ANGLE);
                 io.setHomed(true);
                 io.setGoal(HOOD_MIN_ANGLE);
+                io.reset();
+            })).andThen(new InstantCommand(() -> {
+                homing = false;
             }));
         c.addRequirements(this);
         c.setName("auto home");
         return c;
     }
+    
     public Angle getAngle(){
         return in.angle;
     }
 
     @AutoLogOutput(key="Subsystems/Hood/ready")
     public boolean isReady(){
-        return in.atSetpoint || in.openloop;
+        return (in.atSetpoint || in.openloop) && in.homed;
     }
+
+    public boolean isHomed(){
+        return in.homed;
+    }
+
+    public boolean isHoming(){
+        return homing;
+    }
+
 }

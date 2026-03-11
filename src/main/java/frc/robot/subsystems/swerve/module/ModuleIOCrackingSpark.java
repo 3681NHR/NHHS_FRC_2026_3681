@@ -14,7 +14,6 @@ import static frc.utils.SparkUtil.sparkStickyFault;
 import static frc.utils.SparkUtil.tryUntilOk;
 
 import java.util.Queue;
-import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
