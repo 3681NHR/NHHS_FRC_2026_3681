@@ -8,7 +8,7 @@ import edu.wpi.first.units.measure.Angle;
 
 public interface FuelVisionIO {
     
-    public void updateInputs(FuelVisionIOInputs inputs);
+    public default void updateInputs(FuelVisionIOInputs inputs){}
 
     @AutoLog
     class FuelVisionIOInputs{

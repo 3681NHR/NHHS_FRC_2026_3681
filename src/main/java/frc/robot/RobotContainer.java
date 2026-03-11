@@ -20,6 +20,7 @@ import frc.robot.subsystems.climber.ClimberIO;
 import frc.robot.subsystems.climber.ClimberIOReal;
 import frc.robot.subsystems.climber.ClimberIOSim;
 import frc.robot.subsystems.fuelVision.FuelVision;
+import frc.robot.subsystems.fuelVision.FuelVisionIO;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhoton;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhotonSim;
 import frc.robot.subsystems.hood.Hood;
@@ -227,8 +228,8 @@ public class RobotContainer {
                 // Real robot, instantiate hardware IO implementations
                 vision = new Vision(
                         apriltagLayout,
-                        // new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
-                        // new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1]),
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1]),
                         new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2]),
                         new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3]));
                 drive = new Drive(
@@ -245,7 +246,7 @@ public class RobotContainer {
                 fuelVision = new FuelVision(new FuelVisionIOPhoton(FuelVisionConstants.CAMERA_CONFIG), drive::getPose);
 
                 turret = new Turret(new TurretIOReal(), drive);
-                intake = new Intake(new IntakeIO(){});//FIXME
+                intake = new Intake(new IntakeIOReal());
                 launcher = new Launcher(new LauncherIOReal());
                 hood = new Hood(new HoodIOReal());
                 climber = new Climber(new ClimberIO(){});//FIXME
@@ -277,8 +278,9 @@ public class RobotContainer {
                     SOTMSolver.getInstance().setDrive(drive);
                     SOTMSolver.getInstance().calculate();
                 
-                    fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG,
-                            driveSim::getSimulatedDriveTrainPose), drive::getPose);
+                    // fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG,
+                    //         driveSim::getSimulatedDriveTrainPose), drive::getPose);
+                    fuelVision = new FuelVision(new FuelVisionIO(){}, drive::getPose);
                     intake = new Intake(new IntakeIOSim(driveSim));
                     turret = new Turret(new TurretIOSim(), drive);
                 }
@@ -374,7 +376,7 @@ public class RobotContainer {
 
         drive.setDefaultCommand(drive.teleopDrive().ignoringDisable(true));
 
-        hood.setDefaultCommand(hood.positionControl(() -> hood.getAngle()).ignoringDisable(true));
+        hood.setDefaultCommand(hood.positionControl(() -> HOOD_MIN_ANGLE).ignoringDisable(true));
 
         climber.setDefaultCommand(climber.voltageControl(() -> Volts.zero()).ignoringDisable(true));
     }
@@ -447,12 +449,15 @@ public class RobotContainer {
         new Trigger(() -> driverController.getPOV() == ControllerMap.DOWN).onTrue(climber.toggle());
 
         new Trigger(() -> inTrench() || driverController.getRawButton(X)).whileTrue(
-            new InstantCommand(() -> {
-                oldHoodCmd = hood.getCurrentCommand();
-            }).andThen(
             drive.TrenchAlignDrive()
-            .alongWith(hood.positionControl(() -> HOOD_MIN_ANGLE))).withName("trench mode")
-        ).onFalse(oldHoodCmd);
+            .alongWith(hood.positionControl(() -> HOOD_MIN_ANGLE)).withName("trench mode")
+        ).onFalse(
+            new HiddenConditionalCommand(
+                getManShooterCommand(),
+                getTrackCommand(),
+                () -> manual
+            )
+        );
     }
 
     public void periodic() {
@@ -597,7 +602,11 @@ public class RobotContainer {
     @AutoLogOutput
     private boolean inTrench(){
         Translation2d center = new Translation2d(8.269, 4.038);
-        Translation2d pos = drive.getPose().getTranslation();
+        Translation2d pos = drive.getPose().getTranslation().plus(
+            new Translation2d(//look ahead 
+            drive.getChassisSpeeds().vxMetersPerSecond*0.5,
+            drive.getChassisSpeeds().vyMetersPerSecond*0.5
+        ));
 
         double width = 1.75;
         double height = 2;
