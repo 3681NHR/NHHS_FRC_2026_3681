@@ -1,7 +1,7 @@
 {
-  "System Joysticks": {
+  "Keyboard 0 Settings": {
     "window": {
-      "enabled": false
+      "visible": true
     }
   },
   "keyboardJoysticks": [
@@ -16,14 +16,13 @@
           "incKey": 83
         },
         {
-          "decKey": 69,
-          "decayRate": 0.0,
-          "incKey": 82,
-          "keyRate": 0.009999999776482582
+          "decayRate": 1.0,
+          "incKey": 81,
+          "keyRate": 1.0
         },
         {
           "decayRate": 1.0,
-          "incKey": 81,
+          "incKey": 69,
           "keyRate": 1.0
         },
         {
@@ -41,7 +40,7 @@
         51,
         52,
         53,
-        -1
+        54
       ],
       "povConfig": [
         {
@@ -55,7 +54,7 @@
           "key90": 326
         }
       ],
-      "povCount": 0
+      "povCount": 1
     },
     {
       "axisConfig": [
@@ -106,7 +105,8 @@
   ],
   "robotJoysticks": [
     {
-      "guid": "Keyboard0"
+      "guid": "78696e70757401000000000000000000",
+      "useGamepad": true
     }
   ]
 }

@@ -1,15 +1,24 @@
 {
   "name": "CIWS",
-  "rotations": [{ "axis": "x", "degrees": 90}],
+  "rotations": [{ "axis": "x", "degrees": 90},{ "axis": "z", "degrees": 90}],
   "position": [0,0,0],
+  "disableSimplification": true,
   "components": [
     {   
-    "zeroedRotations": [{ "axis": "x", "degrees": 90}],
-    "zeroedPosition": [0,-0.158750,-0.298450]
+    "zeroedRotations": [{ "axis": "x", "degrees": 90},{ "axis": "z", "degrees": 90}],
+    "zeroedPosition": [0.0, 0.0, 0]
     },
     {   
-    "zeroedRotations": [{ "axis": "x", "degrees": 90}],
-    "zeroedPosition": [0, -0.244664, -0.440336]
+    "zeroedRotations": [{ "axis": "x", "degrees": 90},{ "axis": "z", "degrees": -90}, { "axis": "y", "degrees": -125.369016}],
+    "zeroedPosition": [-0.01373775,0,0.34845937]
+    },
+    {   
+    "zeroedRotations": [{ "axis": "x", "degrees": 90},{ "axis": "z", "degrees": 90}],
+    "zeroedPosition": [0.146050, -0.152400, -0.299237]
+    },
+    {   
+    "zeroedRotations": [{ "axis": "x", "degrees": 90},{ "axis": "z", "degrees": 90}],
+    "zeroedPosition": [0.055355, -0.145590, -0.439815]
     }
   ]
 }

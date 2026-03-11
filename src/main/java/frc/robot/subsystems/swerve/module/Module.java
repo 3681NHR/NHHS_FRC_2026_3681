@@ -17,8 +17,6 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
-import static frc.robot.constants.DriveConstants.*;
-
 import org.littletonrobotics.junction.Logger;
 
 public class Module {
@@ -44,14 +42,14 @@ public class Module {
         io.updateInputs(inputs);
         Logger.processInputs("IO/Drive/Module" + Integer.toString(index), inputs);
 
-        // // Calculate positions for odometry
-        // int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
-        // odometryPositions = new SwerveModulePosition[sampleCount];
-        // for (int i = 0; i < sampleCount; i++) {
-        //     Distance positionMeters = module.WHEEL_RAD.times(inputs.odometryDrivePositionsRad[i]);
-        //     Rotation2d angle = new Rotation2d(inputs.odometryTurnPositionsRad[i]);
-        //     odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
-        // }
+        // Calculate positions for odometry
+        int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
+        odometryPositions = new SwerveModulePosition[sampleCount];
+        for (int i = 0; i < sampleCount; i++) {
+            Distance positionMeters = DriveConstants.Module.WHEEL_RAD.times(inputs.odometryDrivePositionsRad[i]);
+            Rotation2d angle = new Rotation2d(inputs.odometryTurnPositionsRad[i]);
+            odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
+        }
 
         // Update alerts
         driveDisconnectedAlert.set(!inputs.driveConnected);

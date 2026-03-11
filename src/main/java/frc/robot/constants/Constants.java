@@ -1,5 +1,8 @@
 package frc.robot.constants;
 
+import static edu.wpi.first.units.Units.Pounds;
+import static edu.wpi.first.units.Units.Seconds;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -29,9 +32,10 @@ public final class Constants {
     public static final Pose2d STARTING_POSE = new Pose2d(new Translation2d(8.75, 4), Rotation2d.fromDegrees(0));
 
     public static final Mass ROBOT_MASS = Pounds.of(115);
-    public static final Time LOOP_TIME = Milliseconds.of(0.13); // 20ms + 110ms spark max velocity lag
+    // public static final Time LOOP_TIME = Seconds.of(0.13); // 20ms + 110ms spark max velocity lag
     // 3742, thanks Mr. B
     public static final int ELASTIC_LAYOUT_PORT = 3742;
+
     public static class OperatorConstants {
         // Joystick Deadbands, radial from center
         public static final double LEFT_DEADBAND = 0.1;
