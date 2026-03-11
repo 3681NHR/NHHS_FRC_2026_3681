@@ -25,7 +25,6 @@ public class LauncherIOReal implements LauncherIO {
     
     boolean openLoop = false;
 
-    Alert overheat = new Alert("", AlertType.kError);//dynamic text, dont set here
     Alert disconnect = new Alert("Launcher motor disconnected!", AlertType.kError);
     
     public LauncherIOReal(){
@@ -44,12 +43,6 @@ public class LauncherIOReal implements LauncherIO {
     @Override
     public void updateInputs(LauncherIOInputs input){
 
-        if(motor.getDeviceTemp().getValue().magnitude() > LAUNCHER_MAX_TEMP.magnitude()){
-            overheat.set(true);
-            overheat.setText("Launcher motor overheat! ("+motor.getDeviceTemp().getValue().in(Celsius)+"C)");
-        } else {
-            overheat.set(false);
-        }
         disconnect.set(!motor.isConnected());
         
         input.angle = motor.getPosition().getValue();

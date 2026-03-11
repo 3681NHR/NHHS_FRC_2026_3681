@@ -1,15 +1,14 @@
 package frc.robot.constants;
 
-import static edu.wpi.first.units.Units.Milliseconds;
-import static edu.wpi.first.units.Units.Pounds;
-import static edu.wpi.first.units.Units.Seconds;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Mass;
+import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.RobotBase;
+
+import static edu.wpi.first.units.Units.*;
 
 public final class Constants {
 
@@ -55,4 +54,6 @@ public final class Constants {
 
     public static final int SPARKMAX_TARGET_FIRMWARE = 436273156;
     public static final int TALONFX_TARGET_FIRMWARE = 436273409;
+
+    public static final Temperature MAX_MOTOR_TEMP = Celsius.of(80);
 }
