@@ -14,7 +14,9 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
     private static String motorsWithIncorrectFirmwareVersion = "";
     private static final Alert motorsWithIncorrectFirmwareVersionAlert = new Alert(
             "Firmware version mismatch on Talons: ", AlertType.kWarning);
-
+    private static String motorsThatAreDisconnected = "";
+    private static final Alert motorsThatAreDisconnectedAlert = new Alert(
+            "Talon FXs that are disconnected: ", AlertType.kError);
     /**
      * Constructs a new Talon FX motor controller object.
      * <p>
@@ -59,8 +61,16 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
 
     public TalonFX(int deviceId, CANBus canbus) {
         super(deviceId, canbus);
+        Logger.recordOutput("Connected" + getDeviceID(), isConnected());
         Logger.recordOutput("Firmware/Talon/" + getDeviceID() + " firmware version", getVersion().getValue());
-        if (!DriverStation.isFMSAttached() && getVersion().getValue() != Constants.TALONFX_TARGET_FIRMWARE) {
+        if (!isConnected()) {
+            motorsThatAreDisconnected += (motorsThatAreDisconnected.isBlank() ? "" : ", ") + getDeviceID();
+            motorsThatAreDisconnectedAlert.setText("Talon FXs that are disconnected: " + motorsThatAreDisconnected);
+            if (!motorsThatAreDisconnectedAlert.get()) {
+                motorsThatAreDisconnectedAlert.set(true);
+            }
+        }
+        else if (!DriverStation.isFMSAttached() && getVersion().getValue() != Constants.TALONFX_TARGET_FIRMWARE) {
             motorsWithIncorrectFirmwareVersion += (motorsWithIncorrectFirmwareVersion.isBlank() ? "" : ", ")
                     + getDeviceID();
             motorsWithIncorrectFirmwareVersionAlert
@@ -69,9 +79,12 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
                 motorsWithIncorrectFirmwareVersionAlert.set(true);
             }
         }
-    }
 
+    }
     public static Alert getFirmwareAlert() {
         return motorsWithIncorrectFirmwareVersionAlert;
+    }
+    public static Alert getDisconnectedAlert() {
+        return motorsThatAreDisconnectedAlert;
     }
 }
