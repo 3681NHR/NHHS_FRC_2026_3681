@@ -54,5 +54,5 @@ public final class Constants {
     }
 
     public static final int SPARKMAX_TARGET_FIRMWARE = 436273156;
-    public static final int TALONFX_TARGET_FIRMWARE = 436273152;
+    public static final int TALONFX_TARGET_FIRMWARE = 436273409;
 }

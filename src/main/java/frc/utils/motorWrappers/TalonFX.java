@@ -16,7 +16,7 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
             "Firmware version mismatch on Talons: ", AlertType.kWarning);
     private static String motorsThatAreDisconnected = "";
     private static final Alert motorsThatAreDisconnectedAlert = new Alert(
-            "Talon FXs that are disconnected: ", AlertType.kError);
+            "Talon FXs are disconnected: ", AlertType.kError);
     /**
      * Constructs a new Talon FX motor controller object.
      * <p>
@@ -61,11 +61,11 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
 
     public TalonFX(int deviceId, CANBus canbus) {
         super(deviceId, canbus);
-        Logger.recordOutput("Connected/Talon/" + getDeviceID(), isConnected());
-        Logger.recordOutput("Firmware/Talon/" + getDeviceID() + " firmware version", getVersion().getValue());
+        Logger.recordOutput("Connected/Talon/ID" + getDeviceID(), isConnected());
+        Logger.recordOutput("Firmware/Talon/ID" + getDeviceID() + " firmware version", getVersion().getValue());
         if (!isConnected()) {
             motorsThatAreDisconnected += (motorsThatAreDisconnected.isBlank() ? "" : ", ") + getDeviceID();
-            motorsThatAreDisconnectedAlert.setText("Talon FXs that are disconnected: " + motorsThatAreDisconnected);
+            motorsThatAreDisconnectedAlert.setText("Talon FXs are disconnected: " + motorsThatAreDisconnected);
             motorsThatAreDisconnectedAlert.set(true);
         }
         else if (!DriverStation.isFMSAttached() && getVersion().getValue() != Constants.TALONFX_TARGET_FIRMWARE) {
@@ -77,9 +77,11 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
         }
 
     }
+    
     public static Alert getFirmwareAlert() {
         return motorsWithIncorrectFirmwareVersionAlert;
     }
+
     public static Alert getDisconnectedAlert() {
         return motorsThatAreDisconnectedAlert;
     }
