@@ -29,16 +29,12 @@ public class SparkMax extends com.revrobotics.spark.SparkMax {
     if (!connected) {
       motorsThatAreDisconnected += (motorsThatAreDisconnected.isBlank() ? "" : ", ") + getDeviceId();
       motorsThatAreDisconnectedAlert.setText("SparkMaxes that are disconnected: " + motorsThatAreDisconnected);
-      if (!motorsThatAreDisconnectedAlert.get()) {
-        motorsThatAreDisconnectedAlert.set(true);
-      }
+      motorsThatAreDisconnectedAlert.set(true);
     }
     else if (!DriverStation.isFMSAttached() && this.getFirmwareVersion() != Constants.SPARKMAX_TARGET_FIRMWARE) {
       motorsWithIncorrectFirmwareVersion += (motorsWithIncorrectFirmwareVersion.isBlank() ? "" : ", ") + getDeviceId();
       motorsWithIncorrectFirmwareVersionAlert.setText("Firmware version mismatch on SparkMaxes: " + motorsWithIncorrectFirmwareVersion);
-      if (!motorsWithIncorrectFirmwareVersionAlert.get()) {
-        motorsWithIncorrectFirmwareVersionAlert.set(true);
-      }
+      motorsWithIncorrectFirmwareVersionAlert.set(true);
     }
   }
   public static Alert getFirmwareAlert() {

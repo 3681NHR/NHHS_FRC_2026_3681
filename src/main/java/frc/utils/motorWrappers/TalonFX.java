@@ -66,18 +66,14 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
         if (!isConnected()) {
             motorsThatAreDisconnected += (motorsThatAreDisconnected.isBlank() ? "" : ", ") + getDeviceID();
             motorsThatAreDisconnectedAlert.setText("Talon FXs that are disconnected: " + motorsThatAreDisconnected);
-            if (!motorsThatAreDisconnectedAlert.get()) {
-                motorsThatAreDisconnectedAlert.set(true);
-            }
+            motorsThatAreDisconnectedAlert.set(true);
         }
         else if (!DriverStation.isFMSAttached() && getVersion().getValue() != Constants.TALONFX_TARGET_FIRMWARE) {
             motorsWithIncorrectFirmwareVersion += (motorsWithIncorrectFirmwareVersion.isBlank() ? "" : ", ")
                     + getDeviceID();
             motorsWithIncorrectFirmwareVersionAlert
                     .setText("Firmware version mismatch on Talons: " + motorsWithIncorrectFirmwareVersion);
-            if (!motorsWithIncorrectFirmwareVersionAlert.get()) {
-                motorsWithIncorrectFirmwareVersionAlert.set(true);
-            }
+            motorsWithIncorrectFirmwareVersionAlert.set(true);
         }
 
     }
