@@ -61,7 +61,7 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
 
     public TalonFX(int deviceId, CANBus canbus) {
         super(deviceId, canbus);
-        Logger.recordOutput("Connected" + getDeviceID(), isConnected());
+        Logger.recordOutput("Connected/Talon/" + getDeviceID(), isConnected());
         Logger.recordOutput("Firmware/Talon/" + getDeviceID() + " firmware version", getVersion().getValue());
         if (!isConnected()) {
             motorsThatAreDisconnected += (motorsThatAreDisconnected.isBlank() ? "" : ", ") + getDeviceID();
