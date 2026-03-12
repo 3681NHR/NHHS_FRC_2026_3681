@@ -36,7 +36,7 @@ public class IntakeConstants {
 
     public static final Angle INTAKE_PIVOT_TOLERANCE = Degrees.of(5);// TODO: tune
 
-    public static final PIDGains.GravityFF INTAKE_PIVOT_ID_GAINS =new PIDGains.GravityFF(0.0, 0.3, 0.7, 0.0);
+    public static final PIDGains.GravityFF INTAKE_PIVOT_ID_GAINS =new PIDGains.GravityFF(0.0, 0.3, 0.7, 0.001);
 
     public static final PIDGains.GravityFF INTAKE_PIVOT_FF_GAINS =new PIDGains.GravityFF(0.0, 0.3, 0.7, 0.0).makeTunable("Tuning/Intake/Pivot/FF");
     public static final PIDGains.ProfiledPID INTAKE_PIVOT_PID_GAINS = new PIDGains.ProfiledPID(0.3, 0.00067, 0.2, 5.0, 15.0).makeTunable("Tuning/Intake/Pivot/PID");

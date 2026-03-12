@@ -17,18 +17,15 @@ import frc.robot.subsystems.SimFuelManager;
 import frc.robot.subsystems.LaunchLUT;
 import frc.robot.subsystems.climber.Climber;
 import frc.robot.subsystems.climber.ClimberIO;
-import frc.robot.subsystems.climber.ClimberIOReal;
 import frc.robot.subsystems.climber.ClimberIOSim;
 import frc.robot.subsystems.fuelVision.FuelVision;
 import frc.robot.subsystems.fuelVision.FuelVisionIO;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhoton;
-import frc.robot.subsystems.fuelVision.FuelVisionIOPhotonSim;
 import frc.robot.subsystems.hood.Hood;
 import frc.robot.subsystems.hood.HoodIO;
 import frc.robot.subsystems.hood.HoodIOReal;
 import frc.robot.subsystems.hood.HoodIOSim;
 import frc.robot.subsystems.intake.Intake;
-import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOReal;
 import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.launcher.Launcher;
@@ -147,8 +144,6 @@ public class RobotContainer {
     private RumbleHandler opRumbler = new RumbleHandler(operatorController);
 
     private PowerDistribution pdp = new PowerDistribution(1, ModuleType.kRev);
-
-    private Command oldHoodCmd = new InstantCommand(() -> {});
 
     private Translation2d target = new Translation2d();
 
@@ -413,7 +408,6 @@ public class RobotContainer {
             rumbler.overrideQue(RumblePreset.TAP.load());
         }));
         
-        // TODO: add real feed command
         new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7 && turret.isReady() && launcher.isReady() && hood.isReady()).whileTrue(
             new HiddenConditionalCommand(
                 getSimFireCommand(),

@@ -1,6 +1,5 @@
 package frc.robot.subsystems.launcher;
 
-import static edu.wpi.first.units.Units.Celsius;
 import static edu.wpi.first.units.Units.RPM;
 import static frc.robot.constants.LauncherConstants.*;
 

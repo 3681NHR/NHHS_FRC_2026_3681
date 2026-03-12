@@ -13,6 +13,8 @@ import edu.wpi.first.wpilibj.AddressableLEDBufferView;
 import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.constants.Constants;
+import frc.robot.constants.Constants.RobotMode;
 import frc.robot.subsystems.hood.Hood;
 import frc.robot.subsystems.launcher.Launcher;
 import frc.robot.subsystems.swerve.Drive;
@@ -28,9 +30,9 @@ public class Led extends SubsystemBase {
     BooleanSupplier manualSupplier;
 
     private AddressableLED led = new AddressableLED(0);
-    private AddressableLEDBuffer buffer = new AddressableLEDBuffer(71+47);
-    private AddressableLEDBufferView sideBuffer = new AddressableLEDBufferView(buffer, 71, 71+46);
-    private AddressableLEDBufferView turretBuffer = new AddressableLEDBufferView(buffer, 0, 71);
+    private AddressableLEDBuffer buffer = new AddressableLEDBuffer(70+5);
+    private AddressableLEDBufferView sideBuffer = new AddressableLEDBufferView(buffer, 70, 70+4);
+    private AddressableLEDBufferView turretBuffer = new AddressableLEDBufferView(buffer, 0, 70);
 
     private LoggedNetworkBoolean rainbow = new LoggedNetworkBoolean("Debug/LED override", false);
 
@@ -64,6 +66,7 @@ public class Led extends SubsystemBase {
         if(hood.isHoming()){
             turretState = Color.kOrange;
         }
+        Color sideState = drive.getFOD() ? new Color() : Color.kBlue;
         
         
         if(rainbow.get()){
@@ -72,15 +75,20 @@ public class Led extends SubsystemBase {
         } else {
             LEDPattern.solid(turretState).atBrightness(Percent.of(50)).applyTo(turretBuffer);
 
-            LEDPattern.solid(drive.getFOD() ? new Color() : Color.kBlue).atBrightness(Percent.of(50)).applyTo(sideBuffer);
+            LEDPattern.solid(sideState).atBrightness(Percent.of(50)).applyTo(sideBuffer);
         }
 
         led.setData(buffer);
 
-        String[] leds = new String[buffer.getLength()];
-        for (int i = 0; i < buffer.getLength(); i++) {
-            // leds[i] = buffer.getLED(i).toHexString();
+        //only log all leds in replay, as toHexString() is slow
+        if(Constants.MODE == RobotMode.REPLAY){
+            String[] leds = new String[buffer.getLength()];
+            for (int i = 0; i < buffer.getLength(); i++) {
+                leds[i] = buffer.getLED(i).toHexString();
+            }
+            Logger.recordOutput("Leds/list", leds);
         }
-        Logger.recordOutput("Leds/list", leds);
+        Logger.recordOutput("Leds/turret", turretState);
+        Logger.recordOutput("Leds/side", sideState);
     }
 }

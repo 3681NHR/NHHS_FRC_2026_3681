@@ -6,32 +6,35 @@ import com.ctre.phoenix6.CANBus;
 
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.constants.Constants;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import static edu.wpi.first.units.Units.Celsius;
 
 public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
-
     private static final StringBuilder motorsWithIncorrectFirmwareVersion = new StringBuilder();
-    private static final Alert motorsWithIncorrectFirmwareVersionAlert = new Alert(
-            "Firmware version mismatch on Talons: ", AlertType.kWarning);
-    private static final StringBuilder motorsThatAreDisconnected = new StringBuilder();
-    private static final Alert motorsThatAreDisconnectedAlert = new Alert(
-            "Talon FXs are disconnected: ", AlertType.kError);
-    private static final Alert motorOverheatAlert = new Alert("TalonFX overheat: ", AlertType.kWarning);
+    private static final Alert motorsWithIncorrectFirmwareVersionAlert = new Alert("Firmware version mismatch on TalonFXs: ", AlertType.kWarning);
+
     private static final Set<Integer> disconnectedMotorIds = new HashSet<>();
+    private static boolean disconnectHasChanged = true;
+    private static final StringBuilder disconnectedMotors = new StringBuilder();
+    private static final Alert motorDisconnectAlert = new Alert("TalonFXs are disconnected: ", AlertType.kError);
+    
+    private static final StringBuilder overheatedMotors = new StringBuilder();
+    private static final Map<Integer, Double> overheatedMotorIds = new HashMap<>();
+    private static boolean overheatHasChanged = true;
+    private static final Alert motorOverheatAlert = new Alert("TalonFX connected motor overheat: ", AlertType.kWarning);
+    
     private static final Set<TalonFX> talonFXs = new LinkedHashSet<>();
 
     private final String disconnectKey;
     private final String tempKey;
-    private static boolean disconnectedThisLoop = false;
-    private static boolean overheatedThisLoop = false;
 
     /**
      * Constructs a new Talon FX motor controller object.
@@ -82,11 +85,10 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
         tempKey = "Temperature/Talon/ID " + getDeviceID();
 
         int firmwareVersion = getVersion().getValue();
-        Logger.recordOutput(disconnectKey, isConnected());
+        boolean connected = isConnected();
+        Logger.recordOutput(disconnectKey, connected);
         Logger.recordOutput("Firmware/Talon/ID " + getDeviceID(), firmwareVersion);
-        if (!isConnected()) {
-            appendId(motorsThatAreDisconnected, disconnectedMotorIds, getDeviceID());
-        } else if (!DriverStation.isFMSAttached() && firmwareVersion != Constants.TALONFX_TARGET_FIRMWARE) {
+        if (connected && firmwareVersion != Constants.SPARKMAX_TARGET_FIRMWARE) {
             appendId(motorsWithIncorrectFirmwareVersion, null, getDeviceID());
         }
     }
@@ -96,66 +98,113 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
     }
 
     public static Alert getDisconnectedAlert() {
-        return motorsThatAreDisconnectedAlert;
+        return motorDisconnectAlert;
     }
 
     /**
-     * call after all talons have been initialized
+     * call after all sparks have been initialized
      */
     public static void initAlerts() {
         if (!motorsWithIncorrectFirmwareVersion.isEmpty()) {
-            getFirmwareAlert().setText("Firmware version mismatch on Talons: " + motorsWithIncorrectFirmwareVersion);
+            getFirmwareAlert().setText("Firmware version mismatch on TalonFXs: " + motorsWithIncorrectFirmwareVersion);
             getFirmwareAlert().set(true);
         }
-        if (!motorsThatAreDisconnected.isEmpty()) {
-            getDisconnectedAlert().setText("Talon FXs that are disconnected: " + motorsThatAreDisconnected);
+        if (!disconnectedMotors.isEmpty()) {
+            getDisconnectedAlert().setText("TalonFXes are disconnected: " + disconnectedMotors);
             getDisconnectedAlert().set(true);
         }
     }
 
     public static void periodic() {
-        StringBuilder overheatingMotors = new StringBuilder();
-        for (TalonFX talonFX : talonFXs) {
-            talonFX.disconnectCheck();
-            talonFX.temperatureCheck(overheatingMotors);
+        for (TalonFX talon : talonFXs) {
+            talon.disconnectCheck();
+            talon.temperatureCheck();
         }
-        if (disconnectedThisLoop) {
-            disconnectedThisLoop = false;
-            motorsThatAreDisconnectedAlert.setText("Talon FXs that are disconnected: " + motorsThatAreDisconnected);
+        if(overheatHasChanged){
+            updateOverheatText();
+            motorOverheatAlert.setText("TalonFX connected motor overheat: " + overheatedMotors);
+            overheatHasChanged = false;
         }
-        if (!overheatingMotors.isEmpty()) {
-            motorOverheatAlert.setText("TalonFX overheat: " + overheatingMotors);
-            motorOverheatAlert.set(true);
-        } else {
-            motorOverheatAlert.set(false);
+        if(disconnectHasChanged){
+            updateDisconnectText();
+            motorDisconnectAlert.setText("TalonFXes are disconnected: " + disconnectedMotors);
+            disconnectHasChanged = false;
         }
     }
 
-    private void temperatureCheck(StringBuilder overheatingMotors) {
-        double tempC = getDeviceTemp().getValue().in(Celsius);
+    private static void updateOverheatText(){
+        //clear alert
+        overheatedMotors.setLength(0);
+        if(overheatedMotorIds.size() <= 0){
+            //return if no overheat
+            return;
+        }
+        overheatedMotors.append("TalonFX connected motor overheat: ");
+
+        Integer[] ids = overheatedMotorIds.keySet().toArray(new Integer[0]);
+        overheatedMotors.append(formatOverheatEntry(ids[0], overheatedMotorIds.get(ids[0])));
+
+        for(int i=1; i<ids.length; i++){
+            overheatedMotors.append(", " + formatOverheatEntry(ids[i], overheatedMotorIds.get(ids[i])));
+        }
+    }
+    
+    private static void updateDisconnectText(){
+        disconnectedMotors.setLength(0);
+        if(disconnectedMotorIds.size() <= 0){
+            return;
+        }
+        disconnectedMotors.append("TalonFXes are disconnected: ");
+
+        Integer[] ids = disconnectedMotorIds.toArray(new Integer[0]);
+        disconnectedMotors.append("ID " + ids[0]);
+
+        for(int i=1; i<ids.length; i++){
+            disconnectedMotors.append(", ID " + ids[i]);
+        }
+    }
+
+    /**
+     * check if the motor is overheating, and update alert if so
+     */
+    private void temperatureCheck() {
+        double tempC = getDeviceTemp().getValueAsDouble();
         Logger.recordOutput(tempKey, tempC);
 
         if (tempC > Constants.MAX_MOTOR_TEMP.in(Celsius)) {
-            if (!overheatingMotors.isEmpty()) {
-                overheatingMotors.append(", ");
+            if(!Double.valueOf(getDeviceTemp().getValueAsDouble()).equals(overheatedMotorIds.get(getDeviceID()))){
+                overheatHasChanged = true;
+                overheatedMotorIds.put(getDeviceID(), getDeviceTemp().getValueAsDouble());
             }
-            overheatingMotors.append(formatOverheatEntry(getDeviceID(), tempC));
+        } else {
+            if(overheatedMotorIds.containsKey(getDeviceID())){
+                overheatedMotorIds.remove(getDeviceID());
+                overheatHasChanged = true;
+            }
         }
     }
 
+    /**
+     * check if the motor is disconnected, and update alert if so
+     */
     private void disconnectCheck() {
-        disconnectedThisLoop = false;
-        boolean connected = isConnected();
-        Logger.recordOutput(disconnectKey, connected);
-        if (!connected) {
+        boolean disconnected = !isConnected();
+        Logger.recordOutput(disconnectKey, !disconnected);
+        if (disconnected) {
             if (disconnectedMotorIds.add(getDeviceID())) {
-                appendId(motorsThatAreDisconnected, null, getDeviceID());
-                disconnectedThisLoop = true;
+                disconnectHasChanged = true;
             }
-            motorsThatAreDisconnectedAlert.set(true);
+        } else {
+            if(disconnectedMotorIds.remove(getDeviceID())){
+                disconnectHasChanged = true;
+            }
         }
     }
 
+    private static String formatOverheatEntry(int id, double tempC) {
+        return String.format(Locale.US, "ID %d(%.1fC)", id, tempC);
+    }
+    
     private static void appendId(StringBuilder builder, Set<Integer> seenIds, int id) {
         if (seenIds != null && !seenIds.add(id)) {
             return;
@@ -164,9 +213,5 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
             builder.append(", ");
         }
         builder.append(id);
-    }
-
-    private static String formatOverheatEntry(int id, double tempC) {
-        return String.format(Locale.US, "ID %d(%.1fC)", id, tempC);
     }
 }
