@@ -19,6 +19,8 @@ import frc.robot.subsystems.launcher.Launcher;
 import frc.robot.subsystems.swerve.Drive;
 import frc.robot.subsystems.turret.Turret;
 
+import frc.utils.ExtraMath;
+
 public class Led extends SubsystemBase {
 
     Launcher launcher;
@@ -72,10 +74,10 @@ public class Led extends SubsystemBase {
             turretState = Color.kOrange;
         }
 
-        int turretAbsolutePosIndexLed = (int) ((turret.getAbsoluteAngle().in(Rotations) % 1)*turretBufferLength);
+        int turretAbsolutePosIndexLed = (int) (ExtraMath.wrap(turret.getAbsoluteAngle().in(Rotations), 1) * turretBufferLength);
         turretAbsolutePosIndexLed += LEDTurretZeroOffset;
         turretAbsolutePosIndexLed %= turretBufferLength;
-        int turretPosIndexLed = (int) ((turret.getAngle().in(Rotations) % 1)*turretBufferLength);
+        int turretPosIndexLed = (int) (ExtraMath.wrap(turret.getAngle().in(Rotations), 1) * turretBufferLength);
         turretPosIndexLed += LEDTurretZeroOffset;
         turretPosIndexLed %= turretBufferLength;
         
@@ -88,8 +90,8 @@ public class Led extends SubsystemBase {
             if (coolTurretTrackLedThing.get() && !coolTurretTrackLedThingButItAlsoHelpsWithTurretDebug.get()) {
                 turretBuffer.setLED(turretAbsolutePosIndexLed, Color.kHotPink);
                 for (int i = 1; i < 5; i++) {
-                    int ledIndexPlus = (turretAbsolutePosIndexLed + i) % turretBufferLength;
-                    int ledIndexMinus = (turretAbsolutePosIndexLed - i) % turretBufferLength;
+                    int ledIndexPlus = (int) ExtraMath.wrap(turretAbsolutePosIndexLed + i, turretBufferLength);
+                    int ledIndexMinus = (int) ExtraMath.wrap(turretAbsolutePosIndexLed - i, turretBufferLength);
                     if (ledIndexMinus < 0) {
                         ledIndexMinus += turretBufferLength;
                     }
