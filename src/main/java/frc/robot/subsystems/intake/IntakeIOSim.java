@@ -68,7 +68,7 @@ public class IntakeIOSim implements IntakeIO {
             Inches.of(25),
             Inches.of(6),
             IntakeSide.FRONT,
-            10
+            20
         );
 
         SimFuelManager.getInstance().intake = mapleSimIntake;
@@ -126,7 +126,7 @@ public class IntakeIOSim implements IntakeIO {
         } else {
             mapleSimIntake.stopIntake();
         }
-        Logger.recordOutput("sim/held fuel", mapleSimIntake.getGamePiecesAmount());
+        Logger.recordOutput("Sheld fuel", mapleSimIntake.getGamePiecesAmount());
     }
 
     @Override
