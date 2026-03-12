@@ -23,7 +23,7 @@ public class IntakeConstants {
     public static final boolean INTAKE_PIVOT_INVERTED = false;
     public static final Current INTAKE_PIVOT_CURRENT_LIM = Amps.of(40);
 
-    public static final Voltage INTAKE_RUN_VOLTAGE = Volts.of(10); // TODO: tune
+    public static final Voltage INTAKE_RUN_VOLTAGE = Volts.of(11); // TODO: tune
     public static final Voltage INTAKE_EJECT_VOLTAGE = Volts.of(-10); // TODO: tune
 
     //setpoints

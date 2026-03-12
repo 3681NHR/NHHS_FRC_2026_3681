@@ -119,8 +119,8 @@ public class Robot extends LoggedRobot {
         TimerHandler.update();
 
         robotContainer.periodic();
-        SparkMax.periodic();
-        TalonFX.periodic();
+        // SparkMax.periodic();
+        // TalonFX.periodic();
     }
 
     /** This function is called once each time the robot enters Disabled mode. */
