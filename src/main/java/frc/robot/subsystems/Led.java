@@ -34,9 +34,12 @@ public class Led extends SubsystemBase {
     private AddressableLEDBufferView turretBuffer = new AddressableLEDBufferView(buffer, 0, 71);
 
     private final int turretBufferLength = turretBuffer.getLength();
+    private static final int LEDTurretZeroOffset = 30;
 
     private LoggedNetworkBoolean rainbow = new LoggedNetworkBoolean("Debug/LED override", false);
     private LoggedNetworkBoolean coolTurretTrackLedThing = new LoggedNetworkBoolean("Overrides/Cool Turret Track Led Thing", true);
+    private LoggedNetworkBoolean coolTurretTrackLedThingButItAlsoHelpsWithTurretDebug = new LoggedNetworkBoolean("Overrides/Cool Turret Track Led Thing But It Also Helps With Turret Debug", false);
+
 
     public Led(Launcher launcher,
     Hood hood,
@@ -69,8 +72,12 @@ public class Led extends SubsystemBase {
             turretState = Color.kOrange;
         }
 
-        int turretPosIndexLed = (int) ((turret.getAbsoluteAngle().in(Rotations) % 1)*turretBufferLength);
-        
+        int turretAbsolutePosIndexLed = (int) ((turret.getAbsoluteAngle().in(Rotations) % 1)*turretBufferLength);
+        turretAbsolutePosIndexLed += LEDTurretZeroOffset;
+        turretAbsolutePosIndexLed %= turretBufferLength;
+        int turretPosIndexLed = (int) ((turret.getAngle().in(Rotations) % 1)*turretBufferLength);
+        turretPosIndexLed += LEDTurretZeroOffset;
+        turretPosIndexLed %= turretBufferLength;
         
         if(rainbow.get()){
             LEDPattern.rainbow(255, 255).applyTo(turretBuffer);
@@ -78,11 +85,11 @@ public class Led extends SubsystemBase {
         } else {
             LEDPattern.solid(turretState).atBrightness(Percent.of(50)).applyTo(turretBuffer);
             
-            if (coolTurretTrackLedThing.get()) {
-                turretBuffer.setLED(turretPosIndexLed, Color.kHotPink);
+            if (coolTurretTrackLedThing.get() && !coolTurretTrackLedThingButItAlsoHelpsWithTurretDebug.get()) {
+                turretBuffer.setLED(turretAbsolutePosIndexLed, Color.kHotPink);
                 for (int i = 1; i < 5; i++) {
-                    int ledIndexPlus = (turretPosIndexLed + i) % turretBufferLength;
-                    int ledIndexMinus = (turretPosIndexLed - i) % turretBufferLength;
+                    int ledIndexPlus = (turretAbsolutePosIndexLed + i) % turretBufferLength;
+                    int ledIndexMinus = (turretAbsolutePosIndexLed - i) % turretBufferLength;
                     if (ledIndexMinus < 0) {
                         ledIndexMinus += turretBufferLength;
                     }
@@ -90,6 +97,11 @@ public class Led extends SubsystemBase {
                     turretBuffer.setLED(ledIndexPlus, Color.kHotPink);
                     turretBuffer.setLED(ledIndexMinus, Color.kHotPink);
                 }
+            }
+
+            if (coolTurretTrackLedThingButItAlsoHelpsWithTurretDebug.get()) {
+                turretBuffer.setLED(turretPosIndexLed, Color.kRed);
+                turretBuffer.setLED(turretAbsolutePosIndexLed, Color.kGreen);
             }
 
             LEDPattern.solid(drive.getFOD() ? new Color() : Color.kBlue).atBrightness(Percent.of(50)).applyTo(sideBuffer);
