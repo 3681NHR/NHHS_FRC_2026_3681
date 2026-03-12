@@ -25,6 +25,8 @@ public class SparkMax extends com.revrobotics.spark.SparkMax {
 
     private final String disconnectKey;
     private final String tempKey;
+    private static boolean disconnectedThisLoop = false;
+    private static boolean overheatedThisLoop = false;
 
     /**
      * Create a new object to control a SPARK MAX motor Controller
@@ -74,6 +76,7 @@ public class SparkMax extends com.revrobotics.spark.SparkMax {
     }
 
     public static void periodic() {
+        motorOverheatAlert.setText("");
         StringBuilder overheatingMotors = new StringBuilder();
         for (SparkMax sparkMax : sparkMaxes) {
             sparkMax.disconnectCheck();

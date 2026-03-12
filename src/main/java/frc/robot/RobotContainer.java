@@ -245,7 +245,7 @@ public class RobotContainer {
                 fuelVision = new FuelVision(new FuelVisionIOPhoton(FuelVisionConstants.CAMERA_CONFIG), drive::getPose);
 
                 turret = new Turret(new TurretIOReal(), drive);
-                intake = new Intake(new IntakeIO(){});//FIXME
+                intake = new Intake(new IntakeIOReal(){});//FIXME
                 launcher = new Launcher(new LauncherIOReal());
                 hood = new Hood(new HoodIOReal());
                 climber = new Climber(new ClimberIO(){});//FIXME
@@ -443,6 +443,7 @@ public class RobotContainer {
         new Trigger(() -> driverController.getPOV() == ControllerMap.LEFT).onTrue(climber.home());
 
         new Trigger(() -> driverController.getRawButton(RB)).whileTrue(kicker.reverse());
+        new Trigger(() -> driverController.getRawButton(LB)).whileTrue(intake.outtake());
         
         new Trigger(() -> driverController.getPOV() == ControllerMap.DOWN).onTrue(climber.toggle());
 

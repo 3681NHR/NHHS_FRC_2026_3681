@@ -79,7 +79,7 @@ public class Led extends SubsystemBase {
 
         String[] leds = new String[buffer.getLength()];
         for (int i = 0; i < buffer.getLength(); i++) {
-            leds[i] = buffer.getLED(i).toHexString();
+            // leds[i] = buffer.getLED(i).toHexString();
         }
         Logger.recordOutput("Leds/list", leds);
     }

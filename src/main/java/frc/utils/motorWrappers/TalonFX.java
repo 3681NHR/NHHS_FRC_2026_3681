@@ -30,6 +30,8 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
 
     private final String disconnectKey;
     private final String tempKey;
+    private static boolean disconnectedThisLoop = false;
+    private static boolean overheatedThisLoop = false;
 
     /**
      * Constructs a new Talon FX motor controller object.
@@ -117,6 +119,10 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
             talonFX.disconnectCheck();
             talonFX.temperatureCheck(overheatingMotors);
         }
+        if (disconnectedThisLoop) {
+            disconnectedThisLoop = false;
+            motorsThatAreDisconnectedAlert.setText("Talon FXs that are disconnected: " + motorsThatAreDisconnected);
+        }
         if (!overheatingMotors.isEmpty()) {
             motorOverheatAlert.setText("TalonFX overheat: " + overheatingMotors);
             motorOverheatAlert.set(true);
@@ -138,12 +144,13 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
     }
 
     private void disconnectCheck() {
+        disconnectedThisLoop = false;
         boolean connected = isConnected();
         Logger.recordOutput(disconnectKey, connected);
         if (!connected) {
             if (disconnectedMotorIds.add(getDeviceID())) {
                 appendId(motorsThatAreDisconnected, null, getDeviceID());
-                motorsThatAreDisconnectedAlert.setText("Talon FXs that are disconnected: " + motorsThatAreDisconnected);
+                disconnectedThisLoop = true;
             }
             motorsThatAreDisconnectedAlert.set(true);
         }
