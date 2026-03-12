@@ -184,6 +184,10 @@ public class Turret extends SubsystemBase {
         return in.motorAngle;
     }
 
+    public Angle getAbsoluteAngle() {
+        return in.angle;
+    }
+
     public Translation2d getFieldPos(){
         return drive.getPose().getTranslation()//drive pos
             .plus(new Translation2d(//turret offest

@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Percent;
+import static edu.wpi.first.units.Units.Rotations;
 
 import java.util.function.BooleanSupplier;
 
@@ -32,7 +33,10 @@ public class Led extends SubsystemBase {
     private AddressableLEDBufferView sideBuffer = new AddressableLEDBufferView(buffer, 71, 71+46);
     private AddressableLEDBufferView turretBuffer = new AddressableLEDBufferView(buffer, 0, 71);
 
+    private final int turretBufferLength = turretBuffer.getLength();
+
     private LoggedNetworkBoolean rainbow = new LoggedNetworkBoolean("Debug/LED override", false);
+    private LoggedNetworkBoolean coolTurretTrackLedThing = new LoggedNetworkBoolean("Overrides/Cool Turret Track Led Thing", true);
 
     public Led(Launcher launcher,
     Hood hood,
@@ -64,6 +68,8 @@ public class Led extends SubsystemBase {
         if(hood.isHoming()){
             turretState = Color.kOrange;
         }
+
+        int turretPosIndexLed = (int) ((turret.getAbsoluteAngle().in(Rotations) % 1)*turretBufferLength);
         
         
         if(rainbow.get()){
@@ -71,6 +77,20 @@ public class Led extends SubsystemBase {
             LEDPattern.rainbow(255, 255).applyTo(sideBuffer);
         } else {
             LEDPattern.solid(turretState).atBrightness(Percent.of(50)).applyTo(turretBuffer);
+            
+            if (coolTurretTrackLedThing.get()) {
+                turretBuffer.setLED(turretPosIndexLed, Color.kHotPink);
+                for (int i = 1; i < 5; i++) {
+                    int ledIndexPlus = (turretPosIndexLed + i) % turretBufferLength;
+                    int ledIndexMinus = (turretPosIndexLed - i) % turretBufferLength;
+                    if (ledIndexMinus < 0) {
+                        ledIndexMinus += turretBufferLength;
+                    }
+
+                    turretBuffer.setLED(ledIndexPlus, Color.kHotPink);
+                    turretBuffer.setLED(ledIndexMinus, Color.kHotPink);
+                }
+            }
 
             LEDPattern.solid(drive.getFOD() ? new Color() : Color.kBlue).atBrightness(Percent.of(50)).applyTo(sideBuffer);
         }
