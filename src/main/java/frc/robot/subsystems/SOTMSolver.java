@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.LaunchLUT.ShotParams;
@@ -20,7 +21,6 @@ public final class SOTMSolver extends SubsystemBase{
     private Angle turretAngle = Radians.of(0);
 
     private SOTMSolver(){
-        // calculate();
     };
 
     public synchronized static SOTMSolver getInstance(){
@@ -46,18 +46,22 @@ public final class SOTMSolver extends SubsystemBase{
         Translation2d curr = drive.getPose().getTranslation();
 
         double dist = curr.getDistance(target);
+        double newDist = 0;
+        Translation2d vec = new Translation2d();
         params = LaunchLUT.get(Meters.of(dist), true, LaunchLUT.LUTHub);
-
-        Translation2d vec = curr.plus(new Translation2d(
-            drive.getChassisSpeeds().vxMetersPerSecond * params.time().in(Seconds),
-            drive.getChassisSpeeds().vyMetersPerSecond * params.time().in(Seconds)
-        ));
-
-        dist = vec.getDistance(target);
-
-        turretAngle = ExtraMath.getAngleToPos(target, vec);
-
-        params = LaunchLUT.get(Meters.of(dist), true, LaunchLUT.LUTHub);
+        
+        for(int i=0; i<5 && Math.abs(dist-newDist) > Units.inchesToMeters(10); i++){
+            dist = newDist;
+            
+            vec = curr.plus(new Translation2d(
+                drive.getChassisSpeeds().vxMetersPerSecond * params.time().in(Seconds),
+                drive.getChassisSpeeds().vyMetersPerSecond * params.time().in(Seconds)
+                ));
+            
+            turretAngle = ExtraMath.getAngleToPos(target, vec);
+            newDist = vec.getDistance(target);
+            params = LaunchLUT.get(Meters.of(newDist), true, LaunchLUT.LUTHub);
+        }
         
     }
     /**
