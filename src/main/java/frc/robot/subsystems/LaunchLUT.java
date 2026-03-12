@@ -34,7 +34,11 @@ public class LaunchLUT {
         new ShotParams(Meters.of(9.86), Degrees.of(45), RPM.of(1900.0), Seconds.of(1.9)),
     } : new ShotParams[]{
         //  dist, hood, speed, time
-        new ShotParams(Meters.of(2.8), Degrees.of(35), RPM.of(3500.0), Seconds.of(1.05)),
+        new ShotParams(Meters.of(1.6), Degrees.of(28), RPM.of(2250.0), Seconds.of(0.8)),
+        new ShotParams(Meters.of(2.42), Degrees.of(32), RPM.of(2500.0), Seconds.of(1.05)),
+        new ShotParams(Meters.of(2.9), Degrees.of(35), RPM.of(2500.0), Seconds.of(1.05)),
+        new ShotParams(Meters.of(3.425), Degrees.of(35), RPM.of(2750.0), Seconds.of(1.1)),
+        new ShotParams(Meters.of(4.07), Degrees.of(37), RPM.of(3000.0), Seconds.of(0.95)),
     };
 
     /**

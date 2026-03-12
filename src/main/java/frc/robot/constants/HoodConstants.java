@@ -17,7 +17,7 @@ public final class HoodConstants {
     public static final int HOOD_MOTOR_ID = 51;
 
     
-    public static final Angle HOOD_SETPOINT_TOLERANCE = Degrees.of(1);
+    public static final Angle HOOD_SETPOINT_TOLERANCE = Degrees.of(3);
     
     public static final Angle HOOD_MIN_ANGLE = Degrees.of(25);
     public static final Angle HOOD_MAX_ANGLE = Degrees.of(52);
@@ -30,7 +30,7 @@ public final class HoodConstants {
     public static final boolean HOOD_HOME_ON_START = false;
     public static final Voltage HOOD_HOME_VOLTAGE = Volts.of(-2);
     public static final Time HOOD_HOME_STOP_TIME = Seconds.of(0.5);
-    public static final AngularVelocity HOOD_HOME_STOP_THRESH = RadiansPerSecond.of(0.01);
+    public static final AngularVelocity HOOD_HOME_STOP_THRESH = RadiansPerSecond.of(0.005);
 
     public static final double HOOD_GEAR_RATIO = (1.0/25.0)*(10.0/176.0)*0.750671851307;
 
