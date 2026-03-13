@@ -88,7 +88,7 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
         boolean connected = isConnected();
         Logger.recordOutput(disconnectKey, connected);
         Logger.recordOutput("Firmware/Talon/ID " + getDeviceID(), firmwareVersion);
-        if (connected && firmwareVersion != Constants.SPARKMAX_TARGET_FIRMWARE) {
+        if (connected && firmwareVersion != Constants.TALONFX_TARGET_FIRMWARE) {
             appendId(motorsWithIncorrectFirmwareVersion, null, getDeviceID());
         }
     }

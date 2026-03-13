@@ -34,18 +34,16 @@ public final class TurretConstants {
     public static final Current TURRET_CURRENT_LIM = Amps.of(30);
     public static final boolean TURRET_MOTOR_INVERT = true;
 
-    public static final Angle TURRET_ANGLE_OFFSET = Degrees.of(0);
     public static final Angle TURRET_ANGLE_FORWARD_LIM = Degrees.of(240);//soft limit before unwind(from center)
     public static final Angle TURRET_ANGLE_REVERSE_LIM = Degrees.of(-240);//soft limit before unwind(from center)
 
     public static final SimpleFF TURRET_ID_GAINS = new SimpleFF(0.4, 1.25, 0.00001);//gains from sysid for state space model
 
     public static final SimpleFF TURRET_FF_GAINS = new SimpleFF(0.4, 1.25, 0.0).makeTunable("Tuning/Turret/FF");
-    public static final ProfiledPID TURRET_PID_GAINS = new ProfiledPID(5,0.0,0.2,2,15).makeTunable("Tuning/Turret/PID");
+    public static final ProfiledPID TURRET_PID_GAINS = new ProfiledPID(5,1.0,0.3,1.5,10).makeTunable("Tuning/Turret/PID");
     public static final double TURRET_THETA_COMP_FACTOR = -0.08;//offset target angle while robot is spinning
 
     public static final Angle TURRET_SETPOINT_TOLERANCE = Degrees.of(5);
-    public static final Angle TURRET_DIVERGANCE_THRESH = Degrees.of(5);
 
     public static final Translation2d RED_HUB = new Translation2d(11.915, 4.034);
     public static final Translation2d[] RED_PASS = new Translation2d[]{
@@ -58,8 +56,6 @@ public final class TurretConstants {
         new Translation2d(3.5, 6.5),
         new Translation2d(3.5, 2)
     };
-
-    public static final Angle TURRET_LOCK_POS = Degrees.of(0.0);
 
     public static final Translation3d TURRET_OFFSET = new Translation3d(-0.146050, 0.152400, 0.299237);
     public static final Translation3d HOOD_TO_TURRET_OFFSET = new Translation3d(0.090695,-0.00681,0.140578);
