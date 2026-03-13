@@ -467,6 +467,7 @@ public class RobotContainer {
     }
 
     public void periodic() {
+        Logger.recordOutput("test/ready", ((turret.isReady() && launcher.isReady() && hood.isReady()) || forceFeed.getAsBoolean()));
         rumbler.update(Constants.EVENT_LOOP_TIME);
         PIDTuner.updateTunables();
         SOTMSolver.getInstance().setTarget(target);
@@ -633,7 +634,7 @@ public class RobotContainer {
                     Commands.parallel(
                             kicker.feed(),
                             indexer.feed()
-                            ),
+                            ).withName("shoot"),
                     () -> Constants.MODE == RobotMode.SIM
                 ),
                 Commands.none(),
@@ -645,6 +646,6 @@ public class RobotContainer {
         return Commands.parallel(
                 intake.intake(),
                 indexer.feed()
-        );
+        ).withName("intake");
     }
 }

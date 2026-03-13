@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.RobotContainer;
 import frc.robot.constants.DriveConstants;
+import org.littletonrobotics.junction.Logger;
 
 /**
  * A factory for creating autonomous programs
@@ -54,7 +55,7 @@ public class AutoFactory {
                 null,
                 Commands.parallel(
                         robotContainer.getTrackCommand(),
-                        robotContainer.fire()
+                        Commands.waitSeconds(0.05).andThen(robotContainer.fire())
                 ));
     }
     

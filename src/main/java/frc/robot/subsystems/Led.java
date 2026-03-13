@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Hertz;
 import static edu.wpi.first.units.Units.Percent;
 
 import java.util.function.BooleanSupplier;
@@ -74,8 +75,8 @@ public class Led extends SubsystemBase {
         
         
         if(rainbow.get()){
-            LEDPattern.rainbow(255, 255).applyTo(turretBuffer);
-            LEDPattern.rainbow(255, 255).applyTo(sideBuffer);
+            LEDPattern.rainbow(255, 255).scrollAtRelativeSpeed(Hertz.of(0.5)).applyTo(turretBuffer);
+            LEDPattern.rainbow(255, 255).scrollAtRelativeSpeed(Hertz.of(0.5)).applyTo(sideBuffer);
         } else {
             LEDPattern.solid(turretState).atBrightness(Percent.of(50)).applyTo(turretBuffer);
 

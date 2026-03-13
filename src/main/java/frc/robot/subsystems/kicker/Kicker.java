@@ -35,7 +35,7 @@ public class Kicker extends SubsystemBase {
 		return Commands.run(() -> {
 			if (preloadEnabled.get() && 
 				in.distance.lte(KICKER_PRELOAD_MAX_DISTANCE) && 
-				in.hasBall &&
+				!in.hasBall &&
 				in.sensorConnected) {
 
 				io.setVout(KICKER_PRELOAD_VOLTAGE);
