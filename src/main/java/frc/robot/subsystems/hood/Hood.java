@@ -2,6 +2,7 @@ package frc.robot.subsystems.hood;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -20,6 +21,8 @@ public class Hood extends SubsystemBase {
     HoodIO io;
     HoodIOInputsAutoLogged in = new HoodIOInputsAutoLogged();
 
+    private final Alert notHomed = new Alert("Hood not homed", Alert.AlertType.kError);
+
     boolean homing = false;
 
     public Hood(HoodIO io){
@@ -30,6 +33,7 @@ public class Hood extends SubsystemBase {
     public void periodic(){
         io.updateInputs(in);
         Logger.processInputs("IO/Hood", in);
+        notHomed.set(!in.homed);
 
         Logger.recordOutput("Subsystems/Hood/state", getCurrentCommand() == null ? "none" : getCurrentCommand().getName());
         

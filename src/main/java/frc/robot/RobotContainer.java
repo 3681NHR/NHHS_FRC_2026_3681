@@ -161,7 +161,7 @@ public class RobotContainer {
             AlertType.kWarning);
 
     private final LoggedNetworkBoolean useLead = new LoggedNetworkBoolean("Overrides/Enable SOTM", true);
-    private final LoggedNetworkBoolean forceFeed = new LoggedNetworkBoolean("Overrides/Force Deed", true);
+    private final LoggedNetworkBoolean forceFeed = new LoggedNetworkBoolean("Overrides/Force Feed", false);
 
     private final LoggedNetworkNumber manHoodDegrees = new LoggedNetworkNumber("Manual/Hood angle degrees", HoodConstants.HOOD_MIN_ANGLE.in(Degrees));
     private final LoggedNetworkNumber manShooterRPM = new LoggedNetworkNumber("Manual/Shooter speed RPM", 0);
@@ -422,9 +422,8 @@ public class RobotContainer {
             rumbler.overrideQue(RumblePreset.TAP.load());
         }));
         
-        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7 && ((turret.isReady() && launcher.isReady() && hood.isReady()) || forceFeed.get())).whileTrue(
-            fire()
-        );
+        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7)
+                .whileTrue(fire());
         // intake :3
         new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5)
                 .whileTrue(intake());
@@ -629,12 +628,16 @@ public class RobotContainer {
     }
     public Command fire(){
         return new HiddenConditionalCommand(
-                getSimFireCommand(),
-                Commands.parallel(
-                        kicker.feed(),
-                        indexer.feed()
-                        ),
-                () -> Constants.MODE == RobotMode.SIM
+                new HiddenConditionalCommand(
+                    getSimFireCommand(),
+                    Commands.parallel(
+                            kicker.feed(),
+                            indexer.feed()
+                            ),
+                    () -> Constants.MODE == RobotMode.SIM
+                ),
+                Commands.none(),
+                () -> ((turret.isReady() && launcher.isReady() && hood.isReady()) || forceFeed.getAsBoolean())
         );
     }
 
