@@ -23,7 +23,7 @@ public class IntakeConstants {
     public static final boolean INTAKE_PIVOT_INVERTED = false;
     public static final Current INTAKE_PIVOT_CURRENT_LIM = Amps.of(40);
 
-    public static final Voltage INTAKE_RUN_VOLTAGE = Volts.of(10); // TODO: tune
+    public static final Voltage INTAKE_RUN_VOLTAGE = Volts.of(11); // TODO: tune
     public static final Voltage INTAKE_EJECT_VOLTAGE = Volts.of(-10); // TODO: tune
 
     //setpoints
@@ -36,10 +36,10 @@ public class IntakeConstants {
 
     public static final Angle INTAKE_PIVOT_TOLERANCE = Degrees.of(5);// TODO: tune
 
-    public static final PIDGains.GravityFF INTAKE_PIVOT_ID_GAINS =new PIDGains.GravityFF(0.0, 0.1, 0.1, 0.1);
+    public static final PIDGains.GravityFF INTAKE_PIVOT_ID_GAINS =new PIDGains.GravityFF(0.0, 0.3, 0.7, 0.001);
 
-    public static final PIDGains.GravityFF INTAKE_PIVOT_FF_GAINS =new PIDGains.GravityFF(0.0, 0.1, 0.1, 0.1).makeTunable("Tuning/Intake/Pivot/FF");
-    public static final PIDGains.ProfiledPID INTAKE_PIVOT_PID_GAINS = new PIDGains.ProfiledPID(0.0, 0.0, 0.0, 30.0, 15.0).makeTunable("Tuning/Intake/Pivot/PID");
+    public static final PIDGains.GravityFF INTAKE_PIVOT_FF_GAINS =new PIDGains.GravityFF(0.0, 0.3, 0.7, 0.0).makeTunable("Tuning/Intake/Pivot/FF");
+    public static final PIDGains.ProfiledPID INTAKE_PIVOT_PID_GAINS = new PIDGains.ProfiledPID(0.3, 0.00067, 0.2, 5.0, 15.0).makeTunable("Tuning/Intake/Pivot/PID");
 
     //ascope offset
     public static final Translation3d INTAKE_OFFSET = new Translation3d(0.292100,0,0.191);

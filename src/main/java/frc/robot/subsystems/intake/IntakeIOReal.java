@@ -68,6 +68,8 @@ public class IntakeIOReal implements IntakeIO {
                 .inverted(INTAKE_PIVOT_INVERTED)
                 .smartCurrentLimit((int)INTAKE_PIVOT_CURRENT_LIM.in(Amps));
         pivotMotor.configure(pivotCfg, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        
     }
 
     @Override

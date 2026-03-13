@@ -15,7 +15,7 @@ import frc.robot.RobotContainer;
 import frc.robot.constants.DriveConstants;
 
 /**
- * A factory for creating autonomous programs for a given {@link Auto}
+ * A factory for creating autonomous programs
  */
 public class AutoFactory {
 
@@ -48,14 +48,21 @@ public class AutoFactory {
                 null,
                 Commands.sequence());
     }
+
+    Pair<PathPlannerTrajectory, Command> createPreloadAuto() {
+        return Pair.of(
+                null,
+                Commands.parallel(
+                        robotContainer.getTrackCommand(),
+                        robotContainer.fire()
+                ));
+    }
     
     Pair<PathPlannerTrajectory, Command> createTestAuto() {
         try{
             PathPlannerPath path = PathPlannerPath.fromPathFile("m4");
 
-            List<PathPlannerTrajectoryState> traj = new LinkedList<PathPlannerTrajectoryState>();
-
-            traj.addAll(getTraj(path).getStates());
+            List<PathPlannerTrajectoryState> traj = new LinkedList<>(getTraj(path).getStates());
 
             for(int i=0; i<20-traj.size(); i++){
                 traj.add(traj.get(traj.size()-1));
@@ -70,16 +77,48 @@ public class AutoFactory {
         }
     }
 
+    Pair<PathPlannerTrajectory, Command> createLeftAuto() {
+        try{
+            PathPlannerPath path = PathPlannerPath.fromChoreoTrajectory("L trench");
+
+            List<PathPlannerTrajectoryState> traj = new LinkedList<>(getTraj(path).getStates());
+
+            for(int i=0; i<20-traj.size(); i++){
+                traj.add(traj.get(traj.size()-1));
+            }
+            return Pair.of(
+                    new PathPlannerTrajectory(traj),
+                    Commands.parallel(
+                            robotContainer.getDrive().followPath(path),
+                            Commands.sequence(
+                                Commands.waitSeconds(0.8),
+                                new InstantCommand()// TODO: intake
+                                        .withTimeout(5),
+                                Commands.sequence(
+                                        Commands.waitSeconds(0.8),
+                                        new InstantCommand()// TODO: shoot
+                                                .withTimeout(5)
+                                ),
+                                Commands.sequence(
+                                        Commands.waitSeconds(8.25),
+                                        new InstantCommand()// TODO: shoot
+                                )
+                            )
+                    ));
+        } catch (Exception e){
+            throw new RuntimeException("Failed to create Test Auto", e);
+        }
+    }
+
     @SuppressWarnings("unused")
     private PathPlannerTrajectory mergeTrajectories(PathPlannerTrajectory... in){
-        List<PathPlannerTrajectoryState> traj = new LinkedList<PathPlannerTrajectoryState>();
+        List<PathPlannerTrajectoryState> traj = new LinkedList<>();
 
         double timeOffset = 0.0;
-        for(int i = 0; i < in.length; i++){
-            PathPlannerTrajectory trajectory = in[i];
+        for (PathPlannerTrajectory trajectory : in) {
             PathPlannerTrajectoryState[] states = trajectory.getStates().toArray(new PathPlannerTrajectoryState[0]);
-            double nextoffset= states[states.length - 1].timeSeconds;
-            for(PathPlannerTrajectoryState s : states){
+            double nextoffset = states[states.length - 1].timeSeconds;
+            for (PathPlannerTrajectoryState s : states) {
                 s.timeSeconds += timeOffset;
                 traj.add(s);
             }
@@ -88,6 +127,6 @@ public class AutoFactory {
         return new PathPlannerTrajectory(traj);
     }
     private PathPlannerTrajectory getTraj(PathPlannerPath path){
-        return (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? path.flipPath() : path).getIdealTrajectory(DriveConstants.PP_CONFIG).get();
+        return (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? path.flipPath() : path).getIdealTrajectory(DriveConstants.PP_CONFIG).orElse(null);
     }
 }

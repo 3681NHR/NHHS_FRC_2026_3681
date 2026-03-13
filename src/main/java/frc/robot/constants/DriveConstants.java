@@ -70,9 +70,8 @@ public class DriveConstants {
 
     // pathplanner PIDs
     public static final PIDGains.PID AUTO_ANGLE_PID = new PIDGains.PID(5, 0.0, 0.5);
-    public static final PIDGains.PID AUTO_ANGLE_PID_SIM = new PIDGains.PID(8, 0.5, 0.2);
-    public static final PIDGains.PID TRANS_PID = new PIDGains.PID(6, 0.0, 0.3);
-    public static final PIDGains.PID TRANS_PID_SIM = new PIDGains.PID(7, 1, 0.2);
+    public static final PIDGains.PID TRANS_PID = new PIDGains.PID(4, 0.0, 0.3);
+    public static final PIDGains.PID TRANS_PID_SIM = new PIDGains.PID(4, 0, 0.3);
     
     // rotation lock PIDs
     public static final PIDGains.PID ANGLE_PID = new PIDGains.PID(6, 0.0, 0.4);
@@ -139,12 +138,6 @@ public class DriveConstants {
         public static final double DRIVE_REDUCTION = 6.75;
         public static final Distance WHEEL_RAD = Inches.of(2.05);
         public static final DCMotor DRIVE_GEARBOX = DCMotor.getNEO(1);
-
-        // Drive encoder configuration
-        // NOTE: CTRE TalonFX takes gear reduciton into account when using getPosition()
-        public static final double DRIVE_ENCODER_POS_FACTOR = 2 * Math.PI; // Mech Rotations -> Wheel Radians
-        // NOTE: CTRE TalonFX returns Mechanism Rotations per second not rpm like the Spark MAX, it also takes configured gear reductions into account when running getVelocity() instead of getRotorVelocity()
-        public static final double DRIVE_ENCODER_VEL_FACTOR = (2 * Math.PI); // Mech RPS -> Wheel RAD/Sec
 
         // Drive PID configuration
         public static final PIDGains.PID DRIVE_PID = new PIDGains.PID(0.25, 0.0, 0.0).makeTunable("Tuning/Drive/PID");

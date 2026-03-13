@@ -39,6 +39,9 @@ public class LaunchLUT {
         new ShotParams(Meters.of(2.9), Degrees.of(35), RPM.of(2500.0), Seconds.of(1.05)),
         new ShotParams(Meters.of(3.425), Degrees.of(35), RPM.of(2750.0), Seconds.of(1.1)),
         new ShotParams(Meters.of(4.07), Degrees.of(37), RPM.of(3000.0), Seconds.of(0.95)),
+            new ShotParams(Meters.of(5.8), Degrees.of(45), RPM.of(4000), Seconds.of(1.15)),
+            new ShotParams(Meters.of(6.36), Degrees.of(45), RPM.of(4000), Seconds.of(1.2)),
+            new ShotParams(Meters.of(7.38), Degrees.of(45), RPM.of(5500), Seconds.of(1.4)),
     };
 
     /**

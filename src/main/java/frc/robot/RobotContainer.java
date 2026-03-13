@@ -2,6 +2,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.autos.AutoChooser;
 import frc.robot.commands.SwerveWheelCharacterization;
 import frc.robot.constants.Constants;
@@ -17,24 +18,29 @@ import frc.robot.subsystems.SimFuelManager;
 import frc.robot.subsystems.LaunchLUT;
 import frc.robot.subsystems.climber.Climber;
 import frc.robot.subsystems.climber.ClimberIO;
-import frc.robot.subsystems.climber.ClimberIOReal;
 import frc.robot.subsystems.climber.ClimberIOSim;
 import frc.robot.subsystems.fuelVision.FuelVision;
 import frc.robot.subsystems.fuelVision.FuelVisionIO;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhoton;
-import frc.robot.subsystems.fuelVision.FuelVisionIOPhotonSim;
 import frc.robot.subsystems.hood.Hood;
 import frc.robot.subsystems.hood.HoodIO;
 import frc.robot.subsystems.hood.HoodIOReal;
 import frc.robot.subsystems.hood.HoodIOSim;
+import frc.robot.subsystems.indexer.Indexer;
+import frc.robot.subsystems.indexer.IndexerIO;
+import frc.robot.subsystems.indexer.IndexerIOReal;
+import frc.robot.subsystems.indexer.IndexerIOSim;
 import frc.robot.subsystems.intake.Intake;
-import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOReal;
 import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.launcher.Launcher;
 import frc.robot.subsystems.launcher.LauncherIO;
 import frc.robot.subsystems.launcher.LauncherIOReal;
 import frc.robot.subsystems.launcher.LauncherIOSim;
+import frc.robot.subsystems.physButtons.ButtonIO;
+import frc.robot.subsystems.physButtons.ButtonIODIO;
+import frc.robot.subsystems.physButtons.ButtonIOSim;
+import frc.robot.subsystems.physButtons.Buttons;
 import frc.robot.subsystems.swerve.*;
 import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroIOPigeon2;
@@ -103,11 +109,6 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -118,7 +119,7 @@ import frc.robot.subsystems.kicker.KickerIOSim;
 import frc.robot.constants.Constants.RobotMode;
 
 public class RobotContainer {
-    private LoggedDashboardChooser<Command> sysidChooser = new LoggedDashboardChooser<Command>("sysid auto chooser");
+    private final LoggedDashboardChooser<Command> sysidChooser = new LoggedDashboardChooser<Command>("sysid auto chooser");
 
     private DriveTrainSimulationConfig driveTrainSimulationConfig;
     private SwerveDriveSimulation driveSim;
@@ -132,6 +133,8 @@ public class RobotContainer {
     private Hood hood;
     private Intake intake;
     private Kicker kicker;
+    private Buttons buttons;
+    private Indexer indexer;
 
     @SuppressWarnings("unused")
 	private Led led;
@@ -140,15 +143,14 @@ public class RobotContainer {
     private final XboxController driverController = new XboxController(OperatorConstants.DRIVER_CONTROLLER_PORT);
     private final XboxController operatorController = new XboxController(OperatorConstants.OPERATOR_CONTROLLER_PORT);
 
-    private LoggedNetworkBoolean resetOdometry = new LoggedNetworkBoolean("Debug/Reset Odometry", false);
+    private final LoggedNetworkBoolean resetOdometry = new LoggedNetworkBoolean("Debug/Reset Odometry", false);
+    private final LoggedNetworkBoolean TStop = new LoggedNetworkBoolean("Overrides/Paralyze turret", false);
     private AutoChooser autoChooser;
 
-    private RumbleHandler rumbler = new RumbleHandler(driverController);
-    private RumbleHandler opRumbler = new RumbleHandler(operatorController);
+    private final RumbleHandler rumbler = new RumbleHandler(driverController);
+    private final RumbleHandler opRumbler = new RumbleHandler(operatorController);
 
-    private PowerDistribution pdp = new PowerDistribution(1, ModuleType.kRev);
-
-    private Command oldHoodCmd = new InstantCommand(() -> {});
+    private final PowerDistribution pdp = new PowerDistribution(1, ModuleType.kRev);
 
     private Translation2d target = new Translation2d();
 
@@ -158,12 +160,13 @@ public class RobotContainer {
     private final Alert operatorDisconnected = new Alert("Operator controller disconnected (port 1).",
             AlertType.kWarning);
 
+    private final LoggedNetworkBoolean useLead = new LoggedNetworkBoolean("Overrides/Enable SOTM", true);
+    private final LoggedNetworkBoolean forceFeed = new LoggedNetworkBoolean("Overrides/Force Deed", true);
 
-    private LoggedNetworkBoolean useLead = new LoggedNetworkBoolean("Overrides/Enable SOTM", false);
+    private final LoggedNetworkNumber manHoodDegrees = new LoggedNetworkNumber("Manual/Hood angle degrees", HoodConstants.HOOD_MIN_ANGLE.in(Degrees));
+    private final LoggedNetworkNumber manShooterRPM = new LoggedNetworkNumber("Manual/Shooter speed RPM", 0);
+    private final LoggedNetworkNumber manTurretDegrees = new LoggedNetworkNumber("Manual/Turret angle degrees", 0);
 
-    private LoggedNetworkNumber manHoodDegrees = new LoggedNetworkNumber("Manual/hood angle degrees", HoodConstants.HOOD_MIN_ANGLE.in(Degrees));
-    private LoggedNetworkNumber manShooterRPM = new LoggedNetworkNumber("Manual/Shooter speed RPM", 0);
-    private LoggedNetworkNumber manTurretDegrees = new LoggedNetworkNumber("Manual/turret angle degrees", 0);
     private DuelJoystickAxis driverSticks;
 
     public RobotContainer() {
@@ -251,6 +254,8 @@ public class RobotContainer {
                 hood = new Hood(new HoodIOReal());
                 climber = new Climber(new ClimberIO(){});//FIXME
                 kicker = new Kicker(new KickerIOReal());
+                buttons = new Buttons(new ButtonIODIO(0));
+                indexer = new Indexer(new IndexerIOReal());
                 break;
 
             case SIM:
@@ -288,6 +293,8 @@ public class RobotContainer {
                 hood = new Hood(new HoodIOSim());
                 climber = new Climber(new ClimberIOSim());
                 kicker = new Kicker(new KickerIOSim());
+                buttons = new Buttons(new ButtonIOSim(() -> false));
+                indexer = new Indexer(new IndexerIOSim());
                 break;
 
             default:
@@ -327,6 +334,8 @@ public class RobotContainer {
                 hood = new Hood(new HoodIO() {});
                 
                 kicker = new Kicker(new KickerIO() {});
+                buttons = new Buttons(new ButtonIO() {});
+                indexer = new Indexer(new IndexerIO() {});
                 break;
         }
         led = new Led(launcher, hood, turret, drive, () -> manual);
@@ -368,20 +377,20 @@ public class RobotContainer {
 
         turret.setDefaultCommand(
                 turret.manPos(turret::getAngle, false).ignoringDisable(true));
-
         launcher.setDefaultCommand(
             launcher.voltageControl(() -> Volts.of(0))
         );
         kicker.setDefaultCommand(kicker.hold().ignoringDisable(true));
-
         drive.setDefaultCommand(drive.teleopDrive().ignoringDisable(true));
-
-        hood.setDefaultCommand(hood.positionControl(() -> HOOD_MIN_ANGLE).ignoringDisable(true));
-
-        climber.setDefaultCommand(climber.voltageControl(() -> Volts.zero()).ignoringDisable(true));
+        hood.setDefaultCommand(hood.positionControl(() -> hood.getAngle()).ignoringDisable(true));
+        climber.setDefaultCommand(climber.voltageControl(Volts::zero).ignoringDisable(true));
+        indexer.setDefaultCommand(indexer.stop().ignoringDisable(true));
     }
 
     private void configureBindings() {
+        new Trigger(() -> TStop.getAsBoolean()).whileTrue(
+                turret.stop().repeatedly().ignoringDisable(true).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
+        );
 
         // reset odometry dashboard button
         resetOdometry.set(false);
@@ -413,17 +422,12 @@ public class RobotContainer {
             rumbler.overrideQue(RumblePreset.TAP.load());
         }));
         
-        // TODO: add real feed command
-        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7 && turret.isReady() && launcher.isReady() && hood.isReady()).whileTrue(
-            new HiddenConditionalCommand(
-                getSimFireCommand(),
-                kicker.feed(),
-                () -> Constants.MODE == RobotMode.SIM
-            )
+        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7 && ((turret.isReady() && launcher.isReady() && hood.isReady()) || forceFeed.get())).whileTrue(
+            fire()
         );
         // intake :3
         new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5)
-                .whileTrue(intake.intake());
+                .whileTrue(intake());
 
         // force teleop drive
         new Trigger(() -> driverController.getPOV() == ControllerMap.UP).onTrue(drive.teleopDrive());
@@ -444,7 +448,8 @@ public class RobotContainer {
         new Trigger(() -> driverController.getPOV() == ControllerMap.RIGHT).onTrue(hood.home());
         new Trigger(() -> driverController.getPOV() == ControllerMap.LEFT).onTrue(climber.home());
 
-        new Trigger(() -> driverController.getRawButton(RB)).whileTrue(kicker.reverse());
+        new Trigger(() -> driverController.getRawButton(RB)).whileTrue(Commands.parallel(kicker.reverse(), indexer.reverse()));
+        new Trigger(() -> driverController.getRawButton(LB)).whileTrue(Commands.parallel(intake.outtake(), indexer.reverse()));
         
         new Trigger(() -> driverController.getPOV() == ControllerMap.DOWN).onTrue(climber.toggle());
 
@@ -458,6 +463,8 @@ public class RobotContainer {
                 () -> manual
             )
         );
+
+        new Trigger(() -> buttons.get(0) && !DriverStation.isEnabled()).onTrue(hood.forceHome());
     }
 
     public void periodic() {
@@ -619,5 +626,22 @@ public class RobotContainer {
         (pos.getX() > center.getX()+xOffset && pos.getX() < center.getX()+xOffset+width && pos.getY() < center.getY()-yOffset && pos.getY() > center.getY()-yOffset-height) ||
         (pos.getX() < center.getX()-xOffset && pos.getX() > center.getX()-xOffset-width && pos.getY() < center.getY()-yOffset && pos.getY() > center.getY()-yOffset-height) ||
         (pos.getX() < center.getX()-xOffset && pos.getX() > center.getX()-xOffset-width && pos.getY() > center.getY()+yOffset && pos.getY() < center.getY()+yOffset+height);
+    }
+    public Command fire(){
+        return new HiddenConditionalCommand(
+                getSimFireCommand(),
+                Commands.parallel(
+                        kicker.feed(),
+                        indexer.feed()
+                        ),
+                () -> Constants.MODE == RobotMode.SIM
+        );
+    }
+
+    public Command intake(){
+        return Commands.parallel(
+                intake.intake(),
+                indexer.feed()
+        );
     }
 }

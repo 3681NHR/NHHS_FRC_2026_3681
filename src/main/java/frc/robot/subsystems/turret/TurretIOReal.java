@@ -1,11 +1,9 @@
 package frc.robot.subsystems.turret;
 
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.constants.TurretConstants.*;
 
-import org.littletonrobotics.junction.Logger;
+import frc.utils.ExtraMath;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
@@ -31,22 +29,22 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 
 public class TurretIOReal implements TurretIO {
 
-    private TalonFX motor = new TalonFX(TURRET_MOTOR_ID);
-    private CANcoder e1 = new CANcoder(TURRET_ENCODER_1_ID);
-    private CANcoder e2 = new CANcoder(TURRET_ENCODER_2_ID);
+    private final TalonFX motor = new TalonFX(TURRET_MOTOR_ID);
+    private final CANcoder e1 = new CANcoder(TURRET_ENCODER_1_ID);
+    private final CANcoder e2 = new CANcoder(TURRET_ENCODER_2_ID);
 
     private boolean openLoop = false;
-    private MotionMagicVoltage closedLoopControl = new MotionMagicVoltage(Radians.of(0));
-    private VoltageOut openLoopControl = new VoltageOut(0);
+    private final MotionMagicVoltage closedLoopControl = new MotionMagicVoltage(Radians.of(0));
+    private final VoltageOut openLoopControl = new VoltageOut(0);
     private Angle goal = Radians.of(0);
 
-    private Alert motorDisconnect = new Alert("Turret motor is disconnected!", AlertType.kError);
-    private Alert e1Disconnect = new Alert("Turret encoder 1 is disconnected!", AlertType.kError);
-    private Alert e2Disconnect = new Alert("Turret encoder 2 is disconnected!", AlertType.kError);
+    private final Alert motorDisconnect = new Alert("Turret motor is disconnected!", AlertType.kError);
+    private final Alert e1Disconnect = new Alert("Turret encoder 1 is disconnected!", AlertType.kError);
+    private final Alert e2Disconnect = new Alert("Turret encoder 2 is disconnected!", AlertType.kError);
 
     private boolean homed = false;
 
-    private LoggedNetworkBoolean resetTurretPos = new LoggedNetworkBoolean("Overrides/reset turret pos", false);
+    private final LoggedNetworkBoolean resetTurretPos = new LoggedNetworkBoolean("Debug/reset turret pos", false);
 
     public TurretIOReal(){
         TalonFXConfiguration config = new TalonFXConfiguration();
@@ -77,10 +75,10 @@ public class TurretIOReal implements TurretIO {
 
         config.Feedback = new FeedbackConfigs().withSensorToMechanismRatio(TURRET_MAIN_GEAR_TEETH/TURRET_MOTOR_GEAR_TEETH);
 
-        // config.SoftwareLimitSwitch = new SoftwareLimitSwitchConfigs().withForwardSoftLimitEnable(true)
-        // .withForwardSoftLimitThreshold(TURRET_ANGLE_FORWARD_LIM)
-        // .withReverseSoftLimitEnable(true)
-        // .withReverseSoftLimitThreshold(TURRET_ANGLE_REVERSE_LIM);
+         config.SoftwareLimitSwitch = new SoftwareLimitSwitchConfigs().withForwardSoftLimitEnable(true)
+         .withForwardSoftLimitThreshold(TURRET_ANGLE_FORWARD_LIM)
+         .withReverseSoftLimitEnable(true)
+         .withReverseSoftLimitThreshold(TURRET_ANGLE_REVERSE_LIM);
 
         motor.getConfigurator().apply(config);
 
@@ -97,32 +95,18 @@ public class TurretIOReal implements TurretIO {
             .withKA(TURRET_FF_GAINS.kA));
         });
 
-        double slope = (TURRET_ENCODER_2_GEAR_TEETH * TURRET_ENCODER_1_GEAR_TEETH)
-        /(TURRET_MAIN_GEAR_TEETH * (TURRET_ENCODER_1_GEAR_TEETH - TURRET_ENCODER_2_GEAR_TEETH));
-
-        Angle angle;
         if(e1.isConnected() && e2.isConnected()){
-            angle = Rotations.of(slope * (MathUtil.inputModulus(e2.getAbsolutePosition().getValue().in(Rotations)-e1.getAbsolutePosition().getValue().in(Rotations), 0, 1)));
-
-            motor.setPosition(angle.plus(Rotations.of(-3)));
+            motor.setPosition(getAbsoluteAngle());
 
             homed = true;
         }
-        //  else {
-        //     DriverStation.reportError("Could not reset turret position!", false);
-        // }
     }
 
     @Override
     public void updateInputs(TurretIOInputs input){
         
         if(e1.isConnected() && e2.isConnected() && (!homed || resetTurretPos.get())){
-            double slope = (TURRET_ENCODER_2_GEAR_TEETH * TURRET_ENCODER_1_GEAR_TEETH)
-            /(TURRET_MAIN_GEAR_TEETH * (TURRET_ENCODER_1_GEAR_TEETH - TURRET_ENCODER_2_GEAR_TEETH));
-
-            Angle angle = Rotations.of(slope * (MathUtil.inputModulus(e2.getAbsolutePosition().getValue().in(Rotations)-e1.getAbsolutePosition().getValue().in(Rotations), 0, 1)));
-            
-            motor.setPosition(angle.plus(Rotations.of(-3)));
+            motor.setPosition(getAbsoluteAngle());
             homed = true;
             resetTurretPos.set(false);
         }
@@ -167,9 +151,9 @@ public class TurretIOReal implements TurretIO {
 
         Angle angle;
         if(e1.isConnected() && e2.isConnected()){
-            angle = Rotations.of(SLOPE * (MathUtil.inputModulus(e2.getAbsolutePosition().getValue().in(Rotations)-e1.getAbsolutePosition().getValue().in(Rotations), 0, 1)));
-            // angle = Degrees.of(calculateTurretAngleFromCANCoderDegrees(e1.getAbsolutePosition().getValue().in(Degrees), e2.getAbsolutePosition().getValue().in(Degrees)));
-            
+//            angle = Rotations.of(SLOPE * (MathUtil.inputModulus(e2.getAbsolutePosition().getValue().in(Rotations)-e1.getAbsolutePosition().getValue().in(Rotations), 0, 1)));
+             angle = Degrees.of(ExtraMath.calculateTurretAngleFromCANCoderDegrees(e1.getAbsolutePosition().getValue().in(Degrees), e2.getAbsolutePosition().getValue().in(Degrees)));
+
             // motor.setPosition(angle);
         } else {
             if(motor.isConnected() && homed){
@@ -203,32 +187,5 @@ public class TurretIOReal implements TurretIO {
         }
         return RotationsPerSecond.of(0);//the bad ending
     }
-    
-    @SuppressWarnings("unused")
-	private double calculateTurretAngleFromCANCoderDegrees(double e1, double e2) {
-        double difference = e2 - e1;
-        if (difference > 250) {
-            difference -= 360;
-        }
-        if (difference < -250) {
-            difference += 360;
-        }
-        difference *= SLOPE;
 
-        double e1Rotations = (difference * TURRET_MAIN_GEAR_TEETH / TURRET_ENCODER_1_GEAR_TEETH) / 360.0;
-        double e1RotationsFloored = Math.floor(e1Rotations);
-        double turretAngle = (e1RotationsFloored * 360.0 + e1) * (TURRET_ENCODER_1_GEAR_TEETH / TURRET_MAIN_GEAR_TEETH);
-        
-        Logger.recordOutput("fahhh/angle", turretAngle);
-        if (turretAngle - difference < -100) {
-            turretAngle += TURRET_ENCODER_1_GEAR_TEETH / TURRET_MAIN_GEAR_TEETH * 360.0;
-        } else if (turretAngle - difference > 100) {
-            turretAngle -= TURRET_ENCODER_1_GEAR_TEETH / TURRET_MAIN_GEAR_TEETH * 360.0;
-        }
-        Logger.recordOutput("fahhh/dif", difference);
-        Logger.recordOutput("fahhh/e1 rot", e1Rotations);
-        Logger.recordOutput("fahhh/e1 rot flor", e1RotationsFloored);
-        Logger.recordOutput("fahhh/final", turretAngle);
-        return turretAngle;
-    }
 }
