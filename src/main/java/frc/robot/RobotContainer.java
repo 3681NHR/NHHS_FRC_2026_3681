@@ -145,6 +145,7 @@ public class RobotContainer {
 
     private final LoggedNetworkBoolean resetOdometry = new LoggedNetworkBoolean("Debug/Reset Odometry", false);
     private final LoggedNetworkBoolean TStop = new LoggedNetworkBoolean("Overrides/Paralyze turret", false);
+    private final LoggedNetworkBoolean autoTrench = new LoggedNetworkBoolean("Overrides/use autotrench", true);
     private AutoChooser autoChooser;
 
     private final RumbleHandler rumbler = new RumbleHandler(driverController);
@@ -452,9 +453,9 @@ public class RobotContainer {
         
         new Trigger(() -> driverController.getPOV() == ControllerMap.DOWN).onTrue(climber.toggle());
 
-        new Trigger(() -> inTrench() || driverController.getRawButton(X)).whileTrue(
-            drive.TrenchAlignDrive()
-            .alongWith(hood.positionControl(() -> HOOD_MIN_ANGLE)).withName("trench mode")
+        new Trigger(() -> (inTrench() && autoTrench.getAsBoolean()) || driverController.getRawButton(X)).whileTrue(
+                    drive.TrenchAlignDrive()
+                    .alongWith(hood.positionControl(() -> HOOD_MIN_ANGLE)).withName("trench mode")
         ).onFalse(
             new HiddenConditionalCommand(
                 getManShooterCommand(),
