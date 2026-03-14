@@ -163,7 +163,7 @@ public class RobotContainer {
             AlertType.kWarning);
 
     private final LoggedNetworkBoolean useLead = new LoggedNetworkBoolean("Overrides/Enable SOTM", true);
-    private final LoggedNetworkBoolean forceFeed = new LoggedNetworkBoolean("Overrides/Force Feed", true);
+    private final LoggedNetworkBoolean forceFeed = new LoggedNetworkBoolean("Overrides/Force Feed", false);
 
     private final LoggedNetworkNumber manHoodDegrees = new LoggedNetworkNumber("Manual/Hood angle degrees", HoodConstants.HOOD_MIN_ANGLE.in(Degrees));
     private final LoggedNetworkNumber manShooterRPM = new LoggedNetworkNumber("Manual/Shooter speed RPM", 0);
@@ -611,11 +611,18 @@ public class RobotContainer {
     @AutoLogOutput
     private boolean inTrench(){
         Translation2d center = new Translation2d(8.269, 4.038);
-        Translation2d pos = drive.getPose().getTranslation().plus(
+        //pos with lead
+        Translation2d offsetPos = drive.getPose().getTranslation().plus(
             new Translation2d(//look ahead 
             drive.getChassisSpeeds().vxMetersPerSecond*0.5,
             drive.getChassisSpeeds().vyMetersPerSecond*0.5
         ));
+        //pos without lead
+        Translation2d pos = drive.getPose().getTranslation().plus(
+                new Translation2d(//look ahead
+                        drive.getChassisSpeeds().vxMetersPerSecond*0.5,
+                        drive.getChassisSpeeds().vyMetersPerSecond*0.5
+                ));
 
         double width = 1.75;
         double height = 2;
@@ -623,11 +630,19 @@ public class RobotContainer {
         double xOffset = 2.61;
         double yOffset = 2.5;
 
-        return 
-        (pos.getX() > center.getX()+xOffset && pos.getX() < center.getX()+xOffset+width && pos.getY() > center.getY()+yOffset && pos.getY() < center.getY()+yOffset+height) ||
-        (pos.getX() > center.getX()+xOffset && pos.getX() < center.getX()+xOffset+width && pos.getY() < center.getY()-yOffset && pos.getY() > center.getY()-yOffset-height) ||
-        (pos.getX() < center.getX()-xOffset && pos.getX() > center.getX()-xOffset-width && pos.getY() < center.getY()-yOffset && pos.getY() > center.getY()-yOffset-height) ||
-        (pos.getX() < center.getX()-xOffset && pos.getX() > center.getX()-xOffset-width && pos.getY() > center.getY()+yOffset && pos.getY() < center.getY()+yOffset+height);
+        return
+                (//will be in trench
+                    (pos.getX() > center.getX()+xOffset && pos.getX() < center.getX()+xOffset+width && pos.getY() > center.getY()+yOffset && pos.getY() < center.getY()+yOffset+height) ||
+                    (pos.getX() > center.getX()+xOffset && pos.getX() < center.getX()+xOffset+width && pos.getY() < center.getY()-yOffset && pos.getY() > center.getY()-yOffset-height) ||
+                    (pos.getX() < center.getX()-xOffset && pos.getX() > center.getX()-xOffset-width && pos.getY() < center.getY()-yOffset && pos.getY() > center.getY()-yOffset-height) ||
+                    (pos.getX() < center.getX()-xOffset && pos.getX() > center.getX()-xOffset-width && pos.getY() > center.getY()+yOffset && pos.getY() < center.getY()+yOffset+height)
+                ) ||
+                (//currently in trench
+                        (offsetPos.getX() > center.getX()+xOffset && offsetPos.getX() < center.getX()+xOffset+width && offsetPos.getY() > center.getY()+yOffset && offsetPos.getY() < center.getY()+yOffset+height) ||
+                        (offsetPos.getX() > center.getX()+xOffset && offsetPos.getX() < center.getX()+xOffset+width && offsetPos.getY() < center.getY()-yOffset && offsetPos.getY() > center.getY()-yOffset-height) ||
+                        (offsetPos.getX() < center.getX()-xOffset && offsetPos.getX() > center.getX()-xOffset-width && offsetPos.getY() < center.getY()-yOffset && offsetPos.getY() > center.getY()-yOffset-height) ||
+                        (offsetPos.getX() < center.getX()-xOffset && offsetPos.getX() > center.getX()-xOffset-width && offsetPos.getY() > center.getY()+yOffset && offsetPos.getY() < center.getY()+yOffset+height)
+                );
     }
     public Command fire(){
         return new HiddenConditionalCommand(
