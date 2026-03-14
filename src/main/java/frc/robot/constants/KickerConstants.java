@@ -14,7 +14,7 @@ public final class KickerConstants {
     public static final Current KICKER_MAX_CURRENT = Amps.of(40);
 
     public static final Distance KICKER_PRELOAD_STOP_DISTANCE = Inches.of(3.5);
-    public static final Distance KICKER_UNLOAD_MAX_DISTANCE = Inches.of(14); // if the can range isnt detecting anything within this range, don't preload
+    public static final Distance KICKER_UNLOAD_MAX_DISTANCE = Inches.of(3.5); // if the can range isnt detecting anything within this range, don't preload
 
     public static final Voltage KICKER_UNLOAD_VOLTAGE = Volts.of(-6);
     public static final Voltage KICKER_UNLOAD_PARTIAL_VOLTAGE = Volts.of(-2);
