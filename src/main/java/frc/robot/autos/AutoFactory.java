@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.RobotContainer;
 import frc.robot.constants.DriveConstants;
+import frc.utils.HiddenParallelCommandGroup;
 import org.littletonrobotics.junction.Logger;
 
 /**
@@ -53,7 +54,7 @@ public class AutoFactory {
     Pair<PathPlannerTrajectory, Command> createPreloadAuto() {
         return Pair.of(
                 null,
-                Commands.parallel(
+                new HiddenParallelCommandGroup(
                         robotContainer.getTrackCommand(),
                         Commands.waitSeconds(0.05).andThen(robotContainer.fire())
                 ));

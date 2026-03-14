@@ -3,6 +3,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.*;
+import edu.wpi.first.wpilibj2.command.HiddenParallelCommandGroup;
 import frc.robot.autos.AutoChooser;
 import frc.robot.commands.SwerveWheelCharacterization;
 import frc.robot.constants.Constants;
@@ -545,7 +546,7 @@ public class RobotContainer {
      */
     public Command getTrackCommand(){
         return new HiddenConditionalCommand(
-            new ParallelCommandGroup(
+            new HiddenParallelCommandGroup(
                 turret.trackWithLead(),
                 launcher.velocityControl(() -> SOTMSolver.getInstance().getParams(false).speed()),
                 hood.positionControl(() -> SOTMSolver.getInstance().getParams(false).hoodAngle()),
@@ -554,7 +555,7 @@ public class RobotContainer {
                 })
             ).withName("track with lead"),
 
-            new ParallelCommandGroup(
+            new HiddenParallelCommandGroup(
                 turret.track(() -> target),
                 launcher.velocityControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).speed()),
                 hood.positionControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).hoodAngle()),
@@ -568,7 +569,7 @@ public class RobotContainer {
     }
 
     public Command getManShooterCommand(){
-        return new ParallelCommandGroup(
+        return new HiddenParallelCommandGroup(
             turret.manPos(() -> Degrees.of(manTurretDegrees.getAsDouble()), false),
             launcher.velocityControl(() -> RPM.of(manShooterRPM.getAsDouble())),
             hood.positionControl(() -> Degrees.of(manHoodDegrees.getAsDouble())),
