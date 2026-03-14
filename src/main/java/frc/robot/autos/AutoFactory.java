@@ -54,9 +54,9 @@ public class AutoFactory {
     Pair<PathPlannerTrajectory, Command> createPreloadAuto() {
         return Pair.of(
                 null,
-                new HiddenParallelCommandGroup(
+                new ParallelCommandGroup(
                         robotContainer.getTrackCommand(),
-                        Commands.waitSeconds(0.05).andThen(robotContainer.fire())
+                        Commands.waitSeconds(5.0).andThen(robotContainer.fire())
                 ));
     }
     

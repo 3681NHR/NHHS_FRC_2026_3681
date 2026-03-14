@@ -163,7 +163,7 @@ public class RobotContainer {
             AlertType.kWarning);
 
     private final LoggedNetworkBoolean useLead = new LoggedNetworkBoolean("Overrides/Enable SOTM", true);
-    private final LoggedNetworkBoolean forceFeed = new LoggedNetworkBoolean("Overrides/Force Feed", false);
+    private final LoggedNetworkBoolean forceFeed = new LoggedNetworkBoolean("Overrides/Force Feed", true);
 
     private final LoggedNetworkNumber manHoodDegrees = new LoggedNetworkNumber("Manual/Hood angle degrees", HoodConstants.HOOD_MIN_ANGLE.in(Degrees));
     private final LoggedNetworkNumber manShooterRPM = new LoggedNetworkNumber("Manual/Shooter speed RPM", 0);
