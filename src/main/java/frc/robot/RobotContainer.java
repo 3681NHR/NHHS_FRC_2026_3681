@@ -448,7 +448,7 @@ public class RobotContainer {
         new Trigger(() -> driverController.getPOV() == ControllerMap.LEFT).onTrue(climber.home());
 
         new Trigger(() -> driverController.getRawButton(RB)).whileTrue(Commands.parallel(kicker.reverse(), indexer.reverse()));
-        new Trigger(() -> driverController.getRawButton(LB)).whileTrue(Commands.parallel(intake.outtake(), indexer.reverse()));
+        new Trigger(() -> driverController.getRawButton(LB)).whileTrue(Commands.parallel(intake.outtake()));
         
         new Trigger(() -> driverController.getPOV() == ControllerMap.DOWN).onTrue(climber.toggle());
 
@@ -644,8 +644,7 @@ public class RobotContainer {
 
     public Command intake(){
         return Commands.parallel(
-                intake.intake(),
-                indexer.feed()
+                intake.intake()
         ).withName("intake");
     }
 }
