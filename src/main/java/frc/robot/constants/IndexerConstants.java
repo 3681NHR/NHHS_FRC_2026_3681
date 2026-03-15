@@ -11,7 +11,7 @@ public final class IndexerConstants {
     public static final boolean INDEXER_MOTOR_INVERT = false;
     public static final Current INDEXER_MAX_CURRENT = Amps.of(40);
 
-    public static final Voltage INDEXER_FEED_VOLTAGE = Volts.of(5);
+    public static final Voltage INDEXER_FEED_VOLTAGE = Volts.of(7);
 
     public static final double POSITION_CONVERSION_FACTOR = 1.0;
     public static final double VELOCITY_CONVERSION_FACTOR = POSITION_CONVERSION_FACTOR*60;
