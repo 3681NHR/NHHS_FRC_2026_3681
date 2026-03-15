@@ -83,9 +83,9 @@ public class Robot extends LoggedRobot {
         }
 
         // Start AdvantageKit logger
-        Logger.start();
         // initalize robot container
         robotContainer = new RobotContainer();
+        Logger.start();
 
         // start timerhandler
         TimerHandler.init();
