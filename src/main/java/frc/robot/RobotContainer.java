@@ -153,8 +153,6 @@ public class RobotContainer {
     private final RumbleHandler rumbler = new RumbleHandler(driverController);
     private final RumbleHandler opRumbler = new RumbleHandler(operatorController);
 
-    private final PowerDistribution pdp = new PowerDistribution(1, ModuleType.kRev);
-
     private Translation2d target = new Translation2d();
 
     AprilTagFieldLayout apriltagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
@@ -378,7 +376,7 @@ public class RobotContainer {
         sysidChooser.addOption("launcher sysid dynamic forward", launcher.sysidDynamic(false));
         sysidChooser.addOption("launcher sysid dynamic reverse", launcher.sysidDynamic(true));
 
-        LoggedPowerDistribution.getInstance(pdp.getModule(), ModuleType.kRev);
+        
 
         turret.setDefaultCommand(
                 turret.manPos(turret::getAngle, false).ignoringDisable(true));
