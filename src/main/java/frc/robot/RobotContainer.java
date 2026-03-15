@@ -2,6 +2,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import frc.robot.autos.AutoChooser;
@@ -168,6 +169,8 @@ public class RobotContainer {
     private final LoggedNetworkNumber manHoodDegrees = new LoggedNetworkNumber("Manual/Hood angle degrees", HoodConstants.HOOD_MIN_ANGLE.in(Degrees));
     private final LoggedNetworkNumber manShooterRPM = new LoggedNetworkNumber("Manual/Shooter speed RPM", 0);
     private final LoggedNetworkNumber manTurretDegrees = new LoggedNetworkNumber("Manual/Turret angle degrees", 0);
+
+    private final Debouncer readyDebounce = new Debouncer(0.2);
 
     private DuelJoystickAxis driverSticks;
 
@@ -469,7 +472,6 @@ public class RobotContainer {
     }
 
     public void periodic() {
-        Logger.recordOutput("test/ready", ((turret.isReady() && launcher.isReady() && hood.isReady()) || forceFeed.getAsBoolean()));
         rumbler.update(Constants.EVENT_LOOP_TIME);
         PIDTuner.updateTunables();
         SOTMSolver.getInstance().setTarget(target);
@@ -655,7 +657,7 @@ public class RobotContainer {
                     () -> Constants.MODE == RobotMode.SIM
                 ),
                 Commands.none(),
-                () -> ((turret.isReady() && launcher.isReady() && hood.isReady()) || forceFeed.getAsBoolean())
+                this::isReady
         );
     }
 
@@ -663,5 +665,9 @@ public class RobotContainer {
         return Commands.parallel(
                 intake.intake()
         ).withName("intake");
+    }
+    @AutoLogOutput
+    public boolean isReady(){
+        return (readyDebounce.calculate(turret.isReady() && launcher.isReady() && hood.isReady()) || forceFeed.getAsBoolean());
     }
 }

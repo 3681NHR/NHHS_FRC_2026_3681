@@ -31,7 +31,7 @@ public final class TurretConstants {
             / ((TURRET_ENCODER_1_GEAR_TEETH - TURRET_ENCODER_2_GEAR_TEETH) * TURRET_MAIN_GEAR_TEETH);
 
 
-    public static final Current TURRET_CURRENT_LIM = Amps.of(30);
+    public static final Current TURRET_CURRENT_LIM = Amps.of(20);
     public static final boolean TURRET_MOTOR_INVERT = true;
 
     public static final Angle TURRET_ANGLE_FORWARD_LIM = Degrees.of(240);//soft limit before unwind(from center)
