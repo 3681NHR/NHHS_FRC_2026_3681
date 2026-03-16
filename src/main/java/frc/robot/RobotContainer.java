@@ -618,11 +618,7 @@ public class RobotContainer {
             drive.getChassisSpeeds().vyMetersPerSecond*0.5
         ));
         //pos without lead
-        Translation2d pos = drive.getPose().getTranslation().plus(
-                new Translation2d(//look ahead
-                        drive.getChassisSpeeds().vxMetersPerSecond*0.5,
-                        drive.getChassisSpeeds().vyMetersPerSecond*0.5
-                ));
+        Translation2d pos = drive.getPose().getTranslation();
 
         double width = 1.75;
         double height = 2;
