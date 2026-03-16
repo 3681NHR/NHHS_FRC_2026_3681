@@ -25,6 +25,8 @@ public class Hood extends SubsystemBase {
 
     boolean homing = false;
 
+    private Angle goal;
+
     public Hood(HoodIO io){
         this.io = io;
     }
@@ -46,8 +48,14 @@ public class Hood extends SubsystemBase {
      */
     public Command positionControl(Supplier<Angle> pos){
         return Commands.run(() -> {
-            io.setGoal(ExtraMath.clamp(pos.get(), HOOD_MIN_ANGLE, HOOD_MAX_ANGLE));
+            this.goal = ExtraMath.clamp(pos.get(), HOOD_MIN_ANGLE, HOOD_MAX_ANGLE);
         }, this).withName("position control");
+    }
+
+    public Command instantPositionControl (Supplier<Angle> pos){
+        return Commands.run(() -> {
+            io.setGoal(ExtraMath.clamp(pos.get(), HOOD_MIN_ANGLE, HOOD_MAX_ANGLE));
+        }, this).withName("position control (instant)");
     }
 
     /**
@@ -56,6 +64,7 @@ public class Hood extends SubsystemBase {
      * @return Command that runs at voltage
      */
     public Command voltageControl(Supplier<Voltage> vout){
+        this.goal = null;
         return Commands.run(() -> {
             io.setVout(vout.get());
         }, this).withName("voltage control");
@@ -98,6 +107,17 @@ public class Hood extends SubsystemBase {
         c.setName("auto home");
         return c;
     }
+
+    public Command go(){
+        Command c = new InstantCommand(() -> {
+            if (goal != null) {
+                io.setGoal(goal);
+            }
+        });
+        c.addRequirements(this);
+        c.setName("move to goal");
+        return c;
+    }
     
     public Angle getAngle(){
         return in.angle;
@@ -105,7 +125,7 @@ public class Hood extends SubsystemBase {
 
     @AutoLogOutput(key="Subsystems/Hood/ready")
     public boolean isReady(){
-        return (in.atSetpoint || in.openloop) && in.homed;
+        return (this.goal != null || in.openloop) && in.homed;
     }
 
     public boolean isHomed(){

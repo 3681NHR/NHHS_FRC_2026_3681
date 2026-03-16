@@ -391,13 +391,13 @@ public class RobotContainer {
     }
 
     private void configureBindings() {
-        new Trigger(() -> TStop.getAsBoolean()).whileTrue(
+        new Trigger(TStop).whileTrue(
                 turret.stop().repeatedly().ignoringDisable(true).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
         );
 
         // reset odometry dashboard button
         resetOdometry.set(false);
-        new Trigger(() -> resetOdometry.get()).onTrue(new InstantCommand(() -> {
+        new Trigger(resetOdometry::get).onTrue(new InstantCommand(() -> {
             resetOdometry.set(false);
             drive.setPose(Constants.STARTING_POSE);
         }));
@@ -426,10 +426,10 @@ public class RobotContainer {
         }));
         
         new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7)
-                .whileTrue(fire());
+                .whileTrue(fire()).onFalse(hood.instantPositionControl(() -> HOOD_MIN_ANGLE));
         // intake :3
         new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5)
-                .whileTrue(intake());
+                .whileTrue(intake.intake());
 
         // force teleop drive
         new Trigger(() -> driverController.getPOV() == ControllerMap.UP).onTrue(drive.teleopDrive());
@@ -457,7 +457,8 @@ public class RobotContainer {
 
         new Trigger(() -> (inTrench() && autoTrench.getAsBoolean()) || driverController.getRawButton(X)).whileTrue(
                     drive.TrenchAlignDrive()
-                    .alongWith(hood.positionControl(() -> HOOD_MIN_ANGLE)).withName("trench mode")
+//                    .alongWith(hood.positionControl(() -> HOOD_MIN_ANGLE))
+                      .withName("trench mode")
         ).onFalse(
             new HiddenConditionalCommand(
                 getManShooterCommand(),
@@ -572,7 +573,7 @@ public class RobotContainer {
         return new ParallelCommandGroup(
             turret.manPos(() -> Degrees.of(manTurretDegrees.getAsDouble()), false),
             launcher.velocityControl(() -> RPM.of(manShooterRPM.getAsDouble())),
-            hood.positionControl(() -> Degrees.of(manHoodDegrees.getAsDouble())),
+            hood.instantPositionControl(() -> Degrees.of(manHoodDegrees.getAsDouble())),
             new InstantCommand(() -> {
                 manual = true;
             })
@@ -644,10 +645,13 @@ public class RobotContainer {
         return new HiddenConditionalCommand(
                 new HiddenConditionalCommand(
                     getSimFireCommand(),
-                    Commands.parallel(
-                            kicker.feed(),
-                            indexer.feed()
-                            ).withName("shoot"),
+                    Commands.sequence(
+                            hood.go(),
+                            Commands.parallel(
+                                kicker.feed(),
+                                indexer.feed()
+                            ).withName("shoot")
+                    ),
                     () -> Constants.MODE == RobotMode.SIM
                 ),
                 Commands.none(),
@@ -655,11 +659,6 @@ public class RobotContainer {
         );
     }
 
-    public Command intake(){
-        return Commands.parallel(
-                intake.intake()
-        ).withName("intake");
-    }
     @AutoLogOutput
     public boolean isReady(){
         return (readyDebounce.calculate(turret.isReady() && launcher.isReady() && hood.isReady()) || forceFeed.getAsBoolean());
