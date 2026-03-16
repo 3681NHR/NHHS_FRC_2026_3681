@@ -57,7 +57,8 @@ public class HiddenParallelCommandGroup extends Command {
                 throw new IllegalArgumentException(
                         "Multiple commands in a parallel composition cannot require the same subsystems");
             }
-            m_commands.put(command, false);
+            // Store the command in insertion order; the Boolean value is not used for runtime state.
+            m_commands.put(command, true);
             m_runWhenDisabled &= command.runsWhenDisabled();
             if (command.getInterruptionBehavior() == InterruptionBehavior.kCancelSelf) {
                 m_interruptBehavior = InterruptionBehavior.kCancelSelf;
@@ -77,9 +78,10 @@ public class HiddenParallelCommandGroup extends Command {
     @Override
     public final void end(boolean interrupted) {
         if (interrupted) {
-            for (Map.Entry<Command, Boolean> commandRunning : m_commands.entrySet()) {
-                if (commandRunning.getValue()) {
-                    commandRunning.getKey().end(true);
+            CommandScheduler scheduler = CommandScheduler.getInstance();
+            for (Command command : m_commands.keySet()) {
+                if (scheduler.isScheduled(command)) {
+                    scheduler.cancel(command);
                 }
             }
         }
@@ -87,7 +89,13 @@ public class HiddenParallelCommandGroup extends Command {
 
     @Override
     public final boolean isFinished() {
-        return !m_commands.containsValue(true);
+        CommandScheduler scheduler = CommandScheduler.getInstance();
+        for (Command command : m_commands.keySet()) {
+            if (scheduler.isScheduled(command)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
