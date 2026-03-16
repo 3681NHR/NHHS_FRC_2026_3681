@@ -2,7 +2,9 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj2.command.*;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import frc.robot.autos.AutoChooser;
 import frc.robot.commands.SwerveWheelCharacterization;
 import frc.robot.constants.Constants;
@@ -145,12 +147,11 @@ public class RobotContainer {
 
     private final LoggedNetworkBoolean resetOdometry = new LoggedNetworkBoolean("Debug/Reset Odometry", false);
     private final LoggedNetworkBoolean TStop = new LoggedNetworkBoolean("Overrides/Paralyze turret", false);
+    private final LoggedNetworkBoolean autoTrench = new LoggedNetworkBoolean("Overrides/use autotrench", true);
     private AutoChooser autoChooser;
 
     private final RumbleHandler rumbler = new RumbleHandler(driverController);
     private final RumbleHandler opRumbler = new RumbleHandler(operatorController);
-
-    private final PowerDistribution pdp = new PowerDistribution(1, ModuleType.kRev);
 
     private Translation2d target = new Translation2d();
 
@@ -166,6 +167,8 @@ public class RobotContainer {
     private final LoggedNetworkNumber manHoodDegrees = new LoggedNetworkNumber("Manual/Hood angle degrees", HoodConstants.HOOD_MIN_ANGLE.in(Degrees));
     private final LoggedNetworkNumber manShooterRPM = new LoggedNetworkNumber("Manual/Shooter speed RPM", 0);
     private final LoggedNetworkNumber manTurretDegrees = new LoggedNetworkNumber("Manual/Turret angle degrees", 0);
+
+    private final Debouncer readyDebounce = new Debouncer(0.2);
 
     private DuelJoystickAxis driverSticks;
 
@@ -373,7 +376,7 @@ public class RobotContainer {
         sysidChooser.addOption("launcher sysid dynamic forward", launcher.sysidDynamic(false));
         sysidChooser.addOption("launcher sysid dynamic reverse", launcher.sysidDynamic(true));
 
-        LoggedPowerDistribution.getInstance(pdp.getModule(), ModuleType.kRev);
+        
 
         turret.setDefaultCommand(
                 turret.manPos(turret::getAngle, false).ignoringDisable(true));
@@ -448,13 +451,13 @@ public class RobotContainer {
         new Trigger(() -> driverController.getPOV() == ControllerMap.LEFT).onTrue(climber.home());
 
         new Trigger(() -> driverController.getRawButton(RB)).whileTrue(Commands.parallel(kicker.reverse(), indexer.reverse()));
-        new Trigger(() -> driverController.getRawButton(LB)).whileTrue(Commands.parallel(intake.outtake(), indexer.reverse()));
+        new Trigger(() -> driverController.getRawButton(LB)).whileTrue(Commands.parallel(intake.outtake()));
         
         new Trigger(() -> driverController.getPOV() == ControllerMap.DOWN).onTrue(climber.toggle());
 
-        new Trigger(() -> inTrench() || driverController.getRawButton(X)).whileTrue(
-            drive.TrenchAlignDrive()
-            .alongWith(hood.positionControl(() -> HOOD_MIN_ANGLE)).withName("trench mode")
+        new Trigger(() -> (inTrench() && autoTrench.getAsBoolean()) || driverController.getRawButton(X)).whileTrue(
+                    drive.TrenchAlignDrive()
+                    .alongWith(hood.positionControl(() -> HOOD_MIN_ANGLE)).withName("trench mode")
         ).onFalse(
             new HiddenConditionalCommand(
                 getManShooterCommand(),
@@ -467,7 +470,6 @@ public class RobotContainer {
     }
 
     public void periodic() {
-        Logger.recordOutput("test/ready", ((turret.isReady() && launcher.isReady() && hood.isReady()) || forceFeed.getAsBoolean()));
         rumbler.update(Constants.EVENT_LOOP_TIME);
         PIDTuner.updateTunables();
         SOTMSolver.getInstance().setTarget(target);
@@ -609,11 +611,14 @@ public class RobotContainer {
     @AutoLogOutput
     private boolean inTrench(){
         Translation2d center = new Translation2d(8.269, 4.038);
-        Translation2d pos = drive.getPose().getTranslation().plus(
+        //pos with lead
+        Translation2d offsetPos = drive.getPose().getTranslation().plus(
             new Translation2d(//look ahead 
             drive.getChassisSpeeds().vxMetersPerSecond*0.5,
             drive.getChassisSpeeds().vyMetersPerSecond*0.5
         ));
+        //pos without lead
+        Translation2d pos = drive.getPose().getTranslation();
 
         double width = 1.75;
         double height = 2;
@@ -621,11 +626,19 @@ public class RobotContainer {
         double xOffset = 2.61;
         double yOffset = 2.5;
 
-        return 
-        (pos.getX() > center.getX()+xOffset && pos.getX() < center.getX()+xOffset+width && pos.getY() > center.getY()+yOffset && pos.getY() < center.getY()+yOffset+height) ||
-        (pos.getX() > center.getX()+xOffset && pos.getX() < center.getX()+xOffset+width && pos.getY() < center.getY()-yOffset && pos.getY() > center.getY()-yOffset-height) ||
-        (pos.getX() < center.getX()-xOffset && pos.getX() > center.getX()-xOffset-width && pos.getY() < center.getY()-yOffset && pos.getY() > center.getY()-yOffset-height) ||
-        (pos.getX() < center.getX()-xOffset && pos.getX() > center.getX()-xOffset-width && pos.getY() > center.getY()+yOffset && pos.getY() < center.getY()+yOffset+height);
+        return
+                (//will be in trench
+                    (pos.getX() > center.getX()+xOffset && pos.getX() < center.getX()+xOffset+width && pos.getY() > center.getY()+yOffset && pos.getY() < center.getY()+yOffset+height) ||
+                    (pos.getX() > center.getX()+xOffset && pos.getX() < center.getX()+xOffset+width && pos.getY() < center.getY()-yOffset && pos.getY() > center.getY()-yOffset-height) ||
+                    (pos.getX() < center.getX()-xOffset && pos.getX() > center.getX()-xOffset-width && pos.getY() < center.getY()-yOffset && pos.getY() > center.getY()-yOffset-height) ||
+                    (pos.getX() < center.getX()-xOffset && pos.getX() > center.getX()-xOffset-width && pos.getY() > center.getY()+yOffset && pos.getY() < center.getY()+yOffset+height)
+                ) ||
+                (//currently in trench
+                        (offsetPos.getX() > center.getX()+xOffset && offsetPos.getX() < center.getX()+xOffset+width && offsetPos.getY() > center.getY()+yOffset && offsetPos.getY() < center.getY()+yOffset+height) ||
+                        (offsetPos.getX() > center.getX()+xOffset && offsetPos.getX() < center.getX()+xOffset+width && offsetPos.getY() < center.getY()-yOffset && offsetPos.getY() > center.getY()-yOffset-height) ||
+                        (offsetPos.getX() < center.getX()-xOffset && offsetPos.getX() > center.getX()-xOffset-width && offsetPos.getY() < center.getY()-yOffset && offsetPos.getY() > center.getY()-yOffset-height) ||
+                        (offsetPos.getX() < center.getX()-xOffset && offsetPos.getX() > center.getX()-xOffset-width && offsetPos.getY() > center.getY()+yOffset && offsetPos.getY() < center.getY()+yOffset+height)
+                );
     }
     public Command fire(){
         return new HiddenConditionalCommand(
@@ -638,14 +651,17 @@ public class RobotContainer {
                     () -> Constants.MODE == RobotMode.SIM
                 ),
                 Commands.none(),
-                () -> ((turret.isReady() && launcher.isReady() && hood.isReady()) || forceFeed.getAsBoolean())
+                this::isReady
         );
     }
 
     public Command intake(){
         return Commands.parallel(
-                intake.intake(),
-                indexer.feed()
+                intake.intake()
         ).withName("intake");
+    }
+    @AutoLogOutput
+    public boolean isReady(){
+        return (readyDebounce.calculate(turret.isReady() && launcher.isReady() && hood.isReady()) || forceFeed.getAsBoolean());
     }
 }

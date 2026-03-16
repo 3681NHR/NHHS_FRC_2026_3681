@@ -31,16 +31,16 @@ public final class TurretConstants {
             / ((TURRET_ENCODER_1_GEAR_TEETH - TURRET_ENCODER_2_GEAR_TEETH) * TURRET_MAIN_GEAR_TEETH);
 
 
-    public static final Current TURRET_CURRENT_LIM = Amps.of(30);
+    public static final Current TURRET_CURRENT_LIM = Amps.of(20);
     public static final boolean TURRET_MOTOR_INVERT = true;
 
     public static final Angle TURRET_ANGLE_FORWARD_LIM = Degrees.of(240);//soft limit before unwind(from center)
     public static final Angle TURRET_ANGLE_REVERSE_LIM = Degrees.of(-240);//soft limit before unwind(from center)
 
-    public static final SimpleFF TURRET_ID_GAINS = new SimpleFF(0.4, 1.25, 0.00001);//gains from sysid for state space model
+    public static final SimpleFF TURRET_ID_GAINS = new SimpleFF(0.3, 1.25, 0.00001);//gains from sysid for state space model
 
-    public static final SimpleFF TURRET_FF_GAINS = new SimpleFF(0.4, 1.25, 0.0).makeTunable("Tuning/Turret/FF");
-    public static final ProfiledPID TURRET_PID_GAINS = new ProfiledPID(5,1.0,0.3,1.5,10).makeTunable("Tuning/Turret/PID");
+    public static final SimpleFF TURRET_FF_GAINS = new SimpleFF(0.4, 1.35, 0.0).makeTunable("Tuning/Turret/FF");
+    public static final ProfiledPID TURRET_PID_GAINS = new ProfiledPID(7,1.0,0.3,1.5,10).makeTunable("Tuning/Turret/PID");
     public static final double TURRET_THETA_COMP_FACTOR = -0.08;//offset target angle while robot is spinning
 
     public static final Angle TURRET_SETPOINT_TOLERANCE = Degrees.of(5);

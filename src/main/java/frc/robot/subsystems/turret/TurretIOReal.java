@@ -57,7 +57,7 @@ public class TurretIOReal implements TurretIO {
             .withKP(TURRET_PID_GAINS.kP)
             .withKI(TURRET_PID_GAINS.kI)
             .withKD(TURRET_PID_GAINS.kD)
-            .withKS(TURRET_FF_GAINS.kS)
+            .withKS(0)//external ks is used
             .withKV(TURRET_FF_GAINS.kV)
             .withKA(TURRET_FF_GAINS.kA);
 
@@ -90,7 +90,7 @@ public class TurretIOReal implements TurretIO {
         });
         TURRET_FF_GAINS.withCallback(() -> {
             motor.getConfigurator().apply(new Slot0Configs()
-            .withKS(TURRET_FF_GAINS.kS)
+            .withKS(0)//external ks is used
             .withKV(TURRET_FF_GAINS.kV)
             .withKA(TURRET_FF_GAINS.kA));
         });
@@ -109,6 +109,13 @@ public class TurretIOReal implements TurretIO {
             motor.setPosition(getAbsoluteAngle());
             homed = true;
             resetTurretPos.set(false);
+        }
+        if(!openLoop){
+            motor.setControl(closedLoopControl
+                    .withPosition(goal)
+                    .withFeedForward(
+                    Math.copySign(TURRET_FF_GAINS.kS, goal.minus(motor.getPosition().getValue()).baseUnitMagnitude()))
+                    );
         }
         motorDisconnect.set(!motor.isConnected());
         e1Disconnect.set(!e1.isConnected());
@@ -138,7 +145,6 @@ public class TurretIOReal implements TurretIO {
     public void setGoal(Angle goal){
         this.goal = goal;
         openLoop = false;
-        motor.setControl(closedLoopControl.withPosition(goal));
     }
     
     @Override

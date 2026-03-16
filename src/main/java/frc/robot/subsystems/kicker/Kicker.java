@@ -18,7 +18,7 @@ public class Kicker extends SubsystemBase {
 	KickerIO io;
 	KickerIOInputsAutoLogged in = new KickerIOInputsAutoLogged();
 	
-	private LoggedNetworkBoolean preloadEnabled = new LoggedNetworkBoolean("Overrides/Kicker Preload", false);
+	private LoggedNetworkBoolean unloadEnabled = new LoggedNetworkBoolean("Overrides/Kicker unload", true);
 	
 	public Kicker(KickerIO io) {
 		this.io = io;
@@ -33,13 +33,13 @@ public class Kicker extends SubsystemBase {
 	
 	public Command hold() {
 		return Commands.run(() -> {
-			if (preloadEnabled.get() && 
-				in.distance.lte(KICKER_PRELOAD_MAX_DISTANCE) && 
-				!in.hasBall &&
-				in.sensorConnected) {
-
-				io.setVout(KICKER_PRELOAD_VOLTAGE);
-			} else {
+			if (unloadEnabled.get()){
+                if(in.distance.lte(KICKER_UNLOAD_MAX_DISTANCE) && in.sensorConnected) {
+				    io.setVout(KICKER_UNLOAD_VOLTAGE);
+			    } else {
+				    io.setVout(KICKER_UNLOAD_PARTIAL_VOLTAGE);//fuel may be in deadzone, prevents wasting power by running lower
+                }
+            } else {
 				io.setVout(Volts.zero());
 			}
 		}, this).withName("Hold");

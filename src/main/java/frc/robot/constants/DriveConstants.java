@@ -147,7 +147,7 @@ public class DriveConstants {
 
         // Turn motor configuration
         public static final boolean TURN_INVERT = true;
-        public static final Current TURN_CURRENT_LIM = Amps.of(10);
+        public static final Current TURN_CURRENT_LIM = Amps.of(20);
         public static final double TURN_REDUCTION = 21.428;
         public static final DCMotor TURN_GEARBOX = DCMotor.getNEO(1);
 

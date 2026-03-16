@@ -4,6 +4,7 @@ import frc.utils.motorWrappers.SparkMax;
 import frc.utils.motorWrappers.TalonFX;
 import org.ironmaple.simulation.SimulatedArena;
 import org.littletonrobotics.junction.LogFileUtil;
+import org.littletonrobotics.junction.LoggedPowerDistribution;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
@@ -12,6 +13,7 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import edu.wpi.first.net.WebServer;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -83,8 +85,9 @@ public class Robot extends LoggedRobot {
         }
 
         // Start AdvantageKit logger
-        Logger.start();
         // initalize robot container
+        LoggedPowerDistribution.getInstance(1, ModuleType.kRev);
+        Logger.start();
         robotContainer = new RobotContainer();
 
         // start timerhandler
