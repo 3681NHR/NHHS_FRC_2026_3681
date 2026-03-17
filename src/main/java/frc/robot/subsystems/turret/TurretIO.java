@@ -20,13 +20,16 @@ public interface TurretIO {
 
     public default void setGoal(Angle goal){}
     public default void setVout(Voltage vout){}
+
+    public default void setTolerance(Angle tol){}
     
     @AutoLog
-    public class TurretIOInputs{
+    public class TurretIOInputs {
 
         public Angle angle = Radians.of(0.0);
         public Angle motorAngle = Radians.of(0.0);
         public AngularVelocity speed = RadiansPerSecond.of(0.0);
+        public Angle tolerance = Radians.of(0.0);
 
         public Voltage motorVoltageOut = Volts.of(0);
         public Current motorCurrentOut = Amps.of(0);

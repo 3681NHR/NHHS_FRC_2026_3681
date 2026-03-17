@@ -38,6 +38,8 @@ public class TurretIOReal implements TurretIO {
     private final VoltageOut openLoopControl = new VoltageOut(0);
     private Angle goal = Radians.of(0);
 
+    private  Angle tolerance = TURRET_SETPOINT_TOLERANCE;
+
     private final Alert motorDisconnect = new Alert("Turret motor is disconnected!", AlertType.kError);
     private final Alert e1Disconnect = new Alert("Turret encoder 1 is disconnected!", AlertType.kError);
     private final Alert e2Disconnect = new Alert("Turret encoder 2 is disconnected!", AlertType.kError);
@@ -130,7 +132,7 @@ public class TurretIOReal implements TurretIO {
         input.motorTemp = motor.getDeviceTemp().getValue();
 
         input.goal = goal;
-        input.atSetpoint = MathUtil.isNear(goal.in(Radians),motor.getPosition().getValue().in(Radians), TURRET_SETPOINT_TOLERANCE.in(Radians));
+        input.atSetpoint = MathUtil.isNear(goal.in(Radians),motor.getPosition().getValue().in(Radians), tolerance.in(Radians));
 
         input.setpointPos = Rotations.of(motor.getClosedLoopReference().getValue());
         input.setpointVel = RotationsPerSecond.of(motor.getClosedLoopReferenceSlope().getValue());
@@ -139,6 +141,8 @@ public class TurretIOReal implements TurretIO {
 
         input.angleE1 = e1.getAbsolutePosition().getValue();
         input.angleE2 = e2.getAbsolutePosition().getValue();
+
+        input.tolerance = tolerance;
     }    
     
     @Override
@@ -193,5 +197,8 @@ public class TurretIOReal implements TurretIO {
         }
         return RotationsPerSecond.of(0);//the bad ending
     }
-
+    @Override
+    public void setTolerance(Angle tol){
+        tolerance = tol;
+    }
 }

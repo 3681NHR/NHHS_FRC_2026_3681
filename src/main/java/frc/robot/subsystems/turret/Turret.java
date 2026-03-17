@@ -69,6 +69,8 @@ public class Turret extends SubsystemBase {
     public Command manPos(Supplier<Angle> targ, boolean fieldOriented){
         return Commands.run(() -> {
             Angle angle = targ.get();
+
+            io.setTolerance(TURRET_SETPOINT_TOLERANCE);
             
             if(fieldOriented){
                 angle = angle
@@ -95,7 +97,9 @@ public class Turret extends SubsystemBase {
         return Commands.run(() -> {
             double dist = targ.get().getDistance(getFieldPos());
             Logger.recordOutput("Subsystems/Turret/track/distance", dist);
- 
+
+            io.setTolerance(Radians.of(2*Math.atan(HUB_RADIUS.in(Meters)/dist)));
+
             Angle angle = ExtraMath.getAngleToPos(
                 targ.get(), //target(offset for lead)
                     drive.getPose().getTranslation()//drive pos
@@ -119,11 +123,14 @@ public class Turret extends SubsystemBase {
             Logger.recordOutput("Subsystems/Turret/track/angle targeted", Double.NaN);
             Logger.recordOutput("Subsystems/Turret/track/init angle targeted", Double.NaN);
             Logger.recordOutput("Subsystems/Turret/track/target pos", (Translation2d)null);
+            io.setTolerance(TURRET_SETPOINT_TOLERANCE);
         }).withName("track position");
     }
     
     public Command trackWithLead(){
         return Commands.run(() -> {
+
+            io.setTolerance(Radians.of(2*Math.atan(HUB_RADIUS.in(Meters)/SOTMSolver.getInstance().getParams(false).dist().in(Meters))));
 
             Angle angle = SOTMSolver.getInstance().getAngle(false)
                 .minus(Radians.of(drive.getPose().getRotation().getRadians()))
@@ -142,6 +149,7 @@ public class Turret extends SubsystemBase {
             Logger.recordOutput("Subsystems/Turret/track/angle targeted", Double.NaN);
             Logger.recordOutput("Subsystems/Turret/track/init angle targeted", Double.NaN);
             Logger.recordOutput("Subsystems/Turret/track/target pos", (Translation2d)null);
+            io.setTolerance(TURRET_SETPOINT_TOLERANCE);
         }).withName("track position from SOTM");
     }
 
@@ -188,7 +196,6 @@ public class Turret extends SubsystemBase {
                 Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
                 Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()));
     }
-
     
     /**
      * Sets the robot-relative target angle for the turret.
