@@ -3,6 +3,7 @@
 package frc.robot;
 
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import frc.robot.autos.AutoChooser;
@@ -54,6 +55,7 @@ import frc.robot.subsystems.vision.CameraIOPhoton;
 import frc.robot.subsystems.vision.CameraIOPhotonSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.utils.*;
+import frc.utils.Joystick;
 import frc.utils.rumble.*;
 import frc.utils.Joystick.DuelJoystickAxis;
 
@@ -91,11 +93,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -107,6 +105,10 @@ import frc.robot.subsystems.kicker.KickerIOSim;
 import frc.robot.constants.Constants.RobotMode;
 
 public class RobotContainer {
+
+    public static double currentStartTimestamp = 0.0;
+    public static int currentParamHash = 0;
+
     private final LoggedDashboardChooser<Command> sysidChooser = new LoggedDashboardChooser<Command>("sysid auto chooser");
 
     private DriveTrainSimulationConfig driveTrainSimulationConfig;
@@ -425,13 +427,22 @@ public class RobotContainer {
             hood.positionControl(() -> HoodConstants.HOOD_MIN_ANGLE).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
         );
 
-        //set turret to auto track mode
+        // toggle auto track command
         new Trigger(() -> driverController.getRawButton(B)).onTrue(
-            getTrackCommand()
+                new HiddenConditionalCommand(
+                        getTrackCommand(),
+                        getManShooterCommand(),
+                        () -> manual
+                )
         );
         //set turret to preset angle mode
         new Trigger(() -> driverController.getRawButton(A)).onTrue(
-            getManShooterCommand()
+            new HiddenConditionalCommand(
+                    saveLutEntry(),
+                    // keep old bindings just in case
+                    getManShooterCommand(),
+                    () -> manual
+            )
         );
 
         new Trigger(() -> driverController.getPOV() == ControllerMap.RIGHT).onTrue(hood.home());
@@ -456,6 +467,8 @@ public class RobotContainer {
 
         new Trigger(() -> buttons.get(0) && !DriverStation.isEnabled()).onTrue(hood.forceHome());
     }
+
+
 
     public void periodic() {
         rumbler.update(Constants.EVENT_LOOP_TIME);
@@ -645,6 +658,22 @@ public class RobotContainer {
                 Commands.none(),
                 this::isReady
         );
+    }
+
+    public Command startLutTimer() {
+        return new InstantCommand(() -> {
+            double start = Timer.getFPGATimestamp();
+
+        });
+    }
+
+    public Command saveLutEntry() {
+        return new InstantCommand(() -> {
+            double end = Timer.getFPGATimestamp();
+            double deltaTime = end - currentStartTimestamp;
+            int hoodHash = hood.getAngle().hashCode();
+
+        });
     }
 
     @AutoLogOutput

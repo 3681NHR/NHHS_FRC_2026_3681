@@ -67,9 +67,9 @@ public class Hood extends SubsystemBase {
      * @return Command that runs at voltage
      */
     public Command voltageControl(Supplier<Voltage> vout){
-        this.goal = null;
         return Commands.run(() -> {
             io.setVout(vout.get());
+            this.goal = null;
         }, this).withName("voltage control");
     }
 
