@@ -72,11 +72,13 @@ import static frc.robot.constants.TurretConstants.*;
 import static frc.utils.ControllerMap.*;
 
 import java.util.Arrays;
+
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.ironmaple.simulation.gamepieces.GamePieceProjectile;
+import org.ironmaple.simulation.seasonspecific.rebuilt2026.Arena2026Rebuilt;
 import org.ironmaple.simulation.seasonspecific.rebuilt2026.RebuiltFuelOnField;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -127,8 +129,10 @@ public class RobotContainer {
     private Indexer indexer;
 
     @SuppressWarnings("unused")
-	private Led led;
+    private Led led;
     private boolean manual = true;
+
+    boolean hubTrack = false;
 
     private final XboxController driverController = new XboxController(OperatorConstants.DRIVER_CONTROLLER_PORT);
     private final XboxController operatorController = new XboxController(OperatorConstants.OPERATOR_CONTROLLER_PORT);
@@ -136,6 +140,7 @@ public class RobotContainer {
     private final LoggedNetworkBoolean resetOdometry = new LoggedNetworkBoolean("Debug/Reset Odometry", false);
     private final LoggedNetworkBoolean TStop = new LoggedNetworkBoolean("Overrides/Paralyze turret", false);
     private final LoggedNetworkBoolean autoTrench = new LoggedNetworkBoolean("Overrides/use autotrench", true);
+    private final LoggedNetworkBoolean shiftLock = new LoggedNetworkBoolean("Overrides/use shift tracker", true);
     private AutoChooser autoChooser;
 
     private final RumbleHandler rumbler = new RumbleHandler(driverController);
@@ -152,7 +157,7 @@ public class RobotContainer {
     private final LoggedNetworkBoolean useLead = new LoggedNetworkBoolean("Overrides/Enable SOTM", true);
     private final LoggedNetworkBoolean forceFeed = new LoggedNetworkBoolean("Overrides/Force Feed", false);
 
-    private final LoggedNetworkNumber manHoodDegrees = new LoggedNetworkNumber("Manual/Hood angle degrees", HoodConstants.HOOD_MIN_ANGLE.in(Degrees));
+    private final LoggedNetworkNumber manHoodDegrees = new LoggedNetworkNumber("Manual/Hood angle degrees", HOOD_MIN_ANGLE.in(Degrees));
     private final LoggedNetworkNumber manShooterRPM = new LoggedNetworkNumber("Manual/Shooter speed RPM", 0);
     private final LoggedNetworkNumber manTurretDegrees = new LoggedNetworkNumber("Manual/Turret angle degrees", 0);
 
@@ -187,35 +192,37 @@ public class RobotContainer {
 
             driveSim = new SwerveDriveSimulation(driveTrainSimulationConfig, Constants.STARTING_POSE);
             SimulatedArena.getInstance().addDriveTrainSimulation(driveSim);
+            //FIXME: this line is why your sim sucks
+            ((Arena2026Rebuilt) SimulatedArena.getInstance()).setEfficiencyMode(false);
         }
 
         // process driver controls(radial deadzone, curve, trigger slowdown, and
         // inversion)
         driverSticks = new DuelJoystickAxis(
                 () -> ExtraMath.processInput(
-                        Joystick.deadzone(Constants.OperatorConstants.LEFT_DEADBAND,
-                                driverController.getRawAxis(LEFT_STICK_X), driverController.getRawAxis(LEFT_STICK_Y))
+                        Joystick.deadzone(OperatorConstants.LEFT_DEADBAND,
+                                        driverController.getRawAxis(LEFT_STICK_X), driverController.getRawAxis(LEFT_STICK_Y))
                                 .getX(),
                         -1.0,
-                        Constants.OperatorConstants.TRANSLATION_CURVE, 0.0),
+                        OperatorConstants.TRANSLATION_CURVE, 0.0),
                 () -> ExtraMath.processInput(
-                        Joystick.deadzone(Constants.OperatorConstants.LEFT_DEADBAND,
-                                driverController.getRawAxis(LEFT_STICK_X), driverController.getRawAxis(LEFT_STICK_Y))
+                        Joystick.deadzone(OperatorConstants.LEFT_DEADBAND,
+                                        driverController.getRawAxis(LEFT_STICK_X), driverController.getRawAxis(LEFT_STICK_Y))
                                 .getY(),
                         -1.0,
-                        Constants.OperatorConstants.TRANSLATION_CURVE, 0.0),
+                        OperatorConstants.TRANSLATION_CURVE, 0.0),
                 () -> ExtraMath.processInput(
-                        Joystick.deadzone(Constants.OperatorConstants.RIGHT_DEADBAND,
-                                driverController.getRawAxis(RIGHT_STICK_X), driverController.getRawAxis(RIGHT_STICK_Y))
+                        Joystick.deadzone(OperatorConstants.RIGHT_DEADBAND,
+                                        driverController.getRawAxis(RIGHT_STICK_X), driverController.getRawAxis(RIGHT_STICK_Y))
                                 .getX(),
                         -0.75,
-                        Constants.OperatorConstants.ROTATION_CURVE, 0.0),
+                        OperatorConstants.ROTATION_CURVE, 0.0),
                 () -> ExtraMath.processInput(
-                        Joystick.deadzone(Constants.OperatorConstants.RIGHT_DEADBAND,
-                                driverController.getRawAxis(RIGHT_STICK_X), driverController.getRawAxis(RIGHT_STICK_Y))
+                        Joystick.deadzone(OperatorConstants.RIGHT_DEADBAND,
+                                        driverController.getRawAxis(RIGHT_STICK_X), driverController.getRawAxis(RIGHT_STICK_Y))
                                 .getY(),
                         -1.0,
-                        Constants.OperatorConstants.ROTATION_CURVE, 0.0));
+                        OperatorConstants.ROTATION_CURVE, 0.0));
 
         switch (Constants.MODE) {
             case REAL:
@@ -236,14 +243,15 @@ public class RobotContainer {
                         driverSticks);
                 SOTMSolver.getInstance().setDrive(drive);
                 SOTMSolver.getInstance().calculate();
-                
+
                 fuelVision = new FuelVision(new FuelVisionIOPhoton(FuelVisionConstants.CAMERA_CONFIG), drive::getPose);
 
                 turret = new Turret(new TurretIOReal(), drive);
                 intake = new Intake(new IntakeIOReal());
                 launcher = new Launcher(new LauncherIOReal());
                 hood = new Hood(new HoodIOReal());
-                climber = new Climber(new ClimberIO(){});//FIXME
+                climber = new Climber(new ClimberIO() {
+                });//FIXME
                 kicker = new Kicker(new KickerIOReal());
                 buttons = new Buttons(new ButtonIODIO(0));
                 indexer = new Indexer(new IndexerIOReal());
@@ -273,10 +281,11 @@ public class RobotContainer {
                             driverSticks);
                     SOTMSolver.getInstance().setDrive(drive);
                     SOTMSolver.getInstance().calculate();
-                
+
                     // fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG,
                     //         driveSim::getSimulatedDriveTrainPose), drive::getPose);
-                    fuelVision = new FuelVision(new FuelVisionIO(){}, drive::getPose);
+                    fuelVision = new FuelVision(new FuelVisionIO() {
+                    }, drive::getPose);
                     intake = new Intake(new IntakeIOSim(driveSim));
                     turret = new Turret(new TurretIOSim(), drive);
                 }
@@ -322,11 +331,15 @@ public class RobotContainer {
                 });
                 climber = new Climber(new ClimberIO() {
                 });
-                hood = new Hood(new HoodIO() {});
-                
-                kicker = new Kicker(new KickerIO() {});
-                buttons = new Buttons(new ButtonIO() {});
-                indexer = new Indexer(new IndexerIO() {});
+                hood = new Hood(new HoodIO() {
+                });
+
+                kicker = new Kicker(new KickerIO() {
+                });
+                buttons = new Buttons(new ButtonIO() {
+                });
+                indexer = new Indexer(new IndexerIO() {
+                });
                 break;
         }
         led = new Led(launcher, hood, turret, drive, () -> manual);
@@ -351,9 +364,9 @@ public class RobotContainer {
 
         sysidChooser.addOption("angle sysid quasistatic forward", drive.angleSysIdQuasistatic(Direction.kForward));
         sysidChooser.addOption("angle sysid quasistatic reverse", drive.angleSysIdQuasistatic(Direction.kReverse));
-        sysidChooser.addOption("angle sysid dynamic forward",     drive.angleSysIdDynamic(Direction.kForward));
-        sysidChooser.addOption("angle sysid dynamic reverse",     drive.angleSysIdDynamic(Direction.kReverse));
-        sysidChooser.addOption("swerve wheel radius char",     new SwerveWheelCharacterization(drive));
+        sysidChooser.addOption("angle sysid dynamic forward", drive.angleSysIdDynamic(Direction.kForward));
+        sysidChooser.addOption("angle sysid dynamic reverse", drive.angleSysIdDynamic(Direction.kReverse));
+        sysidChooser.addOption("swerve wheel radius char", new SwerveWheelCharacterization(drive));
         sysidChooser.addOption("turret sysid quasistatic forward", turret.sysidQuasistatic(false));
         sysidChooser.addOption("turret sysid quasistatic reverse", turret.sysidQuasistatic(true));
         sysidChooser.addOption("turret sysid dynamic forward", turret.sysidDynamic(false));
@@ -364,12 +377,11 @@ public class RobotContainer {
         sysidChooser.addOption("launcher sysid dynamic forward", launcher.sysidDynamic(false));
         sysidChooser.addOption("launcher sysid dynamic reverse", launcher.sysidDynamic(true));
 
-        
 
         turret.setDefaultCommand(
                 turret.manPos(turret::getAngle, false).ignoringDisable(true));
         launcher.setDefaultCommand(
-            launcher.voltageControl(() -> Volts.of(0))
+                launcher.voltageControl(() -> Volts.of(0))
         );
         kicker.setDefaultCommand(kicker.hold().ignoringDisable(true));
         drive.setDefaultCommand(drive.teleopDrive().ignoringDisable(true));
@@ -390,8 +402,8 @@ public class RobotContainer {
             drive.setPose(Constants.STARTING_POSE);
         }));
 
-        // send haptic command when 25 seconds are left in teleops
-        new Trigger(() -> TimerHandler.getTeleopRemaining() < 25.0).onTrue(new InstantCommand(() -> {
+        // send haptic command when 5 seconds are left in shift
+        new Trigger(() -> ShiftTracker.getTimeLeftInShift() < 5).onTrue(new InstantCommand(() -> {
             rumbler.overrideQue(RumblePreset.TAP.load());
             opRumbler.overrideQue(RumblePreset.TAP.load());
         }));
@@ -406,7 +418,7 @@ public class RobotContainer {
             drive.resetGyro(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? Math.PI : 0);
             rumbler.overrideQue(RumblePreset.TAP.load());
         }));
-        
+
         // toggle field oriented driving
         new Trigger(() -> driverController.getRawButton(LEFT_STICK_BUTTON)).onTrue(new InstantCommand(() -> {
             drive.setFOD(!drive.getFOD());
@@ -421,10 +433,10 @@ public class RobotContainer {
                 .whileTrue(intake.intake());
 
         // force teleop drive
-        new Trigger(() -> driverController.getPOV() == ControllerMap.UP).onTrue(drive.teleopDrive());
+        new Trigger(() -> driverController.getPOV() == UP).onTrue(drive.teleopDrive());
 
         new Trigger(() -> driverController.getRawButton(X)).whileTrue(//lower hood
-            hood.positionControl(() -> HoodConstants.HOOD_MIN_ANGLE).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
+                hood.positionControl(() -> HOOD_MIN_ANGLE).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
         );
 
         // toggle auto track command
@@ -445,24 +457,24 @@ public class RobotContainer {
             )
         );
 
-        new Trigger(() -> driverController.getPOV() == ControllerMap.RIGHT).onTrue(hood.home());
-        new Trigger(() -> driverController.getPOV() == ControllerMap.LEFT).onTrue(climber.home());
+        new Trigger(() -> driverController.getPOV() == RIGHT).onTrue(hood.home());
+        new Trigger(() -> driverController.getPOV() == LEFT).onTrue(climber.home());
 
         new Trigger(() -> driverController.getRawButton(RB)).whileTrue(Commands.parallel(kicker.reverse(), indexer.reverse()));
         new Trigger(() -> driverController.getRawButton(LB)).whileTrue(Commands.parallel(intake.outtake()));
-        
-        new Trigger(() -> driverController.getPOV() == ControllerMap.DOWN).onTrue(climber.toggle());
+
+        new Trigger(() -> driverController.getPOV() == DOWN).onTrue(climber.toggle());
 
         new Trigger(() -> (inTrench() && autoTrench.getAsBoolean()) || driverController.getRawButton(X)).whileTrue(
-                    drive.TrenchAlignDrive()
+                drive.TrenchAlignDrive()
 //                    .alongWith(hood.positionControl(() -> HOOD_MIN_ANGLE))
-                      .withName("trench mode")
+                        .withName("trench mode")
         ).onFalse(
-            new HiddenConditionalCommand(
-                getManShooterCommand(),
-                getTrackCommand(),
-                () -> manual
-            )
+                new HiddenConditionalCommand(
+                        getManShooterCommand(),
+                        getTrackCommand(),
+                        () -> manual
+                )
         );
 
         new Trigger(() -> buttons.get(0) && !DriverStation.isEnabled()).onTrue(hood.forceHome());
@@ -477,11 +489,11 @@ public class RobotContainer {
         driverDisconnected.set(!driverController.isConnected());
         operatorDisconnected.set(!operatorController.isConnected());
 
-        Translation2d hub = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? TurretConstants.RED_HUB
-                : TurretConstants.BLUE_HUB;
+        Translation2d hub = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? RED_HUB
+                : BLUE_HUB;
         Translation2d pass = drive.getPose().getTranslation().nearest(Arrays
                 .asList(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? RED_PASS : BLUE_PASS));
-        boolean hubTrack = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red
+        hubTrack = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red
                 ? drive.getPose().getX() > 12
                 : drive.getPose().getX() < 4.5);
         Logger.recordOutput("Subsystems/Turret/track/tracking hub", hubTrack);
@@ -490,14 +502,14 @@ public class RobotContainer {
         autoChooser.update();
 
         Logger.recordOutput("AScope/Components", new Pose3d[]{
-            new Pose3d(0,0,climber.getPosition().in(Meters),new Rotation3d()),
-            new Pose3d(INTAKE_OFFSET, new Rotation3d(Radians.zero(),intake.getAngle(),Degrees.of(180))),
-            new Pose3d(TURRET_OFFSET, new Rotation3d(0,0,turret.getAngle().in(Radians))),
-            new Pose3d(TURRET_OFFSET
-                    .plus(HOOD_TO_TURRET_OFFSET.rotateBy(new Rotation3d(0,0,turret.getAngle().in(Radians)))),
-                    new Rotation3d(0, 
-                        hood.getAngle().minus(Degrees.of(25)).in(Radians), 
-                        turret.getAngle().in(Radians))),
+                new Pose3d(0, 0, climber.getPosition().in(Meters), new Rotation3d()),
+                new Pose3d(INTAKE_OFFSET, new Rotation3d(Radians.zero(), intake.getAngle(), Degrees.of(180))),
+                new Pose3d(TURRET_OFFSET, new Rotation3d(0, 0, turret.getAngle().in(Radians))),
+                new Pose3d(TURRET_OFFSET
+                        .plus(HOOD_TO_TURRET_OFFSET.rotateBy(new Rotation3d(0, 0, turret.getAngle().in(Radians)))),
+                        new Rotation3d(0,
+                                hood.getAngle().minus(Degrees.of(25)).in(Radians),
+                                turret.getAngle().in(Radians))),
         });
         Logger.recordOutput("target dist", Meters.of(target.getDistance(drive.getPose().getTranslation())));
     }
@@ -535,6 +547,12 @@ public class RobotContainer {
     }
 
     public void enableAuto() {
+
+        if (RobotBase.isSimulation()) {
+            SimulatedArena.getInstance().resetFieldForAuto();
+        }
+        //preload 8
+        SimFuelManager.getInstance().intake.setGamePiecesCount(8);
     }
 
     public Drive getDrive() {
@@ -543,65 +561,66 @@ public class RobotContainer {
 
     /**
      * get command for turret, shooter, and hood to track current target, lead may be disabled through the useLead var
+     *
      * @return
      */
-    public Command getTrackCommand(){
+    public Command getTrackCommand() {
         return new HiddenConditionalCommand(
-            new ParallelCommandGroup(
-                turret.trackWithLead(),
-                launcher.velocityControl(() -> SOTMSolver.getInstance().getParams(false).speed()),
-                hood.positionControl(() -> SOTMSolver.getInstance().getParams(false).hoodAngle()),
-                new InstantCommand(() -> {
-                    manual = false;
-                })
-            ).withName("track with lead"),
+                new ParallelCommandGroup(
+                        turret.trackWithLead(),
+                        launcher.velocityControl(() -> SOTMSolver.getInstance().getParams(false).speed()),
+                        hood.positionControl(() -> SOTMSolver.getInstance().getParams(false).hoodAngle()),
+                        new InstantCommand(() -> {
+                            manual = false;
+                        })
+                ).withName("track with lead"),
 
-            new ParallelCommandGroup(
-                turret.track(() -> target),
-                launcher.velocityControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).speed()),
-                hood.positionControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).hoodAngle()),
-                new InstantCommand(() -> {
-                    manual = false;
-                })
-            ).withName("track without lead"),
-        useLead::get).finallyDo(() -> {
+                new ParallelCommandGroup(
+                        turret.track(() -> target),
+                        launcher.velocityControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).speed()),
+                        hood.positionControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).hoodAngle()),
+                        new InstantCommand(() -> {
+                            manual = false;
+                        })
+                ).withName("track without lead"),
+                useLead::get).finallyDo(() -> {
             manual = true;
         });
     }
 
-    public Command getManShooterCommand(){
+    public Command getManShooterCommand() {
         return new ParallelCommandGroup(
-            turret.manPos(() -> Degrees.of(manTurretDegrees.getAsDouble()), false),
-            launcher.velocityControl(() -> RPM.of(manShooterRPM.getAsDouble())),
-            hood.positionControl(() -> Degrees.of(manHoodDegrees.getAsDouble())),
-            new InstantCommand(() -> {
-                manual = true;
-            })
+                turret.manPos(() -> Degrees.of(manTurretDegrees.getAsDouble()), false),
+                launcher.velocityControl(() -> RPM.of(manShooterRPM.getAsDouble())),
+                hood.positionControl(() -> Degrees.of(manHoodDegrees.getAsDouble())),
+                new InstantCommand(() -> {
+                    manual = true;
+                })
         ).finallyDo(() -> {
             manual = false;
         }).withName("manual targeting");
     }
 
-    public Command getSimFireCommand(){
+    public Command getSimFireCommand() {
         return new InstantCommand(() -> {
-            if(SimFuelManager.getInstance().intake.obtainGamePieceFromIntake()){
-                double launchvel = (launcher.getSpeed().in(RPM))*2*Math.PI*Units.inchesToMeters(2)/60.0;
+            if (SimFuelManager.getInstance().intake.obtainGamePieceFromIntake()) {
+                double launchvel = (launcher.getSpeed().in(RPM)) * 2 * Math.PI * Units.inchesToMeters(2) / 60.0;
                 double angle = hood.getAngle().plus(Degrees.of(90)).in(Radians);
                 GamePieceProjectile fuel = new GamePieceProjectile(
                         RebuiltFuelOnField.REBUILT_FUEL_INFO,
                         driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
-                                Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
-                                Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()
+                                Math.cos(drive.getRotation().getRadians()) * TURRET_OFFSET.getX(),
+                                Math.sin(drive.getRotation().getRadians()) * TURRET_OFFSET.getX()
                         )),
                         new Translation2d(
-                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + (Math.cos(drive.getRotation().getRadians() + turret.getAngle().plus(Degrees.of(180)).in(Radians))*Math.cos(angle)*launchvel),
-                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + (Math.sin(drive.getRotation().getRadians() + turret.getAngle().plus(Degrees.of(180)).in(Radians))*Math.cos(angle)*launchvel)
+                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + (Math.cos(drive.getRotation().getRadians() + turret.getAngle().plus(Degrees.of(180)).in(Radians)) * Math.cos(angle) * launchvel),
+                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + (Math.sin(drive.getRotation().getRadians() + turret.getAngle().plus(Degrees.of(180)).in(Radians)) * Math.cos(angle) * launchvel)
                         ),
                         Units.inchesToMeters(20),
-                        Math.sin(angle)*launchvel,
+                        Math.sin(angle) * launchvel,
                         new Rotation3d()
-                        );
-                
+                );
+
                 fuel.withTouchGroundHeight(Inches.of(3).in(Meters));
                 fuel.enableBecomesGamePieceOnFieldAfterTouchGround();
                 SimulatedArena.getInstance().addGamePieceProjectile(fuel);
@@ -610,14 +629,14 @@ public class RobotContainer {
     }
 
     @AutoLogOutput
-    private boolean inTrench(){
+    private boolean inTrench() {
         Translation2d center = new Translation2d(8.269, 4.038);
         //pos with lead
         Translation2d offsetPos = drive.getPose().getTranslation().plus(
-            new Translation2d(//look ahead 
-            drive.getChassisSpeeds().vxMetersPerSecond*0.5,
-            drive.getChassisSpeeds().vyMetersPerSecond*0.5
-        ));
+                new Translation2d(//look ahead
+                        drive.getChassisSpeeds().vxMetersPerSecond * 0.5,
+                        drive.getChassisSpeeds().vyMetersPerSecond * 0.5
+                ));
         //pos without lead
         Translation2d pos = drive.getPose().getTranslation();
 
@@ -629,34 +648,35 @@ public class RobotContainer {
 
         return
                 (//will be in trench
-                    (pos.getX() > center.getX()+xOffset && pos.getX() < center.getX()+xOffset+width && pos.getY() > center.getY()+yOffset && pos.getY() < center.getY()+yOffset+height) ||
-                    (pos.getX() > center.getX()+xOffset && pos.getX() < center.getX()+xOffset+width && pos.getY() < center.getY()-yOffset && pos.getY() > center.getY()-yOffset-height) ||
-                    (pos.getX() < center.getX()-xOffset && pos.getX() > center.getX()-xOffset-width && pos.getY() < center.getY()-yOffset && pos.getY() > center.getY()-yOffset-height) ||
-                    (pos.getX() < center.getX()-xOffset && pos.getX() > center.getX()-xOffset-width && pos.getY() > center.getY()+yOffset && pos.getY() < center.getY()+yOffset+height)
+                        (pos.getX() > center.getX() + xOffset && pos.getX() < center.getX() + xOffset + width && pos.getY() > center.getY() + yOffset && pos.getY() < center.getY() + yOffset + height) ||
+                                (pos.getX() > center.getX() + xOffset && pos.getX() < center.getX() + xOffset + width && pos.getY() < center.getY() - yOffset && pos.getY() > center.getY() - yOffset - height) ||
+                                (pos.getX() < center.getX() - xOffset && pos.getX() > center.getX() - xOffset - width && pos.getY() < center.getY() - yOffset && pos.getY() > center.getY() - yOffset - height) ||
+                                (pos.getX() < center.getX() - xOffset && pos.getX() > center.getX() - xOffset - width && pos.getY() > center.getY() + yOffset && pos.getY() < center.getY() + yOffset + height)
                 ) ||
-                (//currently in trench
-                        (offsetPos.getX() > center.getX()+xOffset && offsetPos.getX() < center.getX()+xOffset+width && offsetPos.getY() > center.getY()+yOffset && offsetPos.getY() < center.getY()+yOffset+height) ||
-                        (offsetPos.getX() > center.getX()+xOffset && offsetPos.getX() < center.getX()+xOffset+width && offsetPos.getY() < center.getY()-yOffset && offsetPos.getY() > center.getY()-yOffset-height) ||
-                        (offsetPos.getX() < center.getX()-xOffset && offsetPos.getX() > center.getX()-xOffset-width && offsetPos.getY() < center.getY()-yOffset && offsetPos.getY() > center.getY()-yOffset-height) ||
-                        (offsetPos.getX() < center.getX()-xOffset && offsetPos.getX() > center.getX()-xOffset-width && offsetPos.getY() > center.getY()+yOffset && offsetPos.getY() < center.getY()+yOffset+height)
-                );
+                        (//currently in trench
+                                (offsetPos.getX() > center.getX() + xOffset && offsetPos.getX() < center.getX() + xOffset + width && offsetPos.getY() > center.getY() + yOffset && offsetPos.getY() < center.getY() + yOffset + height) ||
+                                        (offsetPos.getX() > center.getX() + xOffset && offsetPos.getX() < center.getX() + xOffset + width && offsetPos.getY() < center.getY() - yOffset && offsetPos.getY() > center.getY() - yOffset - height) ||
+                                        (offsetPos.getX() < center.getX() - xOffset && offsetPos.getX() > center.getX() - xOffset - width && offsetPos.getY() < center.getY() - yOffset && offsetPos.getY() > center.getY() - yOffset - height) ||
+                                        (offsetPos.getX() < center.getX() - xOffset && offsetPos.getX() > center.getX() - xOffset - width && offsetPos.getY() > center.getY() + yOffset && offsetPos.getY() < center.getY() + yOffset + height)
+                        );
     }
-    public Command fire(){
-        return new HiddenConditionalCommand(
+
+    public Command fire() {
+        return Commands.parallel(
+                hood.go(),
                 new HiddenConditionalCommand(
-                    getSimFireCommand(),
-                    Commands.sequence(
-//                            new HiddenConditionalCommand(Commands.none(),hood.go(), () -> manual),
-                            hood.go(),
-                            Commands.parallel(
-                                kicker.feed(),
-                                indexer.feed()
-                            ).withName("shoot")
-                    ),
-                    () -> Constants.MODE == RobotMode.SIM
-                ),
-                Commands.none(),
-                this::isReady
+                        new HiddenConditionalCommand(
+                                getSimFireCommand(),
+                                Commands.parallel(
+                                        kicker.feed(),
+                                        indexer.feed()
+                                ).withName("shoot"),
+                                () -> Constants.MODE == RobotMode.SIM
+                        ),
+                        Commands.none(),
+                        //block scoring if hub is disabled, still allows passing
+                        () -> this.isReady() && (!hubTrack || canScore())
+                )
         );
     }
 
@@ -677,11 +697,16 @@ public class RobotContainer {
     }
 
     @AutoLogOutput
-    public boolean isReady(){
+    public boolean isReady() {
         return (readyDebounce.calculate(turret.isReady() && launcher.isReady() && hood.isReady()) || forceFeed.getAsBoolean());
     }
 
-    public Command intakeRollerOnly(){
+    @AutoLogOutput
+    public boolean canScore() {
+        return (ShiftTracker.canScore() || !shiftLock.getAsBoolean());
+    }
+
+    public Command intake() {
         return intake.intake();
     }
 }
