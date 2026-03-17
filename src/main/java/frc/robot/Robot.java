@@ -4,6 +4,8 @@ import frc.utils.*;
 import frc.utils.motorWrappers.SparkMax;
 import frc.utils.motorWrappers.TalonFX;
 import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.seasonspecific.rebuilt2026.Arena2026Rebuilt;
+import org.littletonrobotics.junction.AutoLogOutputManager;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -94,7 +96,6 @@ public class Robot extends LoggedRobot {
         // motor wrappers
         SparkMax.initAlerts();
         TalonFX.initAlerts();
-        ShiftTracker.start();
     }
 
     /**
@@ -145,13 +146,17 @@ public class Robot extends LoggedRobot {
          Elastic.selectTab(0);
         autonomousCommand = robotContainer.getAutonomousCommand();
 
-        robotContainer.enableTeleop();
+        robotContainer.enableAuto();
 
         // schedule the autonomous command (example)
         if (autonomousCommand != null) {
             CommandScheduler.getInstance().schedule(autonomousCommand);
         }
+        if(RobotBase.isSimulation()){
+            SimulatedArena.getInstance().resetFieldForAuto();
+        }
         TimerHandler.initAuto();
+        ShiftTracker.start();
 
     }
 
@@ -173,6 +178,10 @@ public class Robot extends LoggedRobot {
 
         if (autonomousCommand != null) {
             autonomousCommand.cancel();
+        }
+
+        if (!ShiftTracker.isRunning()) {
+            ShiftTracker.start();
         }
     }
 

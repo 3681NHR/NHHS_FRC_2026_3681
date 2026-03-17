@@ -2,7 +2,11 @@ package frc.utils;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
+import org.ironmaple.simulation.seasonspecific.rebuilt2026.Arena2026Rebuilt;
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 /**
  * Ultility class that keeps track of who can score when and for how long (dependent on who won auto)
@@ -17,7 +21,7 @@ public class ShiftTracker {
     /* This constant stands for the amount of time that you can shoot before it's legal
      * And still have the fuel count in the hub
     */
-    private static final double SCORING_DELAY_SECONDS = 0.2;
+    private static final double SCORING_DELAY_SECONDS = 0.5;
 
     //Just in case we start teleop without auto and we need to correctly offset the time
     private static double timeOffset = 0;
@@ -66,15 +70,30 @@ public class ShiftTracker {
             if (phase != MatchPhase.UNKNOWN && phase != null) {
                 if (getTime() > phase.getEndTime())
                     phase = phase.getNext();
-            }
-            else {
+            } else {
                 /* Phase becomes null when we are in auto or teleop DS modes and have exceeded the standard
                 * match duration. We stop tracking shifts and any calls to canScore() will return true for testing purposes
                 */
                 reset();
                 phase = MatchPhase.UNKNOWN;
             }
+
+            if(RobotBase.isSimulation()){
+                //activate both hubs in sim when they should be
+                ((Arena2026Rebuilt) Arena2026Rebuilt.getInstance()).setShouldRunClock(!(
+                        phase == MatchPhase.UNKNOWN
+                        || phase == MatchPhase.AUTO
+                        || phase == MatchPhase.AUTO_TELE_TRANSITION
+                        || phase == MatchPhase.TRANSITION_SHIFT
+                        || phase == MatchPhase.ENDGAME));
+            }
         }
+
+        Logger.recordOutput("shift/who won auto", allianceThatWonAuto);
+        Logger.recordOutput("shift/we won auto", weWonAuto());
+        Logger.recordOutput("shift/can score", canScore());
+        Logger.recordOutput("shift/time left in shift", getTimeLeftInShift());
+        Logger.recordOutput("shift/current phase", getCurrentMatchPhase());
     }
 
     /**
@@ -87,12 +106,7 @@ public class ShiftTracker {
             return false;
 
         switch (phase) {
-            case AUTO -> { return true; }
-
-            case AUTO_TELE_TRANSITION -> {
-                if (!weWonAuto() && getTimeLeftInShift() <= SCORING_DELAY_SECONDS) return true;
-                else return false;
-            }
+            case AUTO, ENDGAME, UNKNOWN, AUTO_TELE_TRANSITION -> { return true;}
 
             case TRANSITION_SHIFT -> {
                 if (weWonAuto()) return getTimeLeftInShift() >= SCORING_DELAY_SECONDS;
@@ -104,12 +118,16 @@ public class ShiftTracker {
                 else return getTimeLeftInShift() >= SCORING_DELAY_SECONDS;
             }
 
-            case SHIFT2, SHIFT4 -> {
+            case SHIFT2 -> {
                 if (weWonAuto()) return getTimeLeftInShift() >= SCORING_DELAY_SECONDS;
                 else return getTimeLeftInShift() <= SCORING_DELAY_SECONDS;
             }
 
-            case ENDGAME, UNKNOWN -> { return true; }
+            case SHIFT4 -> {
+                if(!weWonAuto()) return getTimeLeftInShift() <= SCORING_DELAY_SECONDS;
+                else return true;
+            }
+
             default -> { return false; }
         }
     }

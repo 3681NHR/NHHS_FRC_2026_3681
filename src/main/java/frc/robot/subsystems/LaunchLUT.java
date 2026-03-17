@@ -18,7 +18,7 @@ import frc.robot.constants.Constants.RobotMode;
 
 public class LaunchLUT {
     /**
-     * hub LUT values from sim
+     * hub LUT values
      * <p> must be sorted from smallest dist to largest
      */
     public static final ShotParams[] LUTHub = Constants.MODE == RobotMode.SIM ? new ShotParams[]{
@@ -44,6 +44,17 @@ public class LaunchLUT {
             new ShotParams(Meters.of(5.8), Degrees.of(45), RPM.of(4000), Seconds.of(1.15)),
             new ShotParams(Meters.of(6.36), Degrees.of(45), RPM.of(4000), Seconds.of(1.2)),
             new ShotParams(Meters.of(7.38), Degrees.of(45), RPM.of(5500), Seconds.of(1.4)),
+    };
+    /**
+     * pass LUT values
+     * <p> must be sorted from smallest dist to largest
+     */
+    public static final ShotParams[] LUTPass = Constants.MODE == RobotMode.SIM ? new ShotParams[]{
+            //  dist, hood, speed, time
+            new ShotParams(Meters.of(0), Degrees.of(35), RPM.of(1000.0), Seconds.of(0.0)),
+    } : new ShotParams[]{
+            //  dist, hood, speed, time
+            new ShotParams(Meters.of(0), Degrees.of(35), RPM.of(2500.0), Seconds.of(0.0)),
     };
 
     /**
