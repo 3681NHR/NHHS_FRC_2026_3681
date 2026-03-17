@@ -126,7 +126,7 @@ public class IntakeIOSim implements IntakeIO {
         } else {
             mapleSimIntake.stopIntake();
         }
-        Logger.recordOutput("Sheld fuel", mapleSimIntake.getGamePiecesAmount());
+        Logger.recordOutput("Sim/held fuel", mapleSimIntake.getGamePiecesAmount());
     }
 
     @Override

@@ -1,5 +1,7 @@
 package frc.robot;
 
+import frc.utils.motorWrappers.SparkMax;
+import frc.utils.motorWrappers.TalonFX;
 import org.ironmaple.simulation.SimulatedArena;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -81,14 +83,18 @@ public class Robot extends LoggedRobot {
         }
 
         // Start AdvantageKit logger
-        Logger.start();
         // initalize robot container
+        // LoggedPowerDistribution.getInstance(1, ModuleType.kRev);
+        Logger.start();
         robotContainer = new RobotContainer();
 
         // start timerhandler
         TimerHandler.init();
         // start elastic dashboard remote layout downloading server 
         WebServer.start(Constants.ELASTIC_LAYOUT_PORT, Filesystem.getDeployDirectory().getAbsolutePath());
+        // motor wrappers
+        SparkMax.initAlerts();
+        TalonFX.initAlerts();
     }
 
     /**
@@ -114,7 +120,8 @@ public class Robot extends LoggedRobot {
         TimerHandler.update();
 
         robotContainer.periodic();
-
+        SparkMax.periodic();
+        TalonFX.periodic();
     }
 
     /** This function is called once each time the robot enters Disabled mode. */

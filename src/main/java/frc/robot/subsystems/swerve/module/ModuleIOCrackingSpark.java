@@ -85,13 +85,12 @@ public class ModuleIOCrackingSpark implements ModuleIO {
     private boolean driveClosedLoop = true;
     private boolean turnClosedLoop = true;
 
-    private StatusSignal<Angle> drivePosition;
-    private StatusSignal<AngularVelocity> driveVelocity;
-    private StatusSignal<Temperature> driveTemp;
-    private StatusSignal<Current> driveSupplyCurrent;
-    private StatusSignal<Voltage> driveAppliedVolts;
-    
-    private Angle turnPosition = Radians.of(0.0);
+    private final StatusSignal<Angle> drivePosition;
+    private final StatusSignal<AngularVelocity> driveVelocity;
+    private final StatusSignal<Temperature> driveTemp;
+    private final StatusSignal<Current> driveSupplyCurrent;
+    private final StatusSignal<Voltage> driveAppliedVolts;
+
     private AngularVelocity turnVelocity = RadiansPerSecond.of(0.0);
 
     private Voltage driveOpenLoopVout = Volts.of(0);
@@ -139,7 +138,8 @@ public class ModuleIOCrackingSpark implements ModuleIO {
                 .withFeedback(new FeedbackConfigs()
                         .withSensorToMechanismRatio(Module.DRIVE_REDUCTION)
                         .withRotorToSensorRatio(1)
-                        );
+                        )
+                .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(6.75));
         driveTalon.getConfigurator().apply(driveConfig);
 
         Module.DRIVE_PID.withCallback(() -> {
@@ -223,7 +223,7 @@ public class ModuleIOCrackingSpark implements ModuleIO {
 
     @Override
     public void updateInputs(ModuleIOInputs inputs) {
-        turnPosition = Radians.of(turnEncoder.getPosition());
+        Angle turnPosition = Radians.of(turnEncoder.getPosition());
         turnVelocity = RPM.of(turnEncoder.getVelocity());
 
         // Update drive inputs

@@ -1,10 +1,12 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Hertz;
 import static edu.wpi.first.units.Units.Percent;
 import static edu.wpi.first.units.Units.Rotations;
 
 import java.util.function.BooleanSupplier;
 
+import edu.wpi.first.math.filter.Debouncer;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
@@ -14,6 +16,8 @@ import edu.wpi.first.wpilibj.AddressableLEDBufferView;
 import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.constants.Constants;
+import frc.robot.constants.Constants.RobotMode;
 import frc.robot.subsystems.hood.Hood;
 import frc.robot.subsystems.launcher.Launcher;
 import frc.robot.subsystems.swerve.Drive;
@@ -30,18 +34,21 @@ public class Led extends SubsystemBase {
 
     BooleanSupplier manualSupplier;
 
-    private AddressableLED led = new AddressableLED(0);
-    private AddressableLEDBuffer buffer = new AddressableLEDBuffer(71+47);
-    private AddressableLEDBufferView sideBuffer = new AddressableLEDBufferView(buffer, 71, 71+46);
-    private AddressableLEDBufferView turretBuffer = new AddressableLEDBufferView(buffer, 0, 71);
+    private final AddressableLED led = new AddressableLED(0);
+    private final AddressableLEDBuffer buffer = new AddressableLEDBuffer(70+5);
+    private final AddressableLEDBufferView sideBuffer = new AddressableLEDBufferView(buffer, 70, 70+4);
+    private final AddressableLEDBufferView turretBuffer = new AddressableLEDBufferView(buffer, 0, 70);
 
     private final int turretBufferLength = turretBuffer.getLength();
     private static final int LEDTurretZeroOffset = 30;
 
-    private LoggedNetworkBoolean rainbow = new LoggedNetworkBoolean("Debug/LED override", false);
     private LoggedNetworkBoolean coolTurretTrackLedThing = new LoggedNetworkBoolean("Overrides/Cool Turret Track Led Thing", true);
     private LoggedNetworkBoolean coolTurretTrackLedThingButItAlsoHelpsWithTurretDebug = new LoggedNetworkBoolean("Overrides/Cool Turret Track Led Thing But It Also Helps With Turret Debug", false);
 
+    private final LoggedNetworkBoolean rainbow = new LoggedNetworkBoolean("Overrides/LED Override", false);
+    private final LoggedNetworkBoolean disable = new LoggedNetworkBoolean("Overrides/LED Disable", false);
+
+    private final Debouncer readyDebouncer = new Debouncer(0.2);
 
     public Led(Launcher launcher,
     Hood hood,
@@ -63,8 +70,7 @@ public class Led extends SubsystemBase {
     @Override
     public void periodic() {
 
-        Color turretState = turret.isReady() && launcher.isReady() && hood.isReady() ? Color.kGreen : Color.kBlack;
-
+        Color turretState = readyDebouncer.calculate(turret.isReady() && launcher.isReady() && hood.isReady()) ? Color.kGreen : Color.kBlack;
         if(manualSupplier.getAsBoolean()){
             turretState = Color.kWhite;
         }
@@ -81,10 +87,12 @@ public class Led extends SubsystemBase {
         int turretPosIndexLed = (int) (ExtraMath.wrap(turret.getAngle().in(Rotations), 1) * turretBufferLength);
         turretPosIndexLed += LEDTurretZeroOffset;
         turretPosIndexLed %= turretBufferLength;
+        Color sideState = drive.getFOD() ? new Color() : Color.kBlue;
+        
         
         if(rainbow.get()){
-            LEDPattern.rainbow(255, 255).applyTo(turretBuffer);
-            LEDPattern.rainbow(255, 255).applyTo(sideBuffer);
+            LEDPattern.rainbow(255, 255).scrollAtRelativeSpeed(Hertz.of(0.5)).applyTo(turretBuffer);
+            LEDPattern.rainbow(255, 255).scrollAtRelativeSpeed(Hertz.of(0.5)).applyTo(sideBuffer);
         } else {
             LEDPattern.solid(turretState).atBrightness(Percent.of(50)).applyTo(turretBuffer);
             
@@ -107,15 +115,24 @@ public class Led extends SubsystemBase {
                 turretBuffer.setLED(turretAbsolutePosIndexLed, Color.kGreen);
             }
 
-            LEDPattern.solid(drive.getFOD() ? new Color() : Color.kBlue).atBrightness(Percent.of(50)).applyTo(sideBuffer);
+            LEDPattern.solid(sideState).atBrightness(Percent.of(50)).applyTo(sideBuffer);
+        }
+
+        if(disable.get()){
+            LEDPattern.solid(new Color()).applyTo(buffer);
         }
 
         led.setData(buffer);
 
-        String[] leds = new String[buffer.getLength()];
-        for (int i = 0; i < buffer.getLength(); i++) {
-            leds[i] = buffer.getLED(i).toHexString();
+        //only log all leds in replay, as toHexString() is slow
+        if(Constants.MODE == RobotMode.REPLAY){
+            String[] leds = new String[buffer.getLength()];
+            for (int i = 0; i < buffer.getLength(); i++) {
+                leds[i] = buffer.getLED(i).toHexString();
+            }
+            Logger.recordOutput("Leds/list", leds);
         }
-        Logger.recordOutput("Leds/list", leds);
+        Logger.recordOutput("Leds/turret", turretState);
+        Logger.recordOutput("Leds/side", sideState);
     }
 }

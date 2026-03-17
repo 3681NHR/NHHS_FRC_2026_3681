@@ -10,8 +10,10 @@ import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Unit;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.util.Color;
+import org.littletonrobotics.junction.Logger;
 
 import static edu.wpi.first.units.Units.Radians;
+import static frc.robot.constants.TurretConstants.*;
 
 import java.lang.Math;
 import java.util.ArrayList;
@@ -20,6 +22,31 @@ import java.util.ArrayList;
  * extra math utils
  */
 public final class ExtraMath {
+
+    public static double calculateTurretAngleFromCANCoderDegrees(double e1, double e2) {
+        double difference = e2 - e1;
+        if (difference > 180) {
+            difference -= 360;
+        }
+        if (difference < -180) {
+            difference += 360;
+        }
+        difference *= SLOPE;
+
+        double e1Rotations = (difference * TURRET_MAIN_GEAR_TEETH / TURRET_ENCODER_1_GEAR_TEETH) / 360.0;
+        double e1RotationsFloored = Math.floor(e1Rotations);
+        double turretAngle = (e1RotationsFloored * 360.0 + e1) * (TURRET_ENCODER_1_GEAR_TEETH / TURRET_MAIN_GEAR_TEETH);
+
+        Logger.recordOutput("fahhh/angle", turretAngle);
+        if (turretAngle - difference < -40) {
+            turretAngle += TURRET_ENCODER_1_GEAR_TEETH / TURRET_MAIN_GEAR_TEETH * 360.0;
+        } else if (turretAngle - difference > 40) {
+            turretAngle -= TURRET_ENCODER_1_GEAR_TEETH / TURRET_MAIN_GEAR_TEETH * 360.0;
+        }
+        Logger.recordOutput("fahhh/dif", difference);
+        return turretAngle;
+    }
+
     public static <T extends Measure<? extends Unit>> T clamp(T val, T min, T max){
         if(val.baseUnitMagnitude() >= max.baseUnitMagnitude()){
             return max;
@@ -48,10 +75,10 @@ public final class ExtraMath {
     public static double lesser(double... in){
         double lesser = Double.POSITIVE_INFINITY;
         double lesserAbs = Double.POSITIVE_INFINITY;
-        for(int i=0;i<in.length;i++){
-            if(Math.abs(in[i]) < lesserAbs){
-                lesser = in[i];
-                lesserAbs = Math.abs(in[i]);
+        for (double v : in) {
+            if (Math.abs(v) < lesserAbs) {
+                lesser = v;
+                lesserAbs = Math.abs(v);
             }
         }
         return lesser;
@@ -64,10 +91,10 @@ public final class ExtraMath {
     public static double greater(double... in){
         double greater = Double.NEGATIVE_INFINITY;
         double greaterAbs = 0.0;
-        for(int i=0;i<in.length;i++){
-            if(Math.abs(in[i]) > greaterAbs){
-                greater = in[i];
-                greaterAbs = Math.abs(in[i]);
+        for (double v : in) {
+            if (Math.abs(v) > greaterAbs) {
+                greater = v;
+                greaterAbs = Math.abs(v);
             }
         }
         return greater;
@@ -76,10 +103,10 @@ public final class ExtraMath {
     public static double min(double... in){
         double lesser = Double.POSITIVE_INFINITY;
         double lesserAbs = Double.POSITIVE_INFINITY;
-        for(int i=0;i<in.length;i++){
-            if(in[i] < lesserAbs){
-                lesser = in[i];
-                lesserAbs = in[i];
+        for (double v : in) {
+            if (v < lesserAbs) {
+                lesser = v;
+                lesserAbs = v;
             }
         }
         return lesser;
@@ -88,10 +115,10 @@ public final class ExtraMath {
     public static double max(double... in){
         double greater = Double.NEGATIVE_INFINITY;
         double greaterAbs = 0.0;
-        for(int i=0;i<in.length;i++){
-            if(in[i] > greaterAbs){
-                greater = in[i];
-                greaterAbs = in[i];
+        for (double v : in) {
+            if (v > greaterAbs) {
+                greater = v;
+                greaterAbs = v;
             }
         }
         return greater;
@@ -134,7 +161,7 @@ public final class ExtraMath {
     /**
      * get tilt of robot
      * 
-     * @param angle
+     * @param angle 3d gyro angle of bot
      * @return double[2] index 0 is direction(-pi to pi), index 1 is tilt angle
      */
     public static double[] getTip(Rotation3d angle) {
@@ -148,17 +175,16 @@ public final class ExtraMath {
 
     /**
      * process input value
-     * 
-     * curve function graphed here
-     * {@link https://www.desmos.com/calculator/fjuc4iqjqt}
-     * 
+     * curve function graphed
+     * {@link <a href="https://www.desmos.com/calculator/fjuc4iqjqt">here</a>}
+     *
      * @param val        - number to process
      * @param multiplier - multiplier for input, mainly used for inverting
      * @param square     - polynomial curve value, roughly y=x^s
-     *                   {@link https://docs.wpilib.org/en/stable/docs/software/hardware-apis/motors/wpi-drive-classes.html#squaring-inputs}
+     *                   {@link <a href="https://docs.wpilib.org/en/stable/docs/software/hardware-apis/motors/wpi-drive-classes.html#squaring-inputs">...</a>}
      * @param deadZone   - deadzone for input
-     *                   {@link https://docs.wpilib.org/en/stable/docs/software/hardware-apis/motors/wpi-drive-classes.html#input-deadband}
-     * @return
+     *                   {@link <a href="https://docs.wpilib.org/en/stable/docs/software/hardware-apis/motors/wpi-drive-classes.html#input-deadband">...</a>}
+     * @return processed value
      */
     public static double processInput(Double val, Double multiplier, Double square, Double deadZone) {
         double out = val;
@@ -249,9 +275,8 @@ public final class ExtraMath {
      */
     public static class Derivitive {
 
-        private double value;
         private double oldValue;
-        private boolean init = false;
+        private boolean init;
 
         /**
          * constructs a new Derivitive object, first update will be based off initial
@@ -279,13 +304,12 @@ public final class ExtraMath {
          * @return rate of change
          */
         public double calculate(double mesurement, double dt) {
-            value = mesurement;
             if (!init) {
-                oldValue = value;
+                oldValue = mesurement;
                 init = true;
             }
-            double out = (value - oldValue) / dt;
-            oldValue = value;
+            double out = (mesurement - oldValue) / dt;
+            oldValue = mesurement;
             return out;
         }
 
@@ -295,8 +319,8 @@ public final class ExtraMath {
     }
 
     public static class MovingAverageFilter {
-        private ArrayList<Double> window = new ArrayList<>();
-        private int taps;
+        private final ArrayList<Double> window = new ArrayList<>();
+        private final int taps;
 
         public MovingAverageFilter(int taps) {
             this.taps = taps;

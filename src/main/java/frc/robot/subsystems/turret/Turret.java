@@ -1,13 +1,11 @@
 package frc.robot.subsystems.turret;
 
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.constants.TurretConstants.*;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -32,15 +30,15 @@ public class Turret extends SubsystemBase {
     private boolean ready = false;
 
     private TurretIO io;
-    private TurretIOInputsAutoLogged in = new TurretIOInputsAutoLogged();
+    private final TurretIOInputsAutoLogged in = new TurretIOInputsAutoLogged();
 
-    private Drive drive;
+    private final Drive drive;
 
-    private SysIdRoutine sysid = new SysIdRoutine(TURRET_SYSID_CONFIG, new SysIdRoutine.Mechanism(v -> io.setVout(v), null, this));
+    private final SysIdRoutine sysid = new SysIdRoutine(TURRET_SYSID_CONFIG, new SysIdRoutine.Mechanism(v -> io.setVout(v), null, this));
 
-    private Alert illegalTarg = new Alert("illegal or invalid Turret setpoint!", AlertType.kWarning);
+    private final Alert illegalTarg = new Alert("illegal or invalid Turret setpoint!", AlertType.kWarning);
 
-    private Alert runningSysid = new Alert("Turret sysid running", AlertType.kInfo);
+    private final Alert runningSysid = new Alert("Turret sysid running", AlertType.kInfo);
 
     public Turret(TurretIO io, Drive drive){
         this.io = io;
@@ -71,6 +69,8 @@ public class Turret extends SubsystemBase {
     public Command manPos(Supplier<Angle> targ, boolean fieldOriented){
         return Commands.run(() -> {
             Angle angle = targ.get();
+
+            io.setTolerance(TURRET_SETPOINT_TOLERANCE);
             
             if(fieldOriented){
                 angle = angle
@@ -97,7 +97,9 @@ public class Turret extends SubsystemBase {
         return Commands.run(() -> {
             double dist = targ.get().getDistance(getFieldPos());
             Logger.recordOutput("Subsystems/Turret/track/distance", dist);
- 
+
+            io.setTolerance(Radians.of(2*Math.atan(HUB_RADIUS.in(Meters)/dist)));
+
             Angle angle = ExtraMath.getAngleToPos(
                 targ.get(), //target(offset for lead)
                     drive.getPose().getTranslation()//drive pos
@@ -121,11 +123,14 @@ public class Turret extends SubsystemBase {
             Logger.recordOutput("Subsystems/Turret/track/angle targeted", Double.NaN);
             Logger.recordOutput("Subsystems/Turret/track/init angle targeted", Double.NaN);
             Logger.recordOutput("Subsystems/Turret/track/target pos", (Translation2d)null);
+            io.setTolerance(TURRET_SETPOINT_TOLERANCE);
         }).withName("track position");
     }
     
     public Command trackWithLead(){
         return Commands.run(() -> {
+
+            io.setTolerance(Radians.of(2*Math.atan(HUB_RADIUS.in(Meters)/SOTMSolver.getInstance().getParams(false).dist().in(Meters))));
 
             Angle angle = SOTMSolver.getInstance().getAngle(false)
                 .minus(Radians.of(drive.getPose().getRotation().getRadians()))
@@ -144,6 +149,7 @@ public class Turret extends SubsystemBase {
             Logger.recordOutput("Subsystems/Turret/track/angle targeted", Double.NaN);
             Logger.recordOutput("Subsystems/Turret/track/init angle targeted", Double.NaN);
             Logger.recordOutput("Subsystems/Turret/track/target pos", (Translation2d)null);
+            io.setTolerance(TURRET_SETPOINT_TOLERANCE);
         }).withName("track position from SOTM");
     }
 
@@ -194,7 +200,6 @@ public class Turret extends SubsystemBase {
                 Math.cos(drive.getRotation().getRadians())*TURRET_OFFSET.getX(),
                 Math.sin(drive.getRotation().getRadians())*TURRET_OFFSET.getX()));
     }
-
     
     /**
      * Sets the robot-relative target angle for the turret.
@@ -223,7 +228,7 @@ public class Turret extends SubsystemBase {
         double finalOffset = currentTotalRadians + closestOffset;
         if ((currentTotalRadians + closestOffset) % (2 * Math.PI)
                 == (currentTotalRadians - closestOffset)
-                        % (2 * Math.PI)) { // If the offset can go either way, go closer to zero
+                % (2 * Math.PI)) { // If the offset can go either way, go closer to zero
             if (finalOffset > 0) {
                 finalOffset = currentTotalRadians - Math.abs(closestOffset);
             } else {
@@ -237,5 +242,9 @@ public class Turret extends SubsystemBase {
         }
 
         return Units.radiansToDegrees(finalOffset);
+    }
+
+    public Command stop(){
+        return new InstantCommand(() -> Volts.of(0));
     }
 } 

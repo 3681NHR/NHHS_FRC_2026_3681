@@ -22,7 +22,7 @@ public final class LauncherConstants {
     public static final PIDGains.SimpleFF LAUNCHER_FF_GAINS = LAUNCHER_ID_GAINS;
     public static final PIDGains.PID LAUNCHER_PID_GAINS = new PIDGains.PID(0.4,0,0.0);
 
-    public static final AngularVelocity LAUNCHER_SETPOINT_TOLERANCE = RotationsPerSecond.of(50);
+    public static final AngularVelocity LAUNCHER_SETPOINT_TOLERANCE = RotationsPerSecond.of(10);
     public static final Temperature LAUNCHER_MAX_TEMP = Celsius.of(40);
 
     public static final SysIdRoutine.Config LAUNCHER_SYSID_CONFIG = new SysIdRoutine.Config(

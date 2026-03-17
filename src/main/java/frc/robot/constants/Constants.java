@@ -7,8 +7,11 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Mass;
+import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.RobotBase;
+
+import static edu.wpi.first.units.Units.*;
 
 public final class Constants {
 
@@ -29,8 +32,9 @@ public final class Constants {
     public static final Pose2d STARTING_POSE = new Pose2d(new Translation2d(8.75, 4), Rotation2d.fromDegrees(0));
 
     public static final Mass ROBOT_MASS = Pounds.of(115);
-    // public static final Time LOOP_TIME = Seconds.of(0.13); // 20ms + 110ms spark max velocity lag
+
     // 3742, thanks Mr. B
+    // 5800 is default, but is used by photonvision
     public static final int ELASTIC_LAYOUT_PORT = 3742;
 
     public static class OperatorConstants {
@@ -54,5 +58,7 @@ public final class Constants {
     }
 
     public static final int SPARKMAX_TARGET_FIRMWARE = 436273156;
-    public static final int TALONFX_TARGET_FIRMWARE = 436273152;
+    public static final int TALONFX_TARGET_FIRMWARE = 436273409;
+
+    public static final Temperature MAX_MOTOR_TEMP = Celsius.of(80);
 }

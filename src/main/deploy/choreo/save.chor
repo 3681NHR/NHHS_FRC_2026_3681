@@ -1,0 +1,135 @@
+{
+ "name":"save",
+ "version":2,
+ "type":"Swerve",
+ "variables":{
+  "expressions":{
+   "intake_speed":{
+    "dimension":"LinVel",
+    "var":{
+     "exp":"0.5 m / s",
+     "val":0.5
+    }
+   }
+  },
+  "poses":{
+   "L_mid":{
+    "x":{
+     "exp":"R_mid.x",
+     "val":7.705047607421875
+    },
+    "y":{
+     "exp":"2 * center.y - R_mid.y",
+     "val":4.830788254737854
+    },
+    "heading":{
+     "exp":"-90 deg",
+     "val":-1.5707963267948966
+    }
+   },
+   "R_mid":{
+    "x":{
+     "exp":"7.705047607421875 m",
+     "val":7.705047607421875
+    },
+    "y":{
+     "exp":"3.233200430870056 m",
+     "val":3.233200430870056
+    },
+    "heading":{
+     "exp":"90 deg",
+     "val":1.5707963267948966
+    }
+   },
+   "center":{
+    "x":{
+     "exp":"8.274700164794922 m",
+     "val":8.274700164794922
+    },
+    "y":{
+     "exp":"4.031994342803955 m",
+     "val":4.031994342803955
+    },
+    "heading":{
+     "exp":"0 rad",
+     "val":0.0
+    }
+   }
+  }
+ },
+ "config":{
+  "frontLeft":{
+   "x":{
+    "exp":"11 in",
+    "val":0.2794
+   },
+   "y":{
+    "exp":"11 in",
+    "val":0.2794
+   }
+  },
+  "backLeft":{
+   "x":{
+    "exp":"-11 in",
+    "val":-0.2794
+   },
+   "y":{
+    "exp":"11 in",
+    "val":0.2794
+   }
+  },
+  "mass":{
+   "exp":"109 lbs",
+   "val":49.44156833
+  },
+  "inertia":{
+   "exp":"6 kg m ^ 2",
+   "val":6.0
+  },
+  "gearing":{
+   "exp":"6.75",
+   "val":6.75
+  },
+  "radius":{
+   "exp":"2 in",
+   "val":0.0508
+  },
+  "vmax":{
+   "exp":"6000 RPM",
+   "val":628.3185307179587
+  },
+  "tmax":{
+   "exp":"0.519 N * m",
+   "val":0.519
+  },
+  "cof":{
+   "exp":"1.5",
+   "val":1.5
+  },
+  "bumper":{
+   "front":{
+    "exp":"16.5 in",
+    "val":0.4191
+   },
+   "side":{
+    "exp":"16.5 in",
+    "val":0.4191
+   },
+   "back":{
+    "exp":"16.5 in",
+    "val":0.4191
+   }
+  },
+  "differentialTrackWidth":{
+   "exp":"22 in",
+   "val":0.5588
+  }
+ },
+ "generationFeatures":[],
+ "codegen":{
+  "root":null,
+  "genVars":true,
+  "genTrajData":true,
+  "useChoreoLib":true
+ }
+}

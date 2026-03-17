@@ -24,6 +24,8 @@ public class TurretIOSim implements TurretIO {
     private Voltage Vout = Volts.of(0.0);
     private Angle angle = Radians.of(0.0);
 
+    private  Angle tolerance = TURRET_SETPOINT_TOLERANCE;
+
     private ProfiledPID pid = new ProfiledPID(TURRET_PID_GAINS);
     private SimpleFF ff = new SimpleFF(TURRET_FF_GAINS);
 
@@ -56,9 +58,11 @@ public class TurretIOSim implements TurretIO {
         input.goal = goal;
         input.setpointPos = Radians.of(pid.getSetpoint().position);
         input.setpointVel = RadiansPerSecond.of(pid.getSetpoint().velocity);
-        input.atSetpoint = MathUtil.isNear(goal.in(Radians), angle.in(Radians), TURRET_SETPOINT_TOLERANCE.in(Radians));
+        input.atSetpoint = MathUtil.isNear(goal.in(Radians), angle.in(Radians), tolerance.in(Radians));
     
         input.openLoop = openLoop;
+
+        input.tolerance = tolerance;
     }
 
     @Override
@@ -72,4 +76,9 @@ public class TurretIOSim implements TurretIO {
         Vout = vout;
     }
 
+
+    @Override
+    public void setTolerance(Angle tol){
+        tolerance = tol;
+    }
 }

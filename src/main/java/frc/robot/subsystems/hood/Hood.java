@@ -2,6 +2,7 @@ package frc.robot.subsystems.hood;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -20,6 +21,8 @@ public class Hood extends SubsystemBase {
     HoodIO io;
     HoodIOInputsAutoLogged in = new HoodIOInputsAutoLogged();
 
+    private final Alert notHomed = new Alert("Hood not homed", Alert.AlertType.kError);
+
     boolean homing = false;
 
     public Hood(HoodIO io){
@@ -30,6 +33,7 @@ public class Hood extends SubsystemBase {
     public void periodic(){
         io.updateInputs(in);
         Logger.processInputs("IO/Hood", in);
+        notHomed.set(!in.homed);
 
         Logger.recordOutput("Subsystems/Hood/state", getCurrentCommand() == null ? "none" : getCurrentCommand().getName());
         
@@ -37,8 +41,8 @@ public class Hood extends SubsystemBase {
 
     /**
      * position control, soft limits apply, and setpoint is clamped
-     * @param pos
-     * @return
+     * @param pos target angle
+     * @return Command that drives to pos
      */
     public Command positionControl(Supplier<Angle> pos){
         return Commands.run(() -> {
@@ -49,7 +53,7 @@ public class Hood extends SubsystemBase {
     /**
      * set openloop vout, soft limits will still apply if homed
      * @param vout - voltage to apply
-     * @return
+     * @return Command that runs at voltage
      */
     public Command voltageControl(Supplier<Voltage> vout){
         return Commands.run(() -> {
@@ -59,18 +63,18 @@ public class Hood extends SubsystemBase {
 
     /**
      * reset angle to min value and set homed to true
-     * @return
+     * @return Command that sets homed to true and resets position to min
      */
     public Command forceHome(){
         return new InstantCommand(() -> {
             io.setHomed(true);
             io.setPos(HOOD_MIN_ANGLE);
-        }, this).withName("force home");
+        }, this).ignoringDisable(true).withName("force home");
     }
 
     /**
      * uses voltage commands to auto home
-     * @return
+     * @return Command that applies a small voltage until the hood stops,
      */
     public Command home(){
 

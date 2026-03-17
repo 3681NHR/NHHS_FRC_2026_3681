@@ -25,8 +25,6 @@ import edu.wpi.first.networktables.StringArraySubscriber;
  * How to add a new autonomous program.
  *     <ol>
  *         <li>
- *             Add a new value to {@link Auto}<br/>
- *             The name of the value should use screaming snake case
  *             </li>
  *             <li>
  *                 Add a new method in {@link AutoFactory} that returns a {@link edu.wpi.first.wpilibj2.command.Command}.
@@ -43,22 +41,22 @@ import edu.wpi.first.networktables.StringArraySubscriber;
  *         </ol>
  * </p>
  * <br/><br/>
- * thanks to 2910 for half of this code
+ * thanks to 2910 for 3/8 of this code
  */
 @SuppressWarnings("unchecked")
 public class AutoChooser {
 
-    private AutoFactory factory;
-    private RobotContainer container;
+    private final AutoFactory factory;
+    private final RobotContainer container;
 
-    private LoggedField2d field = new LoggedField2d();
-    private LoggedDashboardChooser<AutoProgram> chooser;
-    private LoggedNetworkNumber timeSelector = new LoggedNetworkNumber("SmartDashboard/Auto/Time select", 0.0);
+    private final LoggedField2d field = new LoggedField2d();
+    private final LoggedDashboardChooser<AutoProgram> chooser;
+    private final LoggedNetworkNumber timeSelector = new LoggedNetworkNumber("SmartDashboard/Auto/Time select", 0.0);
 
     private static Map<String, Object> groups = null;
-    private static Map<String, StringArraySubscriber> errorSubscribers = new HashMap<>();
-    private static Map<String, StringArraySubscriber> warningSubscribers = new HashMap<>();
-    private static Map<String, StringArraySubscriber> infoSubscribers = new HashMap<>();
+    private static final Map<String, StringArraySubscriber> errorSubscribers = new HashMap<>();
+    private static final Map<String, StringArraySubscriber> warningSubscribers = new HashMap<>();
+    private static final Map<String, StringArraySubscriber> infoSubscribers = new HashMap<>();
 
     private static String[] errors = {};
     private static String[] warnings = {};
@@ -116,7 +114,8 @@ public class AutoChooser {
     private final List<AutoProgram> AUTO_PROGRAMS = List.of(
         // new AutoProgram("example", AutoFactory::createExampleAuto),
             new AutoProgram("idle",  AutoFactory::createIdleAuto),
-            new AutoProgram("test",  AutoFactory::createTestAuto)
+            new AutoProgram("test",  AutoFactory::createTestAuto),
+            new AutoProgram("preload",  AutoFactory::createPreloadAuto)
     );
 
 
@@ -145,11 +144,13 @@ public class AutoChooser {
 
     public void update(){
         if(!DriverStation.isEnabled() && chooser.get() != null){
+            getAlerts();
+
             double time = timeSelector.get() * chooser.get().getPathLength(factory);
 
             field.getObject("traj").setPoses(chooser.get().getPoses(factory));
             field.setRobotPose(container.getDrive().getPose());
-            field.getObject("start").setPose(chooser.get().getPoseAtTime(factory, time));
+            field.getObject("start").setPose(chooser.get().getStartingPose(factory));
             
             Logger.recordOutput("Auto/Selected time", ExtraMath.roundToPoint(time, 3));
             Logger.recordOutput("Auto/Total time"   , ExtraMath.roundToPoint(chooser.get().getPathLength(factory), 3));
@@ -167,7 +168,7 @@ public class AutoChooser {
             Logger.recordOutput("Auto/Checklist/Controller ports", "Confirm controllers are connected to right ports");
             Logger.recordOutput("Auto/Checklist/DS secure", "Confirm DS is securely attached to shelf");
             // Logger.recordOutput("auto/list/", );
-            // Logger.recordOutput("auto/list/Gamepiece loaded", );
+             Logger.recordOutput("auto/list/Gamepieces loaded", "confirm 8 preload fuel");
         }
     }
 }
