@@ -1,11 +1,6 @@
 package frc.robot.constants;
 
-import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Second;
-import static edu.wpi.first.units.Units.Seconds;
-import static edu.wpi.first.units.Units.Volts;
-
+import edu.wpi.first.units.measure.Distance;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Translation2d;
@@ -15,6 +10,8 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.utils.controlWrappers.PIDGains.ProfiledPID;
 import frc.utils.controlWrappers.PIDGains.SimpleFF;
+
+import static edu.wpi.first.units.Units.*;
 
 public final class TurretConstants {
     
@@ -44,6 +41,8 @@ public final class TurretConstants {
     public static final double TURRET_THETA_COMP_FACTOR = -0.08;//offset target angle while robot is spinning
 
     public static final Angle TURRET_SETPOINT_TOLERANCE = Degrees.of(5);
+
+    public static final Distance HUB_RADIUS = Inches.of(45.7/2);
 
     public static final Translation2d RED_HUB = new Translation2d(11.915, 4.034);
     public static final Translation2d[] RED_PASS = new Translation2d[]{

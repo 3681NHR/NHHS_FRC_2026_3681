@@ -1,10 +1,61 @@
 {
- "name":"L trench",
+ "name":"save",
  "version":2,
  "type":"Swerve",
  "variables":{
-  "expressions":{},
-  "poses":{}
+  "expressions":{
+   "intake_speed":{
+    "dimension":"LinVel",
+    "var":{
+     "exp":"0.5 m / s",
+     "val":0.5
+    }
+   }
+  },
+  "poses":{
+   "L_mid":{
+    "x":{
+     "exp":"R_mid.x",
+     "val":7.705047607421875
+    },
+    "y":{
+     "exp":"2 * center.y - R_mid.y",
+     "val":4.830788254737854
+    },
+    "heading":{
+     "exp":"-90 deg",
+     "val":-1.5707963267948966
+    }
+   },
+   "R_mid":{
+    "x":{
+     "exp":"7.705047607421875 m",
+     "val":7.705047607421875
+    },
+    "y":{
+     "exp":"3.233200430870056 m",
+     "val":3.233200430870056
+    },
+    "heading":{
+     "exp":"90 deg",
+     "val":1.5707963267948966
+    }
+   },
+   "center":{
+    "x":{
+     "exp":"8.274700164794922 m",
+     "val":8.274700164794922
+    },
+    "y":{
+     "exp":"4.031994342803955 m",
+     "val":4.031994342803955
+    },
+    "heading":{
+     "exp":"0 rad",
+     "val":0.0
+    }
+   }
+  }
  },
  "config":{
   "frontLeft":{
@@ -28,8 +79,8 @@
    }
   },
   "mass":{
-   "exp":"115 lbs",
-   "val":52.16312255
+   "exp":"109 lbs",
+   "val":49.44156833
   },
   "inertia":{
    "exp":"6 kg m ^ 2",
@@ -52,8 +103,8 @@
    "val":0.519
   },
   "cof":{
-   "exp":"2.31421199",
-   "val":2.31421199
+   "exp":"1.5",
+   "val":1.5
   },
   "bumper":{
    "front":{
