@@ -7,13 +7,8 @@ import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import frc.robot.autos.AutoChooser;
 import frc.robot.commands.SwerveWheelCharacterization;
-import frc.robot.constants.Constants;
-import frc.robot.constants.DriveConstants;
-import frc.robot.constants.FuelVisionConstants;
-import frc.robot.constants.HoodConstants;
-import frc.robot.constants.TurretConstants;
+import frc.robot.constants.*;
 import frc.robot.constants.Constants.OperatorConstants;
-import frc.robot.constants.VisionConstants;
 import frc.robot.subsystems.Led;
 import frc.robot.subsystems.SOTMSolver;
 import frc.robot.subsystems.SimFuelManager;
@@ -58,15 +53,9 @@ import frc.robot.subsystems.vision.CameraIO;
 import frc.robot.subsystems.vision.CameraIOPhoton;
 import frc.robot.subsystems.vision.CameraIOPhotonSim;
 import frc.robot.subsystems.vision.Vision;
+import frc.utils.*;
 import frc.utils.rumble.*;
 import frc.utils.Joystick.DuelJoystickAxis;
-import frc.utils.TimerHandler;
-import frc.utils.BatteryVoltageSim;
-import frc.utils.ControllerMap;
-import frc.utils.ExtraMath;
-import frc.utils.HiddenConditionalCommand;
-import frc.utils.Joystick;
-import frc.utils.PIDTuner;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
@@ -382,7 +371,7 @@ public class RobotContainer {
         );
         kicker.setDefaultCommand(kicker.hold().ignoringDisable(true));
         drive.setDefaultCommand(drive.teleopDrive().ignoringDisable(true));
-        hood.setDefaultCommand(hood.positionControl(() -> hood.getAngle()).ignoringDisable(true));
+        hood.setDefaultCommand(hood.instantPositionControl(() -> HOOD_MIN_ANGLE).ignoringDisable(true));
         climber.setDefaultCommand(climber.voltageControl(Volts::zero).ignoringDisable(true));
         indexer.setDefaultCommand(indexer.stop().ignoringDisable(true));
     }
@@ -421,9 +410,10 @@ public class RobotContainer {
             drive.setFOD(!drive.getFOD());
             rumbler.overrideQue(RumblePreset.TAP.load());
         }));
-        
+//        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.2).whileTrue()
         new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7)
-                .whileTrue(fire()).onFalse(hood.instantPositionControl(() -> HOOD_MIN_ANGLE));
+                .whileTrue(fire());
+//                .onFalse(hood.positionControl(() -> HOOD_MIN_ANGLE));
         // intake :3
         new Trigger(() -> driverController.getRawAxis(LEFT_TRIGGER) > 0.5)
                 .whileTrue(intake.intake());
@@ -570,7 +560,7 @@ public class RobotContainer {
         return new ParallelCommandGroup(
             turret.manPos(() -> Degrees.of(manTurretDegrees.getAsDouble()), false),
             launcher.velocityControl(() -> RPM.of(manShooterRPM.getAsDouble())),
-            hood.instantPositionControl(() -> Degrees.of(manHoodDegrees.getAsDouble())),
+            hood.positionControl(() -> Degrees.of(manHoodDegrees.getAsDouble())),
             new InstantCommand(() -> {
                 manual = true;
             })
@@ -643,6 +633,7 @@ public class RobotContainer {
                 new HiddenConditionalCommand(
                     getSimFireCommand(),
                     Commands.sequence(
+//                            new HiddenConditionalCommand(Commands.none(),hood.go(), () -> manual),
                             hood.go(),
                             Commands.parallel(
                                 kicker.feed(),
@@ -659,5 +650,9 @@ public class RobotContainer {
     @AutoLogOutput
     public boolean isReady(){
         return (readyDebounce.calculate(turret.isReady() && launcher.isReady() && hood.isReady()) || forceFeed.getAsBoolean());
+    }
+
+    public Command intakeRollerOnly(){
+        return intake.intake();
     }
 }

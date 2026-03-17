@@ -54,7 +54,7 @@ public class AutoFactory {
                 null,
                 new ParallelCommandGroup(
                         robotContainer.getTrackCommand(),
-                        Commands.waitSeconds(5.0).andThen(robotContainer.fire())
+                        Commands.waitSeconds(1.0).andThen(robotContainer.fire().alongWith(robotContainer.intakeRollerOnly()))
                 ));
     }
     

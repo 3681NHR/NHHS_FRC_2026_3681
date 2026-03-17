@@ -11,6 +11,8 @@ import frc.robot.commands.HomeCommand;
 import frc.utils.ExtraMath;
 
 import static frc.robot.constants.HoodConstants.*;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -49,12 +51,13 @@ public class Hood extends SubsystemBase {
     public Command positionControl(Supplier<Angle> pos){
         return Commands.run(() -> {
             this.goal = ExtraMath.clamp(pos.get(), HOOD_MIN_ANGLE, HOOD_MAX_ANGLE);
-        }, this).withName("position control");
+        }).withName("position control");
     }
 
     public Command instantPositionControl (Supplier<Angle> pos){
         return Commands.run(() -> {
-            io.setGoal(ExtraMath.clamp(pos.get(), HOOD_MIN_ANGLE, HOOD_MAX_ANGLE));
+            goal = ExtraMath.clamp(pos.get(), HOOD_MIN_ANGLE, HOOD_MAX_ANGLE);
+            io.setGoal(goal);
         }, this).withName("position control (instant)");
     }
 
@@ -109,7 +112,7 @@ public class Hood extends SubsystemBase {
     }
 
     public Command go(){
-        Command c = new InstantCommand(() -> {
+        Command c = Commands.run(() -> {
             if (goal != null) {
                 io.setGoal(goal);
             }
