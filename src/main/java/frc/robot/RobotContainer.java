@@ -522,6 +522,12 @@ public class RobotContainer {
     }
 
     public void enableAuto() {
+
+        if (RobotBase.isSimulation()) {
+            SimulatedArena.getInstance().resetFieldForAuto();
+        }
+        //preload 8
+        SimFuelManager.getInstance().intake.setGamePiecesCount(8);
     }
 
     public Drive getDrive() {
