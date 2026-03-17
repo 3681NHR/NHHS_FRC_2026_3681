@@ -8,12 +8,10 @@ import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
-import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.AddressableLEDBufferView;
 import edu.wpi.first.wpilibj.LEDPattern;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.hood.Hood;
@@ -31,9 +29,6 @@ public class Led extends SubsystemBase {
     Drive drive;
 
     BooleanSupplier manualSupplier;
-
-    private double ruleR203M_DebounceTimer = 0;
-    private Color lastTurretState = Color.kBlack;
 
     private AddressableLED led = new AddressableLED(0);
     private AddressableLEDBuffer buffer = new AddressableLEDBuffer(71+47);
@@ -69,15 +64,6 @@ public class Led extends SubsystemBase {
     public void periodic() {
 
         Color turretState = turret.isReady() && launcher.isReady() && hood.isReady() ? Color.kGreen : Color.kBlack;
-
-        if (Timer.getFPGATimestamp() - ruleR203M_DebounceTimer > 0.2) {
-            if (turretState != lastTurretState) {
-                lastTurretState = turretState;
-                ruleR203M_DebounceTimer = Timer.getFPGATimestamp();
-            }
-        } else {
-            turretState = lastTurretState;
-        }
 
         if(manualSupplier.getAsBoolean()){
             turretState = Color.kWhite;
