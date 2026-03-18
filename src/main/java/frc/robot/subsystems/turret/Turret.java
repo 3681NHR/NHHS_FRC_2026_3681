@@ -131,7 +131,7 @@ public class Turret extends SubsystemBase {
     public Command trackWithLead(Supplier<Distance> radius){
         return Commands.run(() -> {
 
-            io.setTolerance(Radians.of(2*Math.atan(radius.get.in(Meters)/SOTMSolver.getInstance().getParams(false).dist().in(Meters))));
+            io.setTolerance(Radians.of(2*Math.atan(radius.get().in(Meters)/SOTMSolver.getInstance().getParams(false).dist().in(Meters))));
 
             Angle angle = SOTMSolver.getInstance().getAngle(false)
                 .minus(Radians.of(drive.getPose().getRotation().getRadians()))

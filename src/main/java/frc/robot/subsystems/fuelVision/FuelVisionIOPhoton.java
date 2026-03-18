@@ -41,7 +41,6 @@ public class FuelVisionIOPhoton implements FuelVisionIO{
                      *  |   |
                      *  2---3
                      */
-                    assert(corners.size() == 4);
                     observations.add(new FuelObservation(
                         new RadialPos2d(Degrees.of(targ.yaw), Degrees.of(targ.pitch)),
                         new ScreenSize2d(
