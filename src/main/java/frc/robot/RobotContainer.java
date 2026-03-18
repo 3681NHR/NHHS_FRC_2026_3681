@@ -422,7 +422,7 @@ public class RobotContainer {
             drive.setFOD(!drive.getFOD());
             rumbler.overrideQue(RumblePreset.TAP.load());
         }));
-//        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.2).whileTrue()
+        new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.2).whileTrue(hood.go());
         new Trigger(() -> driverController.getRawAxis(RIGHT_TRIGGER) > 0.7)
                 .whileTrue(fire());
 //                .onFalse(hood.positionControl(() -> HOOD_MIN_ANGLE));
@@ -456,15 +456,16 @@ public class RobotContainer {
 
         new Trigger(() -> (inTrench() && autoTrench.getAsBoolean()) || driverController.getRawButton(X)).whileTrue(
                 drive.TrenchAlignDrive()
-//                    .alongWith(hood.positionControl(() -> HOOD_MIN_ANGLE))
-                        .withName("trench mode")
-        ).onFalse(
-                new HiddenConditionalCommand(
-                        getManShooterCommand(),
-                        getTrackCommand(),
-                        () -> manual
-                )
+                    .alongWith(hood.instantPositionControl(() -> HOOD_MIN_ANGLE).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
+                    ).withName("trench mode")
         );
+//        .onFalse(
+//                new HiddenConditionalCommand(
+//                        getManShooterCommand(),
+//                        getTrackCommand(),
+//                        () -> manual
+//                )
+//        );
 
         new Trigger(() -> buttons.get(0) && !DriverStation.isEnabled()).onTrue(hood.forceHome());
     }
@@ -537,9 +538,9 @@ public class RobotContainer {
 
         if (RobotBase.isSimulation()) {
             SimulatedArena.getInstance().resetFieldForAuto();
+            //preload 8
+            SimFuelManager.getInstance().intake.setGamePiecesCount(8);
         }
-        //preload 8
-        SimFuelManager.getInstance().intake.setGamePiecesCount(8);
     }
 
     public Drive getDrive() {
@@ -660,7 +661,7 @@ public class RobotContainer {
                                 ).withName("shoot"),
                                 () -> Constants.MODE == RobotMode.SIM
                         ),
-                        Commands.none(),
+                        Commands.run(() -> {}),
                         //block scoring if hub is disabled, still allows passing
                         () -> this.isReady() && (!hubTrack || canScore())
                 )
