@@ -622,8 +622,8 @@ public class RobotContainer {
         //pos with lead
         Translation2d offsetPos = drive.getPose().getTranslation().plus(
                 new Translation2d(//look ahead
-                        drive.getChassisSpeeds().vxMetersPerSecond * 0.5,
-                        drive.getChassisSpeeds().vyMetersPerSecond * 0.5
+                        drive.getFieldChassisSpeeds().vxMetersPerSecond * 0.5,
+                        drive.getFieldChassisSpeeds().vyMetersPerSecond * 0.5
                 ));
         //pos without lead
         Translation2d pos = drive.getPose().getTranslation();

@@ -54,8 +54,8 @@ public final class SOTMSolver extends SubsystemBase{
             dist = newDist;
             
             vec = curr.plus(new Translation2d(
-                drive.getChassisSpeeds().vxMetersPerSecond * params.time().in(Seconds),
-                drive.getChassisSpeeds().vyMetersPerSecond * params.time().in(Seconds)
+                drive.getFieldChassisSpeeds().vxMetersPerSecond * params.time().in(Seconds),
+                drive.getFieldChassisSpeeds().vyMetersPerSecond * params.time().in(Seconds)
                 ));
             
             turretAngle = ExtraMath.getAngleToPos(target, vec);
@@ -81,8 +81,8 @@ public final class SOTMSolver extends SubsystemBase{
         }
 
         Translation2d vel = new Translation2d(
-            drive.getChassisSpeeds().vxMetersPerSecond,
-            drive.getChassisSpeeds().vyMetersPerSecond
+            drive.getFieldChassisSpeeds().vxMetersPerSecond,
+            drive.getFieldChassisSpeeds().vyMetersPerSecond
         );
 
         Translation2d shotVel = new Translation2d(
