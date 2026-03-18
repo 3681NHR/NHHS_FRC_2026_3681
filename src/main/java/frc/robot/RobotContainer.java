@@ -554,7 +554,7 @@ public class RobotContainer {
     public Command getTrackCommand() {
         return new HiddenConditionalCommand(
                 new ParallelCommandGroup(
-                        turret.trackWithLead(),
+                        turret.trackWithLead(() -> hubTrack ? HUB_RADIUS : PASS_RADIUS),
                         launcher.velocityControl(() -> SOTMSolver.getInstance().getParams(false).speed()),
                         hood.positionControl(() -> SOTMSolver.getInstance().getParams(false).hoodAngle()),
                         new InstantCommand(() -> {
@@ -563,9 +563,9 @@ public class RobotContainer {
                 ).withName("track with lead"),
 
                 new ParallelCommandGroup(
-                        turret.track(() -> target),
-                        launcher.velocityControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).speed()),
-                        hood.positionControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).hoodAngle()),
+                        turret.track(() -> target, () -> hubTrack ? HUB_RADIUS : PASS_RADIUS),
+                        launcher.velocityControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, hubTrack ? LaunchLUT.LUTHub : LaunchLUT.LUTPass).speed()),
+                        hood.positionControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, hubTrack ? LaunchLUT.LUTHub : LaunchLUT.LUTPass).hoodAngle()),
                         new InstantCommand(() -> {
                             manual = false;
                         })
