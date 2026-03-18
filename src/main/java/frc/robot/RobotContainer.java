@@ -3,6 +3,7 @@
 package frc.robot;
 
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import frc.robot.autos.AutoChooser;
@@ -86,10 +87,6 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
@@ -594,16 +591,17 @@ public class RobotContainer {
             if (SimFuelManager.getInstance().intake.obtainGamePieceFromIntake()) {
                 double launchvel = (launcher.getSpeed().in(RPM)) * 2 * Math.PI * Units.inchesToMeters(2) / 60.0;
                 double angle = hood.getAngle().plus(Degrees.of(90)).in(Radians);
+                double turretAngle = driveSim.getSimulatedDriveTrainPose().getRotation().getRadians() + turret.getAngle().plus(Degrees.of(180)).in(Radians);
                 GamePieceProjectile fuel = new GamePieceProjectile(
                         RebuiltFuelOnField.REBUILT_FUEL_INFO,
                         driveSim.getSimulatedDriveTrainPose().getTranslation().plus(new Translation2d(
-                                Math.cos(drive.getRotation().getRadians()) * TURRET_OFFSET.getX(),
-                                Math.sin(drive.getRotation().getRadians()) * TURRET_OFFSET.getX()
+                                Math.cos(driveSim.getSimulatedDriveTrainPose().getRotation().getRadians()) * TURRET_OFFSET.getX(),
+                                Math.sin(driveSim.getSimulatedDriveTrainPose().getRotation().getRadians()) * TURRET_OFFSET.getX()
                         )),
                         new Translation2d(
-                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vxMetersPerSecond + (Math.cos(drive.getRotation().getRadians() + turret.getAngle().plus(Degrees.of(180)).in(Radians)) * Math.cos(angle) * launchvel),
-                                ChassisSpeeds.fromRobotRelativeSpeeds(drive.getChassisSpeeds(), drive.getRotation()).vyMetersPerSecond + (Math.sin(drive.getRotation().getRadians() + turret.getAngle().plus(Degrees.of(180)).in(Radians)) * Math.cos(angle) * launchvel)
-                        ),
+                                driveSim.getDriveTrainSimulatedChassisSpeedsFieldRelative().vxMetersPerSecond,
+                                driveSim.getDriveTrainSimulatedChassisSpeedsFieldRelative().vyMetersPerSecond
+                        ).plus(new Translation2d(Math.cos(angle) * launchvel,0).rotateBy(new Rotation2d(turretAngle))),
                         Units.inchesToMeters(20),
                         Math.sin(angle) * launchvel,
                         new Rotation3d()
