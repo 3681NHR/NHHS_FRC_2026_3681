@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.constants.TurretConstants;
 import frc.robot.subsystems.LaunchLUT.ShotParams;
 import frc.robot.subsystems.swerve.Drive;
 import frc.utils.ExtraMath;
@@ -43,7 +44,7 @@ public final class SOTMSolver extends SubsystemBase{
         this.drive = drive;
     }
     public void calculate(){
-        Translation2d curr = drive.getPose().getTranslation();
+        Translation2d curr = drive.getPose().getTranslation().plus(TurretConstants.TURRET_OFFSET.toTranslation2d());
 
         double dist = curr.getDistance(target);
         double newDist = 0;

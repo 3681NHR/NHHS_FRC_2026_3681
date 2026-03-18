@@ -3,6 +3,11 @@
 package frc.robot;
 
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.networktables.NetworkTablesJNI;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -55,21 +60,21 @@ import frc.robot.subsystems.vision.CameraIOPhoton;
 import frc.robot.subsystems.vision.CameraIOPhotonSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.utils.*;
+import frc.utils.Joystick;
 import frc.utils.rumble.*;
 import frc.utils.Joystick.DuelJoystickAxis;
 
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.Volts;
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.constants.HoodConstants.HOOD_MIN_ANGLE;
 import static frc.robot.constants.IntakeConstants.INTAKE_OFFSET;
 import static frc.robot.constants.TurretConstants.*;
 
 import static frc.utils.ControllerMap.*;
 
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 
 import org.ironmaple.simulation.SimulatedArena;
@@ -90,11 +95,7 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -106,6 +107,13 @@ import frc.robot.subsystems.kicker.KickerIOSim;
 import frc.robot.constants.Constants.RobotMode;
 
 public class RobotContainer {
+
+    private double currentStartTimestamp = 0.0;
+    private Angle hoodSetpoint = Degrees.zero();
+    private AngularVelocity launcherSetpoint = RPM.zero();
+    private Distance distanceToHub = Meters.zero();
+
+    private boolean isLutInProgress = false;
     private final LoggedDashboardChooser<Command> sysidChooser = new LoggedDashboardChooser<Command>("sysid auto chooser");
 
     private DriveTrainSimulationConfig driveTrainSimulationConfig;
@@ -126,7 +134,7 @@ public class RobotContainer {
     @SuppressWarnings("unused")
     private Led led;
     private boolean manual = true;
-    
+
     boolean hubTrack = false;
 
     private final XboxController driverController = new XboxController(OperatorConstants.DRIVER_CONTROLLER_PORT);
@@ -434,15 +442,18 @@ public class RobotContainer {
                 hood.positionControl(() -> HOOD_MIN_ANGLE).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
         );
 
-        //set turret to auto track mode
+        // toggle auto track command
         new Trigger(() -> driverController.getRawButton(B)).onTrue(
                 getTrackCommand()
         );
+
         //set turret to preset angle mode
         new Trigger(() -> driverController.getRawButton(A)).onTrue(
-                getManShooterCommand()
+            getManShooterCommand()
         );
-
+        new Trigger(() -> driverController.getRawButton(Y)).onTrue(
+                new HiddenConditionalCommand(saveLutEntry(), startLutTimer(), () -> isLutInProgress)
+        );
         new Trigger(() -> driverController.getPOV() == RIGHT).onTrue(hood.home());
         new Trigger(() -> driverController.getPOV() == LEFT).onTrue(climber.home());
 
@@ -466,6 +477,8 @@ public class RobotContainer {
 
         new Trigger(() -> buttons.get(0) && !DriverStation.isEnabled()).onTrue(hood.forceHome());
     }
+
+
 
     public void periodic() {
         rumbler.update(Constants.EVENT_LOOP_TIME);
@@ -664,6 +677,44 @@ public class RobotContainer {
                         () -> this.isReady() && (!hubTrack || canScore())
                 )
         );
+    }
+
+    public Command startLutTimer() {
+        return new InstantCommand(() -> {
+            currentStartTimestamp = Logger.getTimestamp();
+            hoodSetpoint = hood.getSetpoint();
+            launcherSetpoint = launcher.getSetpoint();
+            distanceToHub = Meters.of(target.getDistance(drive.getPose().getTranslation()));
+        });
+    }
+
+    public Command saveLutEntry() {
+        return new InstantCommand(() -> {
+            double deltaTime = Logger.getTimestamp() - currentStartTimestamp;
+
+            String line = "new ShotParams(Meters.of(%f), Degrees.of(%f), RPM.of(%f), Microseconds.of(%f));"
+                    .formatted(
+                            distanceToHub.in(Meters),
+                            hoodSetpoint.in(Degrees),
+                            launcherSetpoint.in(RPM),
+                            deltaTime
+                    );
+            Logger.recordOutput("LutEntry", line);
+            try {
+                Files.writeString(
+                        Path.of("/U/lut.txt"),
+                        line + "\n",
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.APPEND
+                );
+            }
+            catch (Exception e) {
+                System.out.println(e.getMessage());
+                Alert a = new Alert("saving lut failed", AlertType.kWarning);
+                a.set(true);
+                // kill ourselves
+            }
+        });
     }
 
     @AutoLogOutput
