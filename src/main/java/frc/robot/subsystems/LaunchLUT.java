@@ -30,20 +30,15 @@ public class LaunchLUT {
         new ShotParams(Meters.of(3.77), Degrees.of(32), RPM.of(1450.0), Seconds.of(1.1)),
         new ShotParams(Meters.of(3.69), Degrees.of(32), RPM.of(1400.0), Seconds.of(1.11)),
         new ShotParams(Meters.of(5.33), Degrees.of(35), RPM.of(1550.0), Seconds.of(1.2)),
-        new ShotParams(Meters.of(7.41), Degrees.of(45), RPM.of(1700.0), Seconds.of(1.4)),
-        new ShotParams(Meters.of(9.86), Degrees.of(45), RPM.of(1900.0), Seconds.of(1.9)),
     } : new ShotParams[]{
         //  dist, hood, speed, time
         new ShotParams(Meters.of(1.6), Degrees.of(28), RPM.of(2500.0), Seconds.of(0.8)),
-        new ShotParams(Meters.of(2.42), Degrees.of(32), RPM.of(2500.0), Seconds.of(1.05)),
-        new ShotParams(Meters.of(2.9), Degrees.of(35), RPM.of(2500.0), Seconds.of(1.05)),
-        new ShotParams(Meters.of(3.425), Degrees.of(35), RPM.of(2750.0), Seconds.of(1.1)),
-        new ShotParams(Meters.of(4.07), Degrees.of(35), RPM.of(3000.0), Seconds.of(0.95)),
-        new ShotParams(Meters.of(4.55), Degrees.of(35), RPM.of(3250.0), Seconds.of(0.95)),
-        new ShotParams(Meters.of(5.04), Degrees.of(37), RPM.of(3500.0), Seconds.of(1.32)),
-            new ShotParams(Meters.of(5.8), Degrees.of(45), RPM.of(4000), Seconds.of(1.15)),
-            new ShotParams(Meters.of(6.36), Degrees.of(45), RPM.of(4000), Seconds.of(1.2)),
-            new ShotParams(Meters.of(7.38), Degrees.of(45), RPM.of(5500), Seconds.of(1.4)),
+        new ShotParams(Meters.of(2.42), Degrees.of(32), RPM.of(2750.0), Seconds.of(1.05)),
+        new ShotParams(Meters.of(2.9), Degrees.of(35), RPM.of(2750.0), Seconds.of(1.05)),
+        new ShotParams(Meters.of(3.425), Degrees.of(35), RPM.of(3000.0), Seconds.of(1.1)),
+        new ShotParams(Meters.of(4.07), Degrees.of(35), RPM.of(3250.0), Seconds.of(0.95)),
+        new ShotParams(Meters.of(4.55), Degrees.of(37), RPM.of(3300.0), Seconds.of(0.95)),
+        new ShotParams(Meters.of(5.04), Degrees.of(40), RPM.of(3500.0), Seconds.of(1.32)),
     };
     /**
      * pass LUT values
@@ -51,10 +46,28 @@ public class LaunchLUT {
      */
     public static final ShotParams[] LUTPass = Constants.MODE == RobotMode.SIM ? new ShotParams[]{
             //  dist, hood, speed, time
-            new ShotParams(Meters.of(0), Degrees.of(35), RPM.of(1000.0), Seconds.of(0.0)),
+            new ShotParams(Meters.of(1.516), Degrees.of(25), RPM.of(1150.0), Seconds.of(0.8)),
+            new ShotParams(Meters.of(1.989), Degrees.of(27), RPM.of(1228.0), Seconds.of(0.9)),
+            new ShotParams(Meters.of(2.3), Degrees.of(30), RPM.of(1228.0), Seconds.of(0.91)),
+            new ShotParams(Meters.of(2.96), Degrees.of(30), RPM.of(1300.0), Seconds.of(0.92)),
+            new ShotParams(Meters.of(3.77), Degrees.of(32), RPM.of(1450.0), Seconds.of(1.1)),
+            new ShotParams(Meters.of(3.69), Degrees.of(32), RPM.of(1400.0), Seconds.of(1.11)),
+            new ShotParams(Meters.of(5.33), Degrees.of(35), RPM.of(1550.0), Seconds.of(1.2)),
+            new ShotParams(Meters.of(7.41), Degrees.of(45), RPM.of(1700.0), Seconds.of(1.4)),
+            new ShotParams(Meters.of(9.86), Degrees.of(45), RPM.of(1900.0), Seconds.of(1.9)),
     } : new ShotParams[]{
             //  dist, hood, speed, time
-            new ShotParams(Meters.of(0), Degrees.of(35), RPM.of(2500.0), Seconds.of(0.0)),
+            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(1000), Seconds.of(0)),
+            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(1500), Seconds.of(0)),
+            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(2000), Seconds.of(0)),
+            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(2500), Seconds.of(0)),
+            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(3000), Seconds.of(0)),
+            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(3500), Seconds.of(0)),
+            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(4000), Seconds.of(0)),
+            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(4500), Seconds.of(0)),
+            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(5000), Seconds.of(0)),
+            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(5500), Seconds.of(0)),
+            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(6000), Seconds.of(0)),
     };
 
     /**
