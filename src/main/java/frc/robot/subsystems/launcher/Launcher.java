@@ -68,6 +68,10 @@ public class Launcher extends SubsystemBase {
         .withName("Dynamic sysid: " + (reverse ? "reverse" : "forward"));
     }
 
+    public AngularVelocity getSetpoint() {
+        return in.goal;
+    }
+
     @AutoLogOutput(key="Subsystems/Launcher/ready")
     public boolean isReady(){
         return in.atSetpoint || in.openLoop;

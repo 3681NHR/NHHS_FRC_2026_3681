@@ -126,6 +126,10 @@ public class Hood extends SubsystemBase {
         return in.angle;
     }
 
+    public Angle getSetpoint(){
+        return in.goal;
+    }
+
     @AutoLogOutput(key="Subsystems/Hood/ready")
     public boolean isReady(){
         return (this.goal != null || in.openloop) && in.homed;

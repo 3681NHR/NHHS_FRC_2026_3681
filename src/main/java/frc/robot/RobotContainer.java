@@ -3,6 +3,10 @@
 package frc.robot;
 
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.networktables.NetworkTablesJNI;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -59,18 +63,17 @@ import frc.utils.Joystick;
 import frc.utils.rumble.*;
 import frc.utils.Joystick.DuelJoystickAxis;
 
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.Volts;
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.constants.HoodConstants.HOOD_MIN_ANGLE;
 import static frc.robot.constants.IntakeConstants.INTAKE_OFFSET;
 import static frc.robot.constants.TurretConstants.*;
 
 import static frc.utils.ControllerMap.*;
 
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 
 import org.ironmaple.simulation.SimulatedArena;
@@ -108,9 +111,12 @@ import frc.robot.constants.Constants.RobotMode;
 
 public class RobotContainer {
 
-    public static double currentStartTimestamp = 0.0;
-    public static int currentParamHash = 0;
+    private double currentStartTimestamp = 0.0;
+    private Angle hoodSetpoint = Degrees.zero();
+    private AngularVelocity launcherSetpoint = RPM.zero();
+    private Distance distanceToHub = Meters.zero();
 
+    private boolean isLutInProgress = false;
     private final LoggedDashboardChooser<Command> sysidChooser = new LoggedDashboardChooser<Command>("sysid auto chooser");
 
     private DriveTrainSimulationConfig driveTrainSimulationConfig;
@@ -441,22 +447,16 @@ public class RobotContainer {
 
         // toggle auto track command
         new Trigger(() -> driverController.getRawButton(B)).onTrue(
-                new HiddenConditionalCommand(
-                        getTrackCommand(),
-                        getManShooterCommand(),
-                        () -> manual
-                )
-        );
-        //set turret to preset angle mode
-        new Trigger(() -> driverController.getRawButton(A)).onTrue(
-            new HiddenConditionalCommand(
-                    saveLutEntry(),
-                    // keep old bindings just in case
-                    getManShooterCommand(),
-                    () -> manual
-            )
+                getTrackCommand()
         );
 
+        //set turret to preset angle mode
+        new Trigger(() -> driverController.getRawButton(A)).onTrue(
+            getManShooterCommand()
+        );
+        new Trigger(() -> driverController.getRawButton(Y)).onTrue(
+                new HiddenConditionalCommand(saveLutEntry(), startLutTimer(), () -> isLutInProgress)
+        );
         new Trigger(() -> driverController.getPOV() == RIGHT).onTrue(hood.home());
         new Trigger(() -> driverController.getPOV() == LEFT).onTrue(climber.home());
 
@@ -577,8 +577,8 @@ public class RobotContainer {
 
                 new ParallelCommandGroup(
                         turret.track(() -> target),
-                        launcher.velocityControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).speed()),
-                        hood.positionControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation())), true, LaunchLUT.LUTHub).hoodAngle()),
+                        launcher.velocityControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation().plus(TURRET_OFFSET.toTranslation2d()))), true, LaunchLUT.LUTHub).speed()),
+                        hood.positionControl(() -> LaunchLUT.get(Meters.of(target.getDistance(drive.getPose().getTranslation().plus(TURRET_OFFSET.toTranslation2d()))), true, LaunchLUT.LUTHub).hoodAngle()),
                         new InstantCommand(() -> {
                             manual = false;
                         })
@@ -682,17 +682,39 @@ public class RobotContainer {
 
     public Command startLutTimer() {
         return new InstantCommand(() -> {
-            double start = Timer.getFPGATimestamp();
-
+            currentStartTimestamp = Logger.getTimestamp();
+            hoodSetpoint = hood.getSetpoint();
+            launcherSetpoint = launcher.getSetpoint();
+            distanceToHub = Meters.of(target.getDistance(drive.getPose().getTranslation()));
         });
     }
 
     public Command saveLutEntry() {
         return new InstantCommand(() -> {
-            double end = Timer.getFPGATimestamp();
-            double deltaTime = end - currentStartTimestamp;
-            int hoodHash = hood.getAngle().hashCode();
+            double deltaTime = Logger.getTimestamp() - currentStartTimestamp;
 
+            String line = "new ShotParams(Meters.of(%f), Degrees.of(%f), RPM.of(%f), Microseconds.of(%f));"
+                    .formatted(
+                            distanceToHub.in(Meters),
+                            hoodSetpoint.in(Degrees),
+                            launcherSetpoint.in(RPM),
+                            deltaTime
+                    );
+            Logger.recordOutput("LutEntry", line);
+            try {
+                Files.writeString(
+                        Path.of("/U/lut.txt"),
+                        line + "\n",
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.APPEND
+                );
+            }
+            catch (Exception e) {
+                System.out.println(e.getMessage());
+                Alert a = new Alert("saving lut failed", AlertType.kWarning);
+                a.set(true);
+                // kill ourselves
+            }
         });
     }
 
