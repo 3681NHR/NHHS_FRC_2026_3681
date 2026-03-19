@@ -9,10 +9,13 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.RobotContainer;
 import frc.robot.constants.DriveConstants;
@@ -26,6 +29,14 @@ import static edu.wpi.first.units.Units.Radians;
 public class AutoFactory {
 
     private final RobotContainer robotContainer;
+    private Translation2d smoothedFuelTarget;
+    private double smoothedFuelAngleRad;
+    private double lastFuelUpdateSec = Double.NEGATIVE_INFINITY;
+
+    private static final double TARGET_SMOOTHING_ALPHA = 0.25;
+    private static final double SWITCH_DISTANCE_BIAS = 0.6;
+    private static final double MAX_ANGLE_STEP_RAD = Units.degreesToRadians(7.0);
+    private static final double LOST_TARGET_HOLD_SEC = 0.25;
     /**
      * Create a new <code>AutoFactory</code>.
      *
@@ -143,12 +154,47 @@ public class AutoFactory {
     }
 
     private double getAngleToNearestFuel(){
-         ArrayList<Translation2d> l = robotContainer.getFuelVision().getNewFuel();
-        if(!l.isEmpty()) {
-            l.sort(Comparator.comparingDouble(e -> e.getDistance(robotContainer.getDrive().getPose().getTranslation())));
+        Translation2d robotPos = robotContainer.getDrive().getPose().getTranslation();
+        ArrayList<Translation2d> fuel = robotContainer.getFuelVision().getKnownFuel();
 
-            return ExtraMath.getAngleToPos(l.get(0), robotContainer.getDrive().getPose().getTranslation()).in(Radians);
+        if (!fuel.isEmpty()) {
+            Translation2d selected = selectFuelTarget(robotPos, fuel);
+            if (smoothedFuelTarget == null) {
+                smoothedFuelTarget = selected;
+            } else {
+                smoothedFuelTarget = smoothedFuelTarget.interpolate(selected, TARGET_SMOOTHING_ALPHA);
+            }
+
+            double desiredAngle = ExtraMath.getAngleToPos(smoothedFuelTarget, robotPos).in(Radians);
+            if (lastFuelUpdateSec == Double.NEGATIVE_INFINITY) {
+                smoothedFuelAngleRad = desiredAngle;
+            } else {
+                double angleError = MathUtil.angleModulus(desiredAngle - smoothedFuelAngleRad);
+                smoothedFuelAngleRad = MathUtil.angleModulus(
+                        smoothedFuelAngleRad + MathUtil.clamp(angleError, -MAX_ANGLE_STEP_RAD, MAX_ANGLE_STEP_RAD));
+            }
+
+            lastFuelUpdateSec = Timer.getFPGATimestamp();
+            return smoothedFuelAngleRad;
         }
+
+        if (Timer.getFPGATimestamp() - lastFuelUpdateSec <= LOST_TARGET_HOLD_SEC) {
+            return smoothedFuelAngleRad;
+        }
+
+        smoothedFuelTarget = null;
         return robotContainer.getDrive().getPose().getRotation().getRadians();
+    }
+
+    private Translation2d selectFuelTarget(Translation2d robotPos, List<Translation2d> candidates) {
+        if (smoothedFuelTarget == null) {
+            return candidates.stream()
+                    .min(Comparator.comparingDouble(e -> e.getDistance(robotPos)))
+                    .orElse(robotPos);
+        }
+
+        return candidates.stream()
+                .min(Comparator.comparingDouble(e -> e.getDistance(smoothedFuelTarget) + SWITCH_DISTANCE_BIAS * e.getDistance(robotPos)))
+                .orElse(candidates.get(0));
     }
 }

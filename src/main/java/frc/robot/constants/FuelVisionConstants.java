@@ -36,6 +36,7 @@ public class FuelVisionConstants {
     public static final double FUEL_SIZE_BASELINE = 1.54;//TODO: tune
 
     public static final Time FUEL_PERSISTANCE_TIME = Seconds.of(3);
+    public static final Time FUEL_POV_CLEAR_GRACE_TIME = Milliseconds.of(200);
     public static final Distance FUEL_OVERLAP_THRESH = Inches.of(1);
 
     public static final Angle CAMERA_HFOV = Degrees.of(72);
