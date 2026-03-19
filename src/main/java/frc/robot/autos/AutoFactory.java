@@ -54,11 +54,11 @@ public class AutoFactory {
                 null,
                 new ParallelCommandGroup(
                         robotContainer.getTrackCommand(),
-                        Commands.waitSeconds(5.0).andThen(robotContainer.fire())
+                        Commands.waitSeconds(1.0).andThen(robotContainer.fire().alongWith(robotContainer.intake()))
                 ));
     }
     
-    Pair<PathPlannerTrajectory, Command> createTestAuto() {
+    Pair<PathPlannerTrajectory, Command> createExamplePPAuto() {
         try{
             PathPlannerPath path = PathPlannerPath.fromPathFile("m4");
 
@@ -77,9 +77,9 @@ public class AutoFactory {
         }
     }
 
-    Pair<PathPlannerTrajectory, Command> createLeftAuto() {
+    Pair<PathPlannerTrajectory, Command> createDepotAuto() {
         try{
-            PathPlannerPath path = PathPlannerPath.fromChoreoTrajectory("L trench");
+            PathPlannerPath path = PathPlannerPath.fromChoreoTrajectory("depot");
 
             List<PathPlannerTrajectoryState> traj = new LinkedList<>(getTraj(path).getStates());
 
@@ -90,19 +90,14 @@ public class AutoFactory {
                     new PathPlannerTrajectory(traj),
                     Commands.parallel(
                             robotContainer.getDrive().followPath(path),
+                            robotContainer.getTrackCommand(),
                             Commands.sequence(
                                 Commands.waitSeconds(0.8),
-                                new InstantCommand()// TODO: intake
-                                        .withTimeout(5),
-                                Commands.sequence(
-                                        Commands.waitSeconds(0.8),
-                                        new InstantCommand()// TODO: shoot
-                                                .withTimeout(5)
-                                ),
-                                Commands.sequence(
-                                        Commands.waitSeconds(8.25),
-                                        new InstantCommand()// TODO: shoot
-                                )
+                                robotContainer.intake()
+                            ),
+                            Commands.sequence(
+                                    Commands.waitSeconds(0.8),
+                                    robotContainer.fire()
                             )
                     ));
         } catch (Exception e){

@@ -12,15 +12,15 @@ import static edu.wpi.first.units.Units.*;
 
 public interface IntakeIO {
 
-    public default void updateInputs(IntakeIOInputs input) {}
+    default void updateInputs(IntakeIOInputs input) {}
 
-    public default void setRollerVoltage(Voltage voltage) {}
+    default void setRollerVoltage(Voltage voltage) {}
 
-    public default void setPivotGoal(Angle goal) {}
-    public default void setPivotVoltage(Voltage voltage) {}
+    default void setPivotGoal(Angle goal) {}
+    default void setPivotVoltage(Voltage voltage) {}
 
     @AutoLog
-    public class IntakeIOInputs {
+    class IntakeIOInputs {
         // Roller
         public AngularVelocity rollerVelocity = RPM.zero();
 

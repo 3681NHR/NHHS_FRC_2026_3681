@@ -11,6 +11,8 @@ import frc.robot.commands.HomeCommand;
 import frc.utils.ExtraMath;
 
 import static frc.robot.constants.HoodConstants.*;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -24,6 +26,8 @@ public class Hood extends SubsystemBase {
     private final Alert notHomed = new Alert("Hood not homed", Alert.AlertType.kError);
 
     boolean homing = false;
+
+    private Angle goal;
 
     public Hood(HoodIO io){
         this.io = io;
@@ -46,8 +50,15 @@ public class Hood extends SubsystemBase {
      */
     public Command positionControl(Supplier<Angle> pos){
         return Commands.run(() -> {
-            io.setGoal(ExtraMath.clamp(pos.get(), HOOD_MIN_ANGLE, HOOD_MAX_ANGLE));
-        }, this).withName("position control");
+            this.goal = ExtraMath.clamp(pos.get(), HOOD_MIN_ANGLE, HOOD_MAX_ANGLE);
+        }).withName("position control");
+    }
+
+    public Command instantPositionControl (Supplier<Angle> pos){
+        return Commands.run(() -> {
+            goal = ExtraMath.clamp(pos.get(), HOOD_MIN_ANGLE, HOOD_MAX_ANGLE);
+            io.setGoal(goal);
+        }, this).withName("position control (instant)");
     }
 
     /**
@@ -58,6 +69,7 @@ public class Hood extends SubsystemBase {
     public Command voltageControl(Supplier<Voltage> vout){
         return Commands.run(() -> {
             io.setVout(vout.get());
+            this.goal = null;
         }, this).withName("voltage control");
     }
 
@@ -98,14 +110,29 @@ public class Hood extends SubsystemBase {
         c.setName("auto home");
         return c;
     }
+
+    public Command go(){
+        Command c = Commands.run(() -> {
+            if (goal != null) {
+                io.setGoal(goal);
+            }
+        });
+        c.addRequirements(this);
+        c.setName("move to goal");
+        return c;
+    }
     
     public Angle getAngle(){
         return in.angle;
     }
 
+    public Angle getSetpoint(){
+        return in.goal;
+    }
+
     @AutoLogOutput(key="Subsystems/Hood/ready")
     public boolean isReady(){
-        return (in.atSetpoint || in.openloop) && in.homed;
+        return (this.goal != null || in.openloop) && in.homed;
     }
 
     public boolean isHomed(){

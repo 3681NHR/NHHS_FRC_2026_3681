@@ -4,6 +4,13 @@
  "type":"Swerve",
  "variables":{
   "expressions":{
+   "depot_x":{
+    "dimension":"Length",
+    "var":{
+     "exp":"0.65 m",
+     "val":0.65
+    }
+   },
    "intake_speed":{
     "dimension":"LinVel",
     "var":{
