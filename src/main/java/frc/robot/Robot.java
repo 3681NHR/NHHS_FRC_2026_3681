@@ -1,8 +1,11 @@
 package frc.robot;
 
+import frc.utils.*;
 import frc.utils.motorWrappers.SparkMax;
 import frc.utils.motorWrappers.TalonFX;
 import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.seasonspecific.rebuilt2026.Arena2026Rebuilt;
+import org.littletonrobotics.junction.AutoLogOutputManager;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -16,8 +19,6 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.constants.Constants;
-import frc.utils.BatteryVoltageSim;
-import frc.utils.TimerHandler;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -122,6 +123,7 @@ public class Robot extends LoggedRobot {
         robotContainer.periodic();
         SparkMax.periodic();
         TalonFX.periodic();
+        ShiftTracker.update();
     }
 
     /** This function is called once each time the robot enters Disabled mode. */
@@ -132,6 +134,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void disabledPeriodic() {
+        AllianceUtility.update();
     }
 
     /**
@@ -140,20 +143,21 @@ public class Robot extends LoggedRobot {
      */
     @Override
     public void autonomousInit() {
-        // Elastic.selectTab(0);
+         Elastic.selectTab(0);
         autonomousCommand = robotContainer.getAutonomousCommand();
 
-        robotContainer.enableTeleop();
+        robotContainer.enableAuto();
 
         // schedule the autonomous command (example)
         if (autonomousCommand != null) {
             CommandScheduler.getInstance().schedule(autonomousCommand);
         }
-        TimerHandler.initAuto();
-
-        if (RobotBase.isSimulation()) {
+        if(RobotBase.isSimulation()){
             SimulatedArena.getInstance().resetFieldForAuto();
         }
+        TimerHandler.initAuto();
+        ShiftTracker.start();
+
     }
 
     /** This function is called periodically during autonomous. */
@@ -164,7 +168,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void teleopInit() {
-        // Elastic.selectTab(0);
+         Elastic.selectTab(0);
         // This makes sure that the autonomous stops running when
         // teleop starts running. If you want the autonomous to
         // continue until interrupted by another command, remove
@@ -174,6 +178,10 @@ public class Robot extends LoggedRobot {
 
         if (autonomousCommand != null) {
             autonomousCommand.cancel();
+        }
+
+        if (!ShiftTracker.isRunning()) {
+            ShiftTracker.start();
         }
     }
 
@@ -209,5 +217,10 @@ public class Robot extends LoggedRobot {
 
         // update battery voltage(set as roborio input voltage)
         BatteryVoltageSim.getInstance().calculateVoltage();
+    }
+
+    @Override
+    public void teleopExit(){
+        ShiftTracker.reset();
     }
 }

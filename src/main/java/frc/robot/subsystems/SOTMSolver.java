@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.constants.TurretConstants;
 import frc.robot.subsystems.LaunchLUT.ShotParams;
 import frc.robot.subsystems.swerve.Drive;
 import frc.utils.ExtraMath;
@@ -43,7 +44,7 @@ public final class SOTMSolver extends SubsystemBase{
         this.drive = drive;
     }
     public void calculate(){
-        Translation2d curr = drive.getPose().getTranslation();
+        Translation2d curr = drive.getPose().getTranslation().plus(TurretConstants.TURRET_OFFSET.toTranslation2d());
 
         double dist = curr.getDistance(target);
         double newDist = 0;
@@ -54,8 +55,8 @@ public final class SOTMSolver extends SubsystemBase{
             dist = newDist;
             
             vec = curr.plus(new Translation2d(
-                drive.getChassisSpeeds().vxMetersPerSecond * params.time().in(Seconds),
-                drive.getChassisSpeeds().vyMetersPerSecond * params.time().in(Seconds)
+                drive.getFieldChassisSpeeds().vxMetersPerSecond * params.time().in(Seconds),
+                drive.getFieldChassisSpeeds().vyMetersPerSecond * params.time().in(Seconds)
                 ));
             
             turretAngle = ExtraMath.getAngleToPos(target, vec);
@@ -81,8 +82,8 @@ public final class SOTMSolver extends SubsystemBase{
         }
 
         Translation2d vel = new Translation2d(
-            drive.getChassisSpeeds().vxMetersPerSecond,
-            drive.getChassisSpeeds().vyMetersPerSecond
+            drive.getFieldChassisSpeeds().vxMetersPerSecond,
+            drive.getFieldChassisSpeeds().vyMetersPerSecond
         );
 
         Translation2d shotVel = new Translation2d(

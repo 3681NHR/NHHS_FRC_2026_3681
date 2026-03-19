@@ -15,13 +15,23 @@ package frc.robot.subsystems.vision;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import frc.robot.constants.VisionConstants.CameraConfig;
+import static edu.wpi.first.units.Units.*;
 
+import java.util.ArrayList;
+import java.util.Optional;
 import java.util.function.Supplier;
+
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
+import org.photonvision.EstimatedRobotPose;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
+import org.photonvision.targeting.PhotonPipelineResult;
 
 /** IO implementation for physics sim using PhotonVision simulator. */
 public class CameraIOPhotonSim extends CameraIOPhoton {
@@ -30,10 +40,11 @@ public class CameraIOPhotonSim extends CameraIOPhoton {
     private final Supplier<Pose2d> poseSupplier;
     private final PhotonCameraSim cameraSim;
 
+    private final LoggedNetworkBoolean simulatePhoton = new LoggedNetworkBoolean("Sim/simulate vision", false);
+
     /**
      * Creates a new CameraIOPhotonSim.
      *
-     * @param name         The name of the camera.
      * @param poseSupplier Supplier for the robot pose to use in simulation.
      */
     public CameraIOPhotonSim(
@@ -60,7 +71,23 @@ public class CameraIOPhotonSim extends CameraIOPhoton {
 
     @Override
     public void updateInputs(CameraIOInputs inputs) {
-        visionSim.update(poseSupplier.get());
-        super.updateInputs(inputs);
+        if(simulatePhoton.getAsBoolean()){
+            visionSim.update(poseSupplier.get());
+            super.updateInputs(inputs);
+        } else {
+
+            inputs.poseObservations = new PoseObservation[]{new PoseObservation(
+                            Microseconds.of(Logger.getTimestamp()).in(Seconds),
+                            new Pose3d(poseSupplier.get().getX(), poseSupplier.get().getY(), 0, new Rotation3d(0, 0, poseSupplier.get().getRotation().getRadians())),
+                            -1,
+                           1,
+                            1)};
+
+            inputs.connected = camera.isConnected();
+
+            inputs.name = camera.getName();
+            inputs.robotToCamera = super.robotToCamera;
+            inputs.connected = true;
+        }
     }
 }

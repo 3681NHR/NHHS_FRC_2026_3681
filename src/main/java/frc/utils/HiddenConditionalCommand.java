@@ -47,7 +47,7 @@ public class HiddenConditionalCommand extends Command {
     addRequirements(m_onTrue.getRequirements());
     addRequirements(m_onFalse.getRequirements());
 
-    new Trigger(m_condition::getAsBoolean).onTrue(new DisabledInstantCommand(() -> {
+    new Trigger(m_condition).onTrue(new DisabledInstantCommand(() -> {
         m_onFalse.end(true);
         m_onTrue.initialize();
     })).onFalse(new DisabledInstantCommand(() -> {

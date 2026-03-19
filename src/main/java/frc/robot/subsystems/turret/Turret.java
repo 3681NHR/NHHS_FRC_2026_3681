@@ -5,6 +5,7 @@ import static frc.robot.constants.TurretConstants.*;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -93,12 +94,12 @@ public class Turret extends SubsystemBase {
         }).withName("manual angle");
     }
 
-    public Command track(Supplier<Translation2d> targ){
+    public Command track(Supplier<Translation2d> targ, Supplier<Distance> radius){
         return Commands.run(() -> {
             double dist = targ.get().getDistance(getFieldPos());
             Logger.recordOutput("Subsystems/Turret/track/distance", dist);
 
-            io.setTolerance(Radians.of(2*Math.atan(HUB_RADIUS.in(Meters)/dist)));
+            io.setTolerance(Radians.of(2*Math.atan(radius.get().in(Meters)/dist)));
 
             Angle angle = ExtraMath.getAngleToPos(
                 targ.get(), //target(offset for lead)
@@ -127,10 +128,10 @@ public class Turret extends SubsystemBase {
         }).withName("track position");
     }
     
-    public Command trackWithLead(){
+    public Command trackWithLead(Supplier<Distance> radius){
         return Commands.run(() -> {
 
-            io.setTolerance(Radians.of(2*Math.atan(HUB_RADIUS.in(Meters)/SOTMSolver.getInstance().getParams(false).dist().in(Meters))));
+            io.setTolerance(Radians.of(2*Math.atan(radius.get().in(Meters)/SOTMSolver.getInstance().getParams(false).dist().in(Meters))));
 
             Angle angle = SOTMSolver.getInstance().getAngle(false)
                 .minus(Radians.of(drive.getPose().getRotation().getRadians()))
