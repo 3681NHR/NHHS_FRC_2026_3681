@@ -125,6 +125,16 @@ public final class ExtraMath {
         return greater;
     }
 
+    /**
+     * wraps input to be within the range [0, modulus)
+     * @param input
+     * @param modulus
+     * @return
+     */
+    public static double wrap(double input, double modulus) {
+        return ((input % modulus) + modulus) % modulus;
+    }
+
     public static boolean isNearState(State expected, State actual, State tolerance){
         return MathUtil.isNear(expected.position, actual.position, tolerance.position) && MathUtil.isNear(expected.velocity, actual.velocity, tolerance.velocity);
     }

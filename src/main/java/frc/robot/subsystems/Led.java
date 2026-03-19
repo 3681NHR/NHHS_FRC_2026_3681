@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Hertz;
 import static edu.wpi.first.units.Units.Percent;
+import static edu.wpi.first.units.Units.Rotations;
 
 import java.util.function.BooleanSupplier;
 
@@ -22,6 +23,8 @@ import frc.robot.subsystems.launcher.Launcher;
 import frc.robot.subsystems.swerve.Drive;
 import frc.robot.subsystems.turret.Turret;
 
+import frc.utils.ExtraMath;
+
 public class Led extends SubsystemBase {
 
     Launcher launcher;
@@ -35,6 +38,12 @@ public class Led extends SubsystemBase {
     private final AddressableLEDBuffer buffer = new AddressableLEDBuffer(70+5);
     private final AddressableLEDBufferView sideBuffer = new AddressableLEDBufferView(buffer, 70, 70+4);
     private final AddressableLEDBufferView turretBuffer = new AddressableLEDBufferView(buffer, 0, 70);
+
+    private final int turretBufferLength = turretBuffer.getLength();
+    private static final int LEDTurretZeroOffset = 30;
+
+    private LoggedNetworkBoolean coolTurretTrackLedThing = new LoggedNetworkBoolean("Overrides/Cool Turret Track Led Thing", true);
+    private LoggedNetworkBoolean coolTurretTrackLedThingButItAlsoHelpsWithTurretDebug = new LoggedNetworkBoolean("Overrides/Cool Turret Track Led Thing But It Also Helps With Turret Debug", false);
 
     private final LoggedNetworkBoolean rainbow = new LoggedNetworkBoolean("Overrides/LED Override", false);
     private final LoggedNetworkBoolean disable = new LoggedNetworkBoolean("Overrides/LED Disable", false);
@@ -71,6 +80,13 @@ public class Led extends SubsystemBase {
         if(hood.isHoming()){
             turretState = Color.kOrange;
         }
+
+        int turretAbsolutePosIndexLed = (int) (ExtraMath.wrap(turret.getAbsoluteAngle().in(Rotations), 1) * turretBufferLength);
+        turretAbsolutePosIndexLed += LEDTurretZeroOffset;
+        turretAbsolutePosIndexLed %= turretBufferLength;
+        int turretPosIndexLed = (int) (ExtraMath.wrap(turret.getAngle().in(Rotations), 1) * turretBufferLength);
+        turretPosIndexLed += LEDTurretZeroOffset;
+        turretPosIndexLed %= turretBufferLength;
         Color sideState = drive.getFOD() ? new Color() : Color.kBlue;
         
         
@@ -79,6 +95,25 @@ public class Led extends SubsystemBase {
             LEDPattern.rainbow(255, 255).scrollAtRelativeSpeed(Hertz.of(0.5)).applyTo(sideBuffer);
         } else {
             LEDPattern.solid(turretState).atBrightness(Percent.of(50)).applyTo(turretBuffer);
+            
+            if (coolTurretTrackLedThing.get() && !coolTurretTrackLedThingButItAlsoHelpsWithTurretDebug.get()) {
+                turretBuffer.setLED(turretAbsolutePosIndexLed, Color.kHotPink);
+                for (int i = 1; i < 5; i++) {
+                    int ledIndexPlus = (int) ExtraMath.wrap(turretAbsolutePosIndexLed + i, turretBufferLength);
+                    int ledIndexMinus = (int) ExtraMath.wrap(turretAbsolutePosIndexLed - i, turretBufferLength);
+                    if (ledIndexMinus < 0) {
+                        ledIndexMinus += turretBufferLength;
+                    }
+
+                    turretBuffer.setLED(ledIndexPlus, Color.kHotPink);
+                    turretBuffer.setLED(ledIndexMinus, Color.kHotPink);
+                }
+            }
+
+            if (coolTurretTrackLedThingButItAlsoHelpsWithTurretDebug.get()) {
+                turretBuffer.setLED(turretPosIndexLed, Color.kRed);
+                turretBuffer.setLED(turretAbsolutePosIndexLed, Color.kGreen);
+            }
 
             LEDPattern.solid(sideState).atBrightness(Percent.of(50)).applyTo(sideBuffer);
         }
