@@ -44,7 +44,7 @@ public final class SOTMSolver extends SubsystemBase{
         this.drive = drive;
     }
     public void calculate(){
-        Translation2d curr = drive.getPose().getTranslation().plus(TurretConstants.TURRET_OFFSET.toTranslation2d());
+        Translation2d curr = drive.getPose().getTranslation().plus(TurretConstants.TURRET_OFFSET.toTranslation2d().rotateBy(drive.getPose().getRotation()));
 
         double dist = curr.getDistance(target);
         double newDist = 0;
