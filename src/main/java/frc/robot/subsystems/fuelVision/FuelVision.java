@@ -67,9 +67,8 @@ public class FuelVision extends SubsystemBase {
         pruneFuelMap(nowUs);
 
         Logger.recordOutput("Subsystems/Fuel Vision/current detected fuel", newFuel.stream().map(e -> new Translation3d(e.pos.getX(), e.pos.getY(), FUEL_RADIUS.in(Meters))).toArray(Translation3d[]::new));
-        Logger.recordOutput("Subsystems/Fuel Vision/all mapped fuel", fuelMap.values().stream()
-                .flatMap(Collection::stream)
-                .map(e -> new Translation3d(e.pos.getX(), e.pos.getY(), FUEL_RADIUS.in(Meters)))
+        Logger.recordOutput("Subsystems/Fuel Vision/all mapped fuel", getKnownFuel().stream()
+                .map(e -> new Translation3d(e.getX(), e.getY(), FUEL_RADIUS.in(Meters)))
                 .toArray(Translation3d[]::new));
 
 
@@ -187,10 +186,14 @@ public class FuelVision extends SubsystemBase {
         Iterator<Map.Entry<gridCoord, Set<fuelData>>> cellIterator = fuelMap.entrySet().iterator();
         while (cellIterator.hasNext()) {
             Map.Entry<gridCoord, Set<fuelData>> cell = cellIterator.next();
-            cell.getValue().removeIf(data ->
-                    Microseconds.of(nowUs - data.timestamp).gte(FUEL_PERSISTANCE_TIME)
-                            || isInCameraPov(data.pos())
-                            || overlapsTrackedFuel(data.pos()));
+            cell.getValue().removeIf(data -> {
+                boolean stale = Microseconds.of(nowUs - data.timestamp).gte(FUEL_PERSISTANCE_TIME);
+                boolean redetected = overlapsTrackedFuel(data.pos());
+                // Debounce POV-only clearing so fast camera sweeps do not purge the cache.
+                boolean inPovLongEnoughToClear = isInCameraPov(data.pos())
+                        && Microseconds.of(nowUs - data.timestamp).gte(FUEL_POV_CLEAR_GRACE_TIME);
+                return stale || redetected || inPovLongEnoughToClear;
+            });
             if (cell.getValue().isEmpty()) {
                 cellIterator.remove();
             }
