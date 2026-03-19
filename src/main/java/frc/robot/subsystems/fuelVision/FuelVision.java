@@ -1,22 +1,27 @@
 package frc.robot.subsystems.fuelVision;
 
-import java.util.ArrayList;
+import java.util.*;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
+import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.units.measure.Distance;
+import frc.utils.ExtraMath;
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.constants.FuelVisionConstants.*;
 
 public class FuelVision extends SubsystemBase {
     private FuelVisionIO io;
     private FuelVisionIOInputsAutoLogged inputs = new FuelVisionIOInputsAutoLogged();
     private Supplier<Pose2d> pose;
+
+    private ArrayList<fuelData> newFuel = new ArrayList<>();
+
+    private Map<gridCoord, Set<fuelData>> fuelMap = new HashMap<>();
 
     public FuelVision(FuelVisionIO io, Supplier<Pose2d> pose){
         this.io = io;
@@ -29,49 +34,120 @@ public class FuelVision extends SubsystemBase {
         io.updateInputs(inputs);
         Logger.processInputs("IO/FuelVision", inputs);
 
-        ArrayList<Translation3d> radialEstimates = new ArrayList<Translation3d>();
-        ArrayList<Double> distEstimates = new ArrayList<Double>();
-        ArrayList<Double> heightEstimates = new ArrayList<Double>();
-        ArrayList<Double> hDistEstimates = new ArrayList<Double>();
-        ArrayList<Double> thetaEstimates = new ArrayList<Double>();
-        ArrayList<Double> areaEstimates = new ArrayList<Double>();
-
         for(FuelObservation o : inputs.observations){
-            double areaEst = 100 * Math.pow(Math.max(o.screensize().x(), o.screensize().y()), 2);
-            areaEstimates.add(areaEst);
+            double d = (CAMERA_CONFIG.robotToCam.getZ()-FUEL_RADIUS.in(Meters))/
+                    Math.tan(CAMERA_CONFIG.robotToCam.getRotation().getY()-o.screenPos().y())
+                    /Math.cos(o.screenPos().x());
 
-            double dist = FUEL_SIZE_BASELINE/Math.sqrt(areaEst);
-            distEstimates.add(dist);
+            if(d > MAX_DETECTION_DIST.in(Meters)){
+                continue;
+            }
 
-            double theta = -CAMERA_CONFIG.robotToCam.getRotation().getY()+o.screenPos().y().in(Radians);
-            thetaEstimates.add(theta);
-            
-            double height = Math.sin(theta) * dist;
-            heightEstimates.add(height);
-
-            double hDist = Math.cos(theta) * dist;
-            hDistEstimates.add(hDist);
-
-            radialEstimates.add(new Translation3d(
-               Math.cos(CAMERA_CONFIG.robotToCam.getRotation().getZ() - o.screenPos().x().in(Radians)) * hDist,
-               Math.sin(CAMERA_CONFIG.robotToCam.getRotation().getZ() - o.screenPos().x().in(Radians)) * hDist,
-               height 
-            )
-            .plus(CAMERA_CONFIG.robotToCam.getTranslation())
-            .rotateAround(new Translation3d(), new Rotation3d(0,0,pose.get().getRotation().getRadians()))
-            .plus(new Translation3d(pose.get().getTranslation().getX(), pose.get().getTranslation().getY(), 0))
-            );
+            newFuel.add(new fuelData(toFieldReletive(new Translation2d(
+                    d*Math.cos(-CAMERA_CONFIG.robotToCam.getRotation().getX()-o.screenPos().x()),
+                    d*Math.sin(-CAMERA_CONFIG.robotToCam.getRotation().getX()-o.screenPos().x()))),
+                    Logger.getTimestamp()));
         }
 
-        Logger.recordOutput("AScope/detection cam", CAMERA_CONFIG.robotToCam.getTranslation()
-            .rotateAround(new Translation3d(), new Rotation3d(0,0,pose.get().getRotation().getRadians()))
-            .plus(new Translation3d(pose.get().getTranslation().getX(), pose.get().getTranslation().getY(), 0)));
+        for(Set<fuelData> dataSet : fuelMap.values()){
+            for(fuelData data : dataSet){
+                if(Microseconds.of(Logger.getTimestamp() - data.timestamp).gte(FUEL_PERSISTANCE_TIME)){
+                    dataSet.remove(data);
+                }
+                //remove if inside fov
+                if(ExtraMath.getAngleToPos(data.pos(), pose.get().getTranslation())
+                        .minus(Radians.of(pose.get().getRotation().getRadians()))
+                        .abs(Degrees) < CAMERA_HFOV.in(Degrees)/2){
 
-        Logger.recordOutput("Subsystems/Fuel Vision/area estimates", areaEstimates.stream().mapToDouble(e->e).toArray());
-        Logger.recordOutput("Subsystems/Fuel Vision/radial estimates", radialEstimates.toArray(new Translation3d[0]));
-        Logger.recordOutput("Subsystems/Fuel Vision/distance estimates", distEstimates.stream().mapToDouble(e->e).toArray());
-        Logger.recordOutput("Subsystems/Fuel Vision/height estimates", heightEstimates.stream().mapToDouble(e->e).toArray());
-        Logger.recordOutput("Subsystems/Fuel Vision/horizantal dist estimates", hDistEstimates.stream().mapToDouble(e->e).toArray());
-        Logger.recordOutput("Subsystems/Fuel Vision/theta estimates", thetaEstimates.stream().mapToDouble(e->e).toArray());
+                    dataSet.remove(data);
+                }
+            }
+        }
+        for(fuelData d : newFuel){
+            addToMap(d);
+        }
+
+        Logger.recordOutput("Subsystems/Fuel Vision/current detected fuel", newFuel.stream().map(e -> new Translation3d(e.pos.getX(), e.pos.getY(), FUEL_RADIUS.in(Meters))).toArray(Translation3d[]::new));
+        Logger.recordOutput("Subsystems/Fuel Vision/all mapped fuel", fuelMap.values().stream()
+                .flatMap(Collection::stream)
+                .map(e -> new Translation3d(e.pos.getX(), e.pos.getY(), FUEL_RADIUS.in(Meters)))
+                .toArray(Translation3d[]::new));
+
+        newFuel.clear();
+
+        //trajectory to render fov
+        Logger.recordOutput("Subsystems/Fuel Vision/fov", new Translation2d[]{
+                pose.get().getTranslation().plus(CAMERA_CONFIG.robotToCam.getTranslation().toTranslation2d()),//camera pos
+
+                new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)//one edge of fov
+                        .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_HFOV.in(Radians)/2)))
+                        .plus(pose.get().getTranslation()),
+
+                new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_HFOV.in(Radians)/2.5)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_HFOV.in(Radians)/3)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_HFOV.in(Radians)/3.5)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_HFOV.in(Radians)/4)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_HFOV.in(Radians)/5)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_HFOV.in(Radians)/6)))
+                        .plus(pose.get().getTranslation()),
+                //center
+                new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation())
+                        .plus(pose.get().getTranslation()),
+
+
+                new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_HFOV.in(Radians)/6)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_HFOV.in(Radians)/5)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_HFOV.in(Radians)/4)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_HFOV.in(Radians)/3.5)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_HFOV.in(Radians)/3)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_HFOV.in(Radians)/2.5)))
+                        .plus(pose.get().getTranslation()),
+
+                new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)//other edge of fov
+                        .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_HFOV.in(Radians)/2)))
+                        .plus(pose.get().getTranslation()),
+
+                pose.get().getTranslation().plus(CAMERA_CONFIG.robotToCam.getTranslation().toTranslation2d()),//camera pos
+        });
     }
+
+    private void addToMap(fuelData data){
+        int coordx = (int) (Math.floor(data.pos().getX()/GRID_SIZE.in(Meters)) * GRID_SIZE.in(Meters));
+        int coordy = (int) (Math.floor(data.pos().getY()/GRID_SIZE.in(Meters)) * GRID_SIZE.in(Meters));
+
+        fuelMap.getOrDefault(new gridCoord(coordx, coordy), new HashSet<>()).add(data);
+    }
+
+    private Translation2d toFieldReletive(Translation2d pos){
+        return pos
+                .rotateBy(new Rotation2d(pose.get().getRotation().getRadians()))
+                .plus(new Translation2d(pose.get().getTranslation().getX(), pose.get().getTranslation().getY()));
+    }
+
+    public record gridCoord(int x, int y){}
+
+    public record fuelData(Translation2d pos, long timestamp){}
 }

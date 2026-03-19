@@ -8,6 +8,8 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 
+import static edu.wpi.first.units.Units.*;
+
 public interface LauncherIO {
     
     public default void updateInputs(LauncherIOInputs input){}
@@ -17,17 +19,17 @@ public interface LauncherIO {
 
     @AutoLog
     public class LauncherIOInputs{
-        public Angle angle;
-        public AngularVelocity speed;
+        public Angle angle = Rotations.zero();
+        public AngularVelocity speed = RPM.zero();
 
-        public Voltage motorVoltageOut;
-        public Current motorCurrentOut;
-        public Temperature motorTemp;
+        public Voltage motorVoltageOut = Volts.zero();
+        public Current motorCurrentOut = Amps.zero();
+        public Temperature motorTemp = Celsius.zero();
 
-        public AngularVelocity goal;
-        public boolean atSetpoint;
+        public AngularVelocity goal = RPM.zero();
+        public boolean atSetpoint = false;
 
-        public boolean openLoop;
+        public boolean openLoop = false;
 
     }
 }

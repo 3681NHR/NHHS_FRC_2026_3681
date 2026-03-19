@@ -24,6 +24,7 @@ import frc.robot.subsystems.climber.ClimberIOSim;
 import frc.robot.subsystems.fuelVision.FuelVision;
 import frc.robot.subsystems.fuelVision.FuelVisionIO;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhoton;
+import frc.robot.subsystems.fuelVision.FuelVisionIOPhotonSim;
 import frc.robot.subsystems.hood.Hood;
 import frc.robot.subsystems.hood.HoodIO;
 import frc.robot.subsystems.hood.HoodIOReal;
@@ -33,6 +34,7 @@ import frc.robot.subsystems.indexer.IndexerIO;
 import frc.robot.subsystems.indexer.IndexerIOReal;
 import frc.robot.subsystems.indexer.IndexerIOSim;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOReal;
 import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.launcher.Launcher;
@@ -283,9 +285,9 @@ public class RobotContainer {
                     SOTMSolver.getInstance().setDrive(drive);
                     SOTMSolver.getInstance().calculate();
                 
-                    // fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG,
-                    //         driveSim::getSimulatedDriveTrainPose), drive::getPose);
-                    fuelVision = new FuelVision(new FuelVisionIO(){}, drive::getPose);
+                     fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG,
+                             driveSim::getSimulatedDriveTrainPose), drive::getPose);
+//                    fuelVision = new FuelVision(new FuelVisionIO(){}, drive::getPose);
                     intake = new Intake(new IntakeIOSim(driveSim));
                     turret = new Turret(new TurretIOSim(), drive);
                 }
@@ -325,17 +327,16 @@ public class RobotContainer {
                 SOTMSolver.getInstance().setDrive(drive);
                 SOTMSolver.getInstance().calculate();
 
-                turret = new Turret(new TurretIO() {
-                }, drive);
-                launcher = new Launcher(new LauncherIO() {
-                });
-                climber = new Climber(new ClimberIO() {
-                });
-                hood = new Hood(new HoodIO() {});
-                
-                kicker = new Kicker(new KickerIO() {});
-                buttons = new Buttons(new ButtonIO() {});
-                indexer = new Indexer(new IndexerIO() {});
+                fuelVision = new FuelVision(new FuelVisionIO(){}, drive::getPose);
+                intake = new Intake(new IntakeIO(){});
+                turret = new Turret(new TurretIO(){}, drive);
+
+                launcher = new Launcher(new LauncherIO(){});
+                hood = new Hood(new HoodIO(){});
+                climber = new Climber(new ClimberIO(){});
+                kicker = new Kicker(new KickerIO(){});
+                buttons = new Buttons(new ButtonIO(){});
+                indexer = new Indexer(new IndexerIO(){});
                 break;
         }
         led = new Led(launcher, hood, turret, drive, () -> manual);

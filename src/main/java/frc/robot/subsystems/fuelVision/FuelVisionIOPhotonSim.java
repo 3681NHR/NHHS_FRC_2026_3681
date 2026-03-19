@@ -16,6 +16,9 @@ import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.constants.FuelVisionConstants;
 import frc.robot.constants.VisionConstants.CameraConfig;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static frc.robot.constants.FuelVisionConstants.CAMERA_HFOV;
+
 public class FuelVisionIOPhotonSim extends FuelVisionIOPhoton{
     private static VisionSystemSim visionSim;
 
@@ -25,7 +28,6 @@ public class FuelVisionIOPhotonSim extends FuelVisionIOPhoton{
     /**
      * Creates a new CameraIOPhotonSim.
      *
-     * @param name         The name of the camera.
      * @param poseSupplier Supplier for the robot pose to use in simulation.
      */
     public FuelVisionIOPhotonSim(
@@ -43,7 +45,7 @@ public class FuelVisionIOPhotonSim extends FuelVisionIOPhoton{
         cameraProperties.setFPS(30);
         cameraProperties.setAvgLatencyMs(55);
         cameraProperties.setLatencyStdDevMs(20);
-        cameraProperties.setCalibration(640, 480, Rotation2d.fromDegrees(68.5));
+        cameraProperties.setCalibration(640, 480, Rotation2d.fromDegrees(CAMERA_HFOV.in(Degrees)));
         cameraProperties.setCalibError(0.1, 0.02);
         cameraSim = new PhotonCameraSim(cam, cameraProperties);
         visionSim.addCamera(cameraSim, config.robotToCam);
