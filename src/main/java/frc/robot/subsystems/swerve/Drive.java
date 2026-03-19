@@ -75,8 +75,7 @@ public class Drive extends SubsystemBase {
 
     private boolean FODEnabled = true;
 
-    private PID angleController = new PID(
-            RobotBase.isReal() ? ANGLE_PID : ANGLE_PID_SIM);
+    private PID angleController = new PID(AUTO_ANGLE_PID);
 
     private PID vyController = new PID(
             RobotBase.isReal() ? TRANS_PID : TRANS_PID_SIM);
@@ -341,13 +340,44 @@ public class Drive extends SubsystemBase {
             runVelocity(speeds);
 
         }, this))
-        .until(() -> angleController.atSetpoint())
+//        .until(() -> angleController.atSetpoint())
         .finallyDo(() -> {
             Logger.recordOutput("Subsystems/Swerve/Rotation lock/Target angle", Double.NaN);
             Logger.recordOutput("Subsystems/Swerve/Rotation lock/Angle PID out", Double.NaN);
             // led.rotLock = false;
         })
         .withName("Rotation lock");
+    }
+
+    public Command rotationLock(DoubleSupplier headingRad, DoubleSupplier vx, DoubleSupplier vy){
+        return new InstantCommand(() -> {
+            // led.rotLock = true;
+            angleController.reset();
+        }).andThen(Commands.run(() -> {
+
+                    ChassisSpeeds speeds = new ChassisSpeeds(
+                            MathUtil.clamp(vx.getAsDouble(), -MAX_SPEED_PP.in(MetersPerSecond), MAX_SPEED_PP.in(MetersPerSecond)),
+                            MathUtil.clamp(vy.getAsDouble(), -MAX_SPEED_PP.in(MetersPerSecond), MAX_SPEED_PP.in(MetersPerSecond)),
+                            MathUtil.clamp(angleController.calculate(getRotation().getRadians(), headingRad.getAsDouble()), -ANGLE_MAX_VELOCITY.in(RadiansPerSecond), ANGLE_MAX_VELOCITY.in(RadiansPerSecond))
+                    );
+
+                    double skew = speeds.omegaRadiansPerSecond * ANGULAR_VELOCITY_COEFFICIENT;
+
+                    speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getRotation().plus(new Rotation2d(skew)));
+
+                    Logger.recordOutput("Subsystems/Swerve/Rotation lock/Target angle", headingRad.getAsDouble());
+                    Logger.recordOutput("Subsystems/Swerve/Rotation lock/Angle PID out", speeds.omegaRadiansPerSecond);
+
+                    runVelocity(speeds);
+
+                }, this))
+//        .until(() -> angleController.atSetpoint())
+                .finallyDo(() -> {
+                    Logger.recordOutput("Subsystems/Swerve/Rotation lock/Target angle", Double.NaN);
+                    Logger.recordOutput("Subsystems/Swerve/Rotation lock/Angle PID out", Double.NaN);
+                    // led.rotLock = false;
+                })
+                .withName("Rotation lock");
     }
 
     public Command teleopDrive(){

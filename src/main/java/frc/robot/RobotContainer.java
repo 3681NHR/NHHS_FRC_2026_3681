@@ -652,6 +652,7 @@ public class RobotContainer {
                 this::isReady
         );
     }
+    public FuelVision getFuelVision(){return fuelVision;}
 
     public Command intake(){
         return Commands.parallel(

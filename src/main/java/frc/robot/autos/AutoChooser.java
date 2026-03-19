@@ -115,7 +115,8 @@ public class AutoChooser {
         // new AutoProgram("example", AutoFactory::createExampleAuto),
             new AutoProgram("idle",  AutoFactory::createIdleAuto),
             new AutoProgram("test",  AutoFactory::createTestAuto),
-            new AutoProgram("preload",  AutoFactory::createPreloadAuto)
+            new AutoProgram("preload",  AutoFactory::createPreloadAuto),
+            new AutoProgram("AI doom and despair",  AutoFactory::createAIAuto)
     );
 
 

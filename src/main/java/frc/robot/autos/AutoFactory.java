@@ -1,5 +1,7 @@
 package frc.robot.autos;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -8,11 +10,15 @@ import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
 
 import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.RobotContainer;
 import frc.robot.constants.DriveConstants;
+import frc.utils.ExtraMath;
+
+import static edu.wpi.first.units.Units.Radians;
 
 /**
  * A factory for creating autonomous programs
@@ -47,6 +53,17 @@ public class AutoFactory {
         return Pair.of(
                 null,
                 Commands.sequence());
+    }
+
+    Pair<PathPlannerTrajectory, Command> createAIAuto() {
+        return Pair.of(
+                null,
+                Commands.parallel(
+//                        robotContainer.getTrackCommand(),
+//                        robotContainer.fire(),
+                        robotContainer.intake(),
+                        robotContainer.getDrive().rotationLock(this::getAngleToNearestFuel, () -> 0.5*Math.cos(robotContainer.getDrive().getPose().getRotation().getRadians()), () -> 0.5*Math.sin(robotContainer.getDrive().getPose().getRotation().getRadians()))
+                ));
     }
 
     Pair<PathPlannerTrajectory, Command> createPreloadAuto() {
@@ -128,5 +145,15 @@ public class AutoFactory {
     }
     private PathPlannerTrajectory getTraj(PathPlannerPath path){
         return (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? path.flipPath() : path).getIdealTrajectory(DriveConstants.PP_CONFIG).orElse(null);
+    }
+
+    private double getAngleToNearestFuel(){
+         ArrayList<Translation2d> l = robotContainer.getFuelVision().getNewFuel();
+        if(!l.isEmpty()) {
+            l.sort(Comparator.comparingDouble(e -> e.getDistance(robotContainer.getDrive().getPose().getTranslation())));
+
+            return ExtraMath.getAngleToPos(l.get(0), robotContainer.getDrive().getPose().getTranslation()).in(Radians);
+        }
+        return robotContainer.getDrive().getPose().getRotation().getRadians();
     }
 }
