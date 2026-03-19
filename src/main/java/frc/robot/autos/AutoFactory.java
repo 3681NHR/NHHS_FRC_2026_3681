@@ -155,7 +155,7 @@ public class AutoFactory {
 
     private double getAngleToNearestFuel(){
         Translation2d robotPos = robotContainer.getDrive().getPose().getTranslation();
-        ArrayList<Translation2d> fuel = robotContainer.getFuelVision().getKnownFuel();
+        ArrayList<Translation2d> fuel = robotContainer.getFuelVision().getTrackedFuel();
 
         if (!fuel.isEmpty()) {
             Translation2d selected = selectFuelTarget(robotPos, fuel);

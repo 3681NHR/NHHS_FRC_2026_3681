@@ -37,13 +37,16 @@ public class FuelVisionConstants {
 
     public static final Time FUEL_PERSISTANCE_TIME = Seconds.of(3);
     public static final Time FUEL_POV_CLEAR_GRACE_TIME = Milliseconds.of(200);
-    public static final Distance FUEL_OVERLAP_THRESH = Inches.of(1);
+    public static final Distance FUEL_OVERLAP_THRESH = Inches.of(4);
 
-    public static final Angle CAMERA_HFOV = Degrees.of(72);
+    public static final Angle CAMERA_CLEAR_HFOV = Degrees.of(60);
     public static final Distance MAX_DETECTION_DIST = Meters.of(5);
     public static final Distance MIN_DETECTION_DIST = Meters.of(1.0);
+
+    public static final Angle CAMERA_REAL_HFOV = Degrees.of(71.2);
     public static final Distance GRID_SIZE = Meters.of(1);
 
-    public static final int MAX_FUEL = 500;
+    public static final Distance ROBOT_WIDTH = Inches.of(20);
 
+    public static final int MAX_FUEL = 500;
 }

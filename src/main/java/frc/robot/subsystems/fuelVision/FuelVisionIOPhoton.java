@@ -32,11 +32,12 @@ public class FuelVisionIOPhoton implements FuelVisionIO{
     public void updateInputs(FuelVisionIOInputs inputs){
         var results = cam.getAllUnreadResults();
 
-        if(results.size() > 0){
+        if(!results.isEmpty()){
             observations.clear();
             radialPositions.clear();
             interceptPositions.clear();
             var result = results.get(0);
+            inputs.timestamp = result.getTimestampSeconds();
             if(result.hasTargets()){
                 for(PhotonTrackedTarget targ : result.getTargets()){
                     List<TargetCorner> corners = targ.getMinAreaRectCorners();

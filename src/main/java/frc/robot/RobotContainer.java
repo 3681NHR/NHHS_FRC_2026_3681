@@ -197,7 +197,7 @@ public class RobotContainer {
             driveSim = new SwerveDriveSimulation(driveTrainSimulationConfig, Constants.STARTING_POSE);
             SimulatedArena.getInstance().addDriveTrainSimulation(driveSim);
             //FIXME: this line is why your sim sucks
-            ((Arena2026Rebuilt) SimulatedArena.getInstance()).setEfficiencyMode(false);
+//            ((Arena2026Rebuilt) SimulatedArena.getInstance()).setEfficiencyMode(false);
         }
 
         // process driver controls(radial deadzone, curve, trigger slowdown, and

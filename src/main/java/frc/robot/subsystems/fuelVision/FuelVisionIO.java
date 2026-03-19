@@ -14,6 +14,7 @@ public interface FuelVisionIO {
     class FuelVisionIOInputs{
         public FuelObservation[] observations = {new FuelObservation(new RadialPos2d(0,0), new ScreenSize2d(0,0), 0.0, 0.0, 0.0)};
         public boolean connected = false;
+        public double timestamp = 0;
     }
 }
 record FuelObservation(RadialPos2d screenPos, ScreenSize2d screensize, double area, double confidance, double dist){}
