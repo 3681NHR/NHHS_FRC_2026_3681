@@ -30,13 +30,12 @@ public class FuelVision extends SubsystemBase {
         this.pose = pose;
     }
 
-
     @Override
     public void periodic(){
         io.updateInputs(inputs);
         Logger.processInputs("IO/FuelVision", inputs);
 
-//        newFuel.clear();
+        newFuel.clear();
 
         for(FuelObservation o : inputs.observations){
             double d = (CAMERA_CONFIG.robotToCam.getZ()-FUEL_RADIUS.in(Meters))/
@@ -67,14 +66,8 @@ public class FuelVision extends SubsystemBase {
                 }
             }
         }
-        for(int i = 0; i < newFuel.size(); i++){
-            fuelData d = newFuel.get(i);
-            if(d.pos.getDistance(pose.get().getTranslation()) < 0.5){
-                newFuel.remove(d);
-                i--;
-            } else {
-                addToMap(d);
-            }
+        for (fuelData d : newFuel) {
+            addToMap(d);
         }
 
         Logger.recordOutput("Subsystems/Fuel Vision/current detected fuel", newFuel.stream().map(e -> new Translation3d(e.pos.getX(), e.pos.getY(), FUEL_RADIUS.in(Meters))).toArray(Translation3d[]::new));
