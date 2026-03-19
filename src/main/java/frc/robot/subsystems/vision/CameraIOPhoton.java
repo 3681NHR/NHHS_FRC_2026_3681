@@ -19,7 +19,7 @@ public class CameraIOPhoton implements CameraIO {
     protected final PhotonCamera camera;
     private final PhotonPoseEstimator poseEstimator;
 
-    private final Transform3d robotToCamera;
+    final Transform3d robotToCamera;
 
     /**
      * Creates a new CameraIOPhoton.

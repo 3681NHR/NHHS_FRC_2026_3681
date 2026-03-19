@@ -17,7 +17,7 @@ public final class LauncherConstants {
     
     public static final int LAUNCHER_MOTOR_ID = 40;
 
-    public static final PIDGains.SimpleFF LAUNCHER_ID_GAINS = new PIDGains.SimpleFF(0.0,0.19,2.3);//gains from sysid for state space model
+    public static final PIDGains.SimpleFF LAUNCHER_ID_GAINS = new PIDGains.SimpleFF(0.0,0.13157,2.3);//gains from sysid for state space model
 
     public static final PIDGains.SimpleFF LAUNCHER_FF_GAINS = LAUNCHER_ID_GAINS;
     public static final PIDGains.PID LAUNCHER_PID_GAINS = new PIDGains.PID(0.4,0,0.0);

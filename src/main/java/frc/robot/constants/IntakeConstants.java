@@ -18,7 +18,7 @@ public class IntakeConstants {
     public static final int INTAKE_PIVOT_ENCODER_ID = 34;
 
     public static final boolean INTAKE_ROLLER_INVERTED = false;
-    public static final Current INTAKE_ROLLER_CURRENT_LIM = Amps.of(15);
+    public static final Current INTAKE_ROLLER_CURRENT_LIM = Amps.of(30);
     
     public static final boolean INTAKE_PIVOT_INVERTED = false;
     public static final Current INTAKE_PIVOT_CURRENT_LIM = Amps.of(40);

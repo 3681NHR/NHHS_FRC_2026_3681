@@ -43,17 +43,18 @@ public final class TurretConstants {
     public static final Angle TURRET_SETPOINT_TOLERANCE = Degrees.of(5);
 
     public static final Distance HUB_RADIUS = Inches.of(45.7/2);
+    public static final Distance PASS_RADIUS = Meters.of(1.2);
 
     public static final Translation2d RED_HUB = new Translation2d(11.915, 4.034);
     public static final Translation2d[] RED_PASS = new Translation2d[]{
-        new Translation2d(13, 6.5),
-        new Translation2d(13, 2)
+        new Translation2d(14, 6.3),
+        new Translation2d(14, 2.2)
     };
     
     public static final Translation2d BLUE_HUB = new Translation2d(4.625, 4.034);
     public static final Translation2d[] BLUE_PASS = new Translation2d[]{
-        new Translation2d(3.5, 6.5),
-        new Translation2d(3.5, 2)
+        new Translation2d(2.5, 6.3),
+        new Translation2d(2.5, 2.2)
     };
 
     public static final Translation3d TURRET_OFFSET = new Translation3d(-0.146050, 0.152400, 0.299237);

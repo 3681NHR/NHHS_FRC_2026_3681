@@ -22,7 +22,6 @@ public interface HoodIO {
     public default void setVout(Voltage vout){}
     public default void setPos(Angle pos){}
     public default void setHomed(boolean homed){}
-
     public default void reset(){}
     
     @AutoLog
