@@ -1,13 +1,10 @@
 package frc.robot.subsystems.fuelVision;
 
 import java.util.*;
-import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import edu.wpi.first.math.geometry.*;
-import edu.wpi.first.units.measure.Distance;
 import frc.utils.ExtraMath;
 import org.littletonrobotics.junction.Logger;
 
@@ -46,7 +43,7 @@ public class FuelVision extends SubsystemBase {
                 continue;
             }
 
-            newFuel.add(new fuelData(toFieldReletive(new Translation2d(
+            newFuel.add(new fuelData(toFieldRelative(new Translation2d(
                     d*Math.cos(-CAMERA_CONFIG.robotToCam.getRotation().getX()-o.screenPos().x()),
                     d*Math.sin(-CAMERA_CONFIG.robotToCam.getRotation().getX()-o.screenPos().x()))),
                     Logger.getTimestamp()));
@@ -79,7 +76,10 @@ public class FuelVision extends SubsystemBase {
 
         //trajectory to render fov
         Logger.recordOutput("Subsystems/Fuel Vision/fov", new Translation2d[]{
-                pose.get().getTranslation().plus(CAMERA_CONFIG.robotToCam.getTranslation().toTranslation2d()),//camera pos
+
+                new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)//one edge of fov
+                        .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_HFOV.in(Radians)/2)))
+                        .plus(pose.get().getTranslation()),
 
                 new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)//one edge of fov
                         .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_HFOV.in(Radians)/2)))
@@ -132,7 +132,53 @@ public class FuelVision extends SubsystemBase {
                         .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_HFOV.in(Radians)/2)))
                         .plus(pose.get().getTranslation()),
 
-                pose.get().getTranslation().plus(CAMERA_CONFIG.robotToCam.getTranslation().toTranslation2d()),//camera pos
+                //inner rad
+                new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)//other edge of fov
+                        .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_HFOV.in(Radians)/2)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_HFOV.in(Radians)/2.5)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_HFOV.in(Radians)/3)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_HFOV.in(Radians)/3.5)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_HFOV.in(Radians)/4)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_HFOV.in(Radians)/5)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_HFOV.in(Radians)/6)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation())
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_HFOV.in(Radians)/6)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_HFOV.in(Radians)/5)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_HFOV.in(Radians)/4)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_HFOV.in(Radians)/3.5)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_HFOV.in(Radians)/3)))
+                        .plus(pose.get().getTranslation()),
+                new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                        .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_HFOV.in(Radians)/2.5)))
+                        .plus(pose.get().getTranslation()),
+
+                new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)//one edge of fov
+                        .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_HFOV.in(Radians)/2)))
+                        .plus(pose.get().getTranslation()),
         });
     }
 
@@ -143,7 +189,7 @@ public class FuelVision extends SubsystemBase {
         fuelMap.getOrDefault(new gridCoord(coordx, coordy), new HashSet<>()).add(data);
     }
 
-    private Translation2d toFieldReletive(Translation2d pos){
+    private Translation2d toFieldRelative(Translation2d pos){
         return pos
                 .rotateBy(new Rotation2d(pose.get().getRotation().getRadians()))
                 .plus(new Translation2d(pose.get().getTranslation().getX(), pose.get().getTranslation().getY()));

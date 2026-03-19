@@ -40,6 +40,7 @@ public class FuelVisionConstants {
 
     public static final Angle CAMERA_HFOV = Degrees.of(72);
     public static final Distance MAX_DETECTION_DIST = Meters.of(5);
+    public static final Distance MIN_DETECTION_DIST = Meters.of(1.0);
     public static final Distance GRID_SIZE = Meters.of(1);
 
     public static final int MAX_FUEL = 500;
