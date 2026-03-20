@@ -57,17 +57,13 @@ public class LaunchLUT {
             new ShotParams(Meters.of(9.86), Degrees.of(45), RPM.of(1900.0), Seconds.of(1.9)),
     } : new ShotParams[]{
             //  dist, hood, speed, time
-            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(1000), Seconds.of(0)),
-            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(1500), Seconds.of(0)),
-            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(2000), Seconds.of(0)),
-            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(2500), Seconds.of(0)),
-            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(3000), Seconds.of(0)),
-            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(3500), Seconds.of(0)),
-            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(4000), Seconds.of(0)),
-            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(4500), Seconds.of(0)),
-            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(5000), Seconds.of(0)),
-            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(5500), Seconds.of(0)),
-            new ShotParams(Meters.of(0), Degrees.of(30), RPM.of(6000), Seconds.of(0)),
+            new ShotParams(Meters.of(3.3), Degrees.of(30), RPM.of(2250.0), Seconds.of(0.9)),
+            new ShotParams(Meters.of(4.48), Degrees.of(40), RPM.of(2500.0), Seconds.of(0.95)),
+            new ShotParams(Meters.of(5.52), Degrees.of(45), RPM.of(3000.0), Seconds.of(1.05)),
+            new ShotParams(Meters.of(6.45), Degrees.of(45), RPM.of(3500.0), Seconds.of(1.25)),
+            new ShotParams(Meters.of(7.53), Degrees.of(45), RPM.of(4500.0), Seconds.of(1.5)),
+            new ShotParams(Meters.of(10.5), Degrees.of(45), RPM.of(6000.0), Seconds.of(1.8)),
+            new ShotParams(Meters.of(10.6), Degrees.of(45), RPM.of(6000.0), Seconds.of(1.8)),
     };
 
     /**

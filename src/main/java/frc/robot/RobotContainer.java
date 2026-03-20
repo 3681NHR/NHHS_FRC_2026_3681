@@ -505,6 +505,8 @@ public class RobotContainer {
                                 turret.getAngle().in(Radians))),
         });
         Logger.recordOutput("target dist", Meters.of(target.getDistance(drive.getPose().getTranslation())));
+
+        SOTMSolver.getInstance().setLUT(hubTrack ? LaunchLUT.LUTHub : LaunchLUT.LUTPass);
     }
 
     public void simPeriodic() {

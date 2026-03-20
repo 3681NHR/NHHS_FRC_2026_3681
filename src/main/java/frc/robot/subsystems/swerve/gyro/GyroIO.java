@@ -1,13 +1,13 @@
 package frc.robot.subsystems.swerve.gyro;
 
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-
+import edu.wpi.first.units.measure.LinearAcceleration;
 import org.littletonrobotics.junction.AutoLog;
 
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+
+import static edu.wpi.first.units.Units.*;
 
 public interface GyroIO {
 
@@ -19,6 +19,9 @@ public interface GyroIO {
         public double[] odometryYawTimestamps = new double[] {};
         public double[] odometryYawPositions = new double[] {};
         public Rotation3d angle = new Rotation3d();
+        public LinearAcceleration accelX = MetersPerSecondPerSecond.zero();
+        public LinearAcceleration accelY = MetersPerSecondPerSecond.zero();
+        public LinearAcceleration accelZ = MetersPerSecondPerSecond.zero();
     }
 
     public default void updateInputs(GyroIOInputs inputs) {

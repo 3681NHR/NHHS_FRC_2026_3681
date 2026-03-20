@@ -29,6 +29,9 @@ public class GyroIOPigeon2 implements GyroIO {
         pigeon.getConfigurator().setYaw(0.0);
         yaw.setUpdateFrequency(ODOMETRY_FREQ);
         yawVelocity.setUpdateFrequency(50.0);
+        pigeon.getAccelerationX().setUpdateFrequency(50.0);
+        pigeon.getAccelerationY().setUpdateFrequency(50.0);
+        pigeon.getAccelerationZ().setUpdateFrequency(50.0);
         pigeon.optimizeBusUtilization();
         yawTimestampQueue = PhoenixOdometryThread.getInstance().makeTimestampQueue();
         yawPositionQueue = PhoenixOdometryThread.getInstance().registerSignal(yaw.clone());
@@ -50,6 +53,9 @@ public class GyroIOPigeon2 implements GyroIO {
                 pigeon.getPitch().getValue().in(Radian),
                 pigeon.getYaw().getValue().in(Radian));
 
+        inputs.accelX = pigeon.getAccelerationX().getValue();
+        inputs.accelY = pigeon.getAccelerationY().getValue();
+        inputs.accelZ = pigeon.getAccelerationZ().getValue();
     }
 
     public void reset(double heading) {
