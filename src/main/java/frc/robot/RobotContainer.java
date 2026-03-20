@@ -197,7 +197,7 @@ public class RobotContainer {
             driveSim = new SwerveDriveSimulation(driveTrainSimulationConfig, Constants.STARTING_POSE);
             SimulatedArena.getInstance().addDriveTrainSimulation(driveSim);
             //FIXME: this line is why your sim sucks
-//            ((Arena2026Rebuilt) SimulatedArena.getInstance()).setEfficiencyMode(false);
+            ((Arena2026Rebuilt) SimulatedArena.getInstance()).setEfficiencyMode(false);
         }
 
         // process driver controls(radial deadzone, curve, trigger slowdown, and
@@ -286,9 +286,8 @@ public class RobotContainer {
                     SOTMSolver.getInstance().setDrive(drive);
                     SOTMSolver.getInstance().calculate();
                 
-                     fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG,
-                             driveSim::getSimulatedDriveTrainPose), drive::getPose);
-//                    fuelVision = new FuelVision(new FuelVisionIO(){}, drive::getPose);
+//                     fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG, driveSim::getSimulatedDriveTrainPose), drive::getPose);
+                    fuelVision = new FuelVision(new FuelVisionIO(){}, drive::getPose);
                     intake = new Intake(new IntakeIOSim(driveSim));
                     turret = new Turret(new TurretIOSim(), drive);
                 }
@@ -457,11 +456,16 @@ public class RobotContainer {
 
         new Trigger(() -> driverController.getPOV() == DOWN).onTrue(climber.toggle());
 
-        new Trigger(() -> (inTrench() && autoTrench.getAsBoolean()) || driverController.getRawButton(X)).whileTrue(
+        new Trigger(() -> (inTrench() && autoTrench.getAsBoolean() && !DriverStation.isAutonomous()) || driverController.getRawButton(X)).whileTrue(
                 drive.TrenchAlignDrive()
                     .alongWith(hood.instantPositionControl(() -> HOOD_MIN_ANGLE).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
                     ).withName("trench mode")
         );
+        //trench mode in auto - wont cancel path following
+//        new Trigger(() -> (inTrench() && autoTrench.getAsBoolean() && DriverStation.isAutonomous())).whileTrue(
+//                hood.instantPositionControl(() -> HOOD_MIN_ANGLE).withInterruptBehavior(InterruptionBehavior.kCancelIncoming
+//                ).withName("trench mode(auto)")
+//        );
 //        .onFalse(
 //                new HiddenConditionalCommand(
 //                        getManShooterCommand(),

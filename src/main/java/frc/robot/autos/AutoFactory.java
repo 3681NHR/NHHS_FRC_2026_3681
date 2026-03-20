@@ -127,6 +127,46 @@ public class AutoFactory {
         }
     }
 
+    Pair<PathPlannerTrajectory, Command> createLeftPassAuto() {
+        try{
+            PathPlannerPath swipePath = PathPlannerPath.fromChoreoTrajectory("L_swipe");
+            PathPlannerPath transitionPath = PathPlannerPath.fromChoreoTrajectory("L_mid_to_inner_neutral");
+            PathPlannerPath depotPath = PathPlannerPath.fromChoreoTrajectory("depot");
+
+            List<PathPlannerTrajectoryState> traj1 = new LinkedList<>(getTraj(swipePath).getStates());
+            List<PathPlannerTrajectoryState> traj2 = new LinkedList<>(getTraj(transitionPath).getStates());
+            List<PathPlannerTrajectoryState> traj3 = new LinkedList<>(getTraj(depotPath).getStates());
+
+            return Pair.of(
+                    mergeTrajectories(new PathPlannerTrajectory(traj1), new PathPlannerTrajectory(traj2), new PathPlannerTrajectory(traj3)),
+                    Commands.sequence(
+                            Commands.deadline(//pass
+                                robotContainer.getDrive().followPath(swipePath),
+                                robotContainer.getTrackCommand(),
+                                Commands.sequence(
+                                        Commands.waitSeconds(1),//wait until out of trench
+                                        Commands.parallel(
+                                            robotContainer.intake(),
+                                            robotContainer.fire()
+                                        )
+                                )
+                            ),
+                            robotContainer.getDrive().followPath(transitionPath),
+                            Commands.parallel(//depot
+                                    robotContainer.getDrive().followPath(depotPath),
+                                    robotContainer.getTrackCommand(),
+                                    Commands.sequence(
+                                            Commands.waitSeconds(0.8),
+                                            robotContainer.intake(),
+                                            robotContainer.fire()
+                                    )
+                            )
+                    ));
+        } catch (Exception e){
+            throw new RuntimeException("Failed to create Test Auto", e);
+        }
+    }
+
     @SuppressWarnings("unused")
     private PathPlannerTrajectory mergeTrajectories(PathPlannerTrajectory... in){
         List<PathPlannerTrajectoryState> traj = new LinkedList<>();

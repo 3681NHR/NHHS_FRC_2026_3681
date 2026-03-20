@@ -7,13 +7,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "R_swipe"
+            "pathName": "L_swipe.0"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "R_mid_to_zone"
+            "pathName": "L_mid_to_inner_neutral.0"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "depot.0"
           }
         }
       ]

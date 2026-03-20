@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
@@ -117,7 +119,8 @@ public class AutoChooser {
             new AutoProgram("test",  AutoFactory::createExamplePPAuto),
             new AutoProgram("preload",  AutoFactory::createPreloadAuto),
             new AutoProgram("trench depot",  AutoFactory::createDepotAuto),
-            new AutoProgram("AI doom and despair",  AutoFactory::createAIAuto)
+            new AutoProgram("AI doom and despair",  AutoFactory::createAIAuto),
+            new AutoProgram("Left insanity",  AutoFactory::createLeftPassAuto)
     );
 
 
@@ -151,7 +154,7 @@ public class AutoChooser {
             double time = timeSelector.get() * chooser.get().getPathLength(factory);
 
             field.getObject("traj").setPoses(chooser.get().getPoses(factory));
-            field.setRobotPose(container.getDrive().getPose());
+            field.setRobotPose(container.getDrive().getPose().rotateAround(new Translation2d(8.274700164794922, 4.031994342803955 ), DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red ? Rotation2d.k180deg : Rotation2d.kZero));
             field.getObject("start").setPose(chooser.get().getStartingPose(factory));
             
             Logger.recordOutput("Auto/Selected time", ExtraMath.roundToPoint(time, 3));
