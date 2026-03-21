@@ -149,6 +149,32 @@ public class AutoFactory {
         }
     }
 
+    Pair<PathPlannerTrajectory, Command> createBumpDepotAIAuto() {
+        try{
+
+            PathPlannerPath path = PathPlannerPath.fromChoreoTrajectory("bump_depot");
+
+            List<PathPlannerTrajectoryState> traj = new LinkedList<>(getTraj(path).getStates());
+
+            for(int i=0; i<20-traj.size(); i++){
+                traj.add(traj.get(traj.size()-1));
+            }
+            return Pair.of(
+                    new PathPlannerTrajectory(traj),
+                    Commands.parallel(
+                            Commands.sequence(
+                                    robotContainer.getDrive().followPath(path),
+                                    new DriveToFuel(robotContainer.getDrive(), robotContainer.getFuelVision(), () -> AllianceUtility.flipRectZone(new RectZone(0.669,4.8,3.5,7.42))
+                                    ),
+                                    robotContainer.getTrackCommand(),
+                                    robotContainer.fire(),
+                                    robotContainer.intake()
+                            )));
+        } catch (Exception e){
+            throw new RuntimeException("Failed to create left AI zone Auto", e);
+        }
+    }
+
     Pair<PathPlannerTrajectory, Command> createRightAIZoneAuto() {
         try{
             return Pair.of(

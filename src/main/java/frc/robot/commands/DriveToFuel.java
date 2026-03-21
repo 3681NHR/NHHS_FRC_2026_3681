@@ -73,7 +73,7 @@ public class DriveToFuel extends Command {
             Logger.recordOutput("Auto/AI/target", new Translation2d(best.get().getKey().x()* FuelVisionConstants.GRID_SIZE.in(Meters), best.get().getKey().y()*FuelVisionConstants.GRID_SIZE.in(Meters)));
         } else {
             Logger.recordOutput("Auto/AI/target", ((Translation2d) null));
-            angleToTarg = drive.getRotation().plus(Rotation2d.fromDegrees(90*0.02)).getRadians();
+            angleToTarg = drive.getRotation().plus(Rotation2d.fromDegrees(180*0.02)).getRadians();
             fieldVX = 0;
             fieldVY = 0;
         }
