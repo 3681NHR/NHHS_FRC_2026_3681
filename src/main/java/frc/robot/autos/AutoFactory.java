@@ -164,12 +164,12 @@ public class AutoFactory {
                     Commands.parallel(
                             Commands.sequence(
                                     robotContainer.getDrive().followPath(path),
-                                    new DriveToFuel(robotContainer.getDrive(), robotContainer.getFuelVision(), () -> AllianceUtility.flipRectZone(new RectZone(0.669,4.8,3.5,7.42))
-                                    ),
-                                    robotContainer.getTrackCommand(),
-                                    robotContainer.fire(),
-                                    robotContainer.intake()
-                            )));
+                                    new DriveToFuel(robotContainer.getDrive(), robotContainer.getFuelVision(), () -> AllianceUtility.flipRectZone(new RectZone(0.669,4.8,3.5,7.42))),
+                            ),
+                            robotContainer.getTrackCommand(),
+                            robotContainer.fire(),
+                            robotContainer.intake()
+                            ));
         } catch (Exception e){
             throw new RuntimeException("Failed to create left AI zone Auto", e);
         }
