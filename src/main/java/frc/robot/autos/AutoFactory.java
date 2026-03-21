@@ -4,19 +4,15 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.RobotContainer;
 import frc.robot.commands.DriveToFuel;
@@ -62,17 +58,32 @@ public class AutoFactory {
                 Commands.sequence());
     }
 
-    Pair<PathPlannerTrajectory, Command> createAIAuto() {
-        return Pair.of(
-                null,
-                Commands.parallel(
-                        robotContainer.getTrackCommand(),
-                        robotContainer.fire(),
-                        robotContainer.intake(),
-                        new DriveToFuel(robotContainer.getDrive(), robotContainer.getFuelVision(), new RectZone(5.7, 0.5, 10.8, 7.6))
-                ));
+    Pair<PathPlannerTrajectory, Command> createRightAIMidAuto() {
+        try{
+
+            PathPlannerPath path = PathPlannerPath.fromChoreoTrajectory("R_to_mid");
+
+            List<PathPlannerTrajectoryState> traj = new LinkedList<>(getTraj(path).getStates());
+
+            for(int i=0; i<20-traj.size(); i++){
+                traj.add(traj.get(traj.size()-1));
+            }
+            return Pair.of(
+                    new PathPlannerTrajectory(traj),
+                    Commands.sequence(
+                            robotContainer.getDrive().followPath(path),
+                            Commands.parallel(
+                                    robotContainer.getTrackCommand(),
+                                    robotContainer.fire(),
+                                    robotContainer.intake(),
+                                    new DriveToFuel(robotContainer.getDrive(), robotContainer.getFuelVision(), () -> AllianceUtility.flipRectZone(new RectZone(5.7, 0.5, 8.3, 7.6)))
+                            )));
+        } catch (Exception e){
+            throw new RuntimeException("Failed to create right AI mid Auto", e);
+        }
     }
-    Pair<PathPlannerTrajectory, Command> createAI2Auto() {
+
+    Pair<PathPlannerTrajectory, Command> createLeftAIMidAuto() {
         try{
         
             PathPlannerPath path = PathPlannerPath.fromChoreoTrajectory("L_to_mid");
@@ -93,7 +104,37 @@ public class AutoFactory {
                         new DriveToFuel(robotContainer.getDrive(), robotContainer.getFuelVision(), () -> AllianceUtility.flipRectZone(new RectZone(5.7, 0.5, 8.3, 7.6)))
                 )));
         } catch (Exception e){
-            throw new RuntimeException("Failed to create Test Auto", e);
+            throw new RuntimeException("Failed to create left AI mid Auto", e);
+        }
+    }
+
+    Pair<PathPlannerTrajectory, Command> createLeftAIZoneAuto() {
+        try{
+            return Pair.of(
+                    null,
+                            Commands.parallel(
+                                    robotContainer.getTrackCommand(),
+                                    robotContainer.fire(),
+                                    robotContainer.intake(),
+                                    new DriveToFuel(robotContainer.getDrive(), robotContainer.getFuelVision(), () -> AllianceUtility.flipRectZone(new RectZone(0.669,4.8,3.5,7.42))
+                            )));
+        } catch (Exception e){
+            throw new RuntimeException("Failed to create left AI zone Auto", e);
+        }
+    }
+
+    Pair<PathPlannerTrajectory, Command> createRightAIZoneAuto() {
+        try{
+            return Pair.of(
+                    null,
+                    Commands.parallel(
+                            robotContainer.getTrackCommand(),
+                            robotContainer.fire(),
+                            robotContainer.intake(),
+                            new DriveToFuel(robotContainer.getDrive(), robotContainer.getFuelVision(), () -> AllianceUtility.flipRectZone(new RectZone(0.669,0.65,3.5,2.7))
+                            )));
+        } catch (Exception e){
+            throw new RuntimeException("Failed to create left AI zone Auto", e);
         }
     }
 

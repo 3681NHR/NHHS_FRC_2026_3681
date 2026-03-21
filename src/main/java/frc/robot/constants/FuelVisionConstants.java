@@ -40,8 +40,11 @@ public class FuelVisionConstants {
     public static final Distance FUEL_OVERLAP_THRESH = Inches.of(4);
 
     public static final Angle CAMERA_CLEAR_HFOV = Degrees.of(60);
-    public static final Distance MAX_DETECTION_DIST = Meters.of(5);
-    public static final Distance MIN_DETECTION_DIST = Meters.of(1.0);
+    public static final Distance MIN_CLEAR_DETECTION_DIST = Meters.of(1.0);
+    public static final Distance MAX_CLEAR_DETECTION_DIST = Meters.of(5);
+
+    public static final Distance MIN_DETECTION_DIST = Meters.of(0.5);
+    public static final Distance MAX_DETECTION_DIST = Meters.of(6);
 
     public static final Angle CAMERA_REAL_HFOV = Degrees.of(71.2);
     public static final Distance GRID_SIZE = Inches.of(20);

@@ -93,106 +93,106 @@ public class FuelVision extends SubsystemBase {
         {
             Logger.recordOutput("Subsystems/Fuel Vision/fov", new Translation2d[]{
 
-                    new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)//one edge of fov
+                    new Translation2d(MIN_CLEAR_DETECTION_DIST.in(Meters), 0)//one edge of fov
                             .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 2)))
                             .plus(pose.get().getTranslation()),
 
-                    new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)//one edge of fov
+                    new Translation2d(MAX_CLEAR_DETECTION_DIST.in(Meters), 0)//one edge of fov
                             .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 2)))
                             .plus(pose.get().getTranslation()),
 
-                    new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MAX_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 2.5)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MAX_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 3)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MAX_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 3.5)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MAX_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 4)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MAX_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 5)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MAX_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 6)))
                             .plus(pose.get().getTranslation()),
                     //center
-                    new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MAX_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation())
                             .plus(pose.get().getTranslation()),
 
 
-                    new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MAX_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 6)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MAX_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 5)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MAX_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 4)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MAX_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 3.5)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MAX_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 3)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MAX_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 2.5)))
                             .plus(pose.get().getTranslation()),
 
-                    new Translation2d(MAX_DETECTION_DIST.in(Meters), 0)//other edge of fov
+                    new Translation2d(MAX_CLEAR_DETECTION_DIST.in(Meters), 0)//other edge of fov
                             .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 2)))
                             .plus(pose.get().getTranslation()),
 
                     //inner rad
-                    new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)//other edge of fov
+                    new Translation2d(MIN_CLEAR_DETECTION_DIST.in(Meters), 0)//other edge of fov
                             .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 2)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MIN_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 2.5)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MIN_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 3)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MIN_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 3.5)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MIN_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 4)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MIN_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 5)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MIN_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().plus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 6)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MIN_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation())
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MIN_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 6)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MIN_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 5)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MIN_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 4)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MIN_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 3.5)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MIN_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 3)))
                             .plus(pose.get().getTranslation()),
-                    new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)
+                    new Translation2d(MIN_CLEAR_DETECTION_DIST.in(Meters), 0)
                             .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 2.5)))
                             .plus(pose.get().getTranslation()),
 
-                    new Translation2d(MIN_DETECTION_DIST.in(Meters), 0)//one edge of fov
+                    new Translation2d(MIN_CLEAR_DETECTION_DIST.in(Meters), 0)//one edge of fov
                             .rotateBy(pose.get().getRotation().minus(new Rotation2d(CAMERA_CLEAR_HFOV.in(Radians) / 2)))
                             .plus(pose.get().getTranslation()),
             });
@@ -280,7 +280,7 @@ public class FuelVision extends SubsystemBase {
         Rotation2d cameraYaw = robotPose.getRotation().plus(new Rotation2d(CAMERA_CONFIG.robotToCam.getRotation().getZ()));
 
         double distance = cameraPos.getDistance(fieldPos);
-        if (distance > MAX_DETECTION_DIST.in(Meters) || distance < MIN_DETECTION_DIST.in(Meters)) {
+        if (distance > MAX_CLEAR_DETECTION_DIST.in(Meters) || distance < MIN_CLEAR_DETECTION_DIST.in(Meters)) {
             return false;
         }
 

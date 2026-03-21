@@ -119,9 +119,11 @@ public class AutoChooser {
 //            new AutoProgram("test",  AutoFactory::createExamplePPAuto),
             new AutoProgram("preload",  AutoFactory::createPreloadAuto),
             new AutoProgram("trench depot",  AutoFactory::createDepotAuto),
-            new AutoProgram("AI doom and despair",  AutoFactory::createAIAuto),
-            new AutoProgram("AI doom and despair but doomier",  AutoFactory::createAI2Auto),
-            new AutoProgram("Left insanity",  AutoFactory::createLeftPassAuto)
+            new AutoProgram("Left insanity",  AutoFactory::createLeftPassAuto),
+            new AutoProgram("AI right mid",  AutoFactory::createRightAIMidAuto),
+            new AutoProgram("AI left mid",  AutoFactory::createLeftAIMidAuto),
+            new AutoProgram("AI right zone",  AutoFactory::createRightAIZoneAuto),
+            new AutoProgram("AI left zone",  AutoFactory::createLeftAIZoneAuto)
     );
 
 
