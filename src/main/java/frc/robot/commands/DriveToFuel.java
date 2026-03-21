@@ -16,6 +16,7 @@ import org.w3c.dom.css.Rect;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static edu.wpi.first.units.Units.*;
 
@@ -26,13 +27,13 @@ public class DriveToFuel extends Command {
 
     Command driveCommand;
 
-    RectZone zone;
+    Supplier<RectZone> zone;
 
     double angleToTarg = 0;
     double fieldVX = 0;
     double fieldVY = 0;
 
-    public DriveToFuel(Drive drive, FuelVision fuelVision, RectZone allowedZone) {
+    public DriveToFuel(Drive drive, FuelVision fuelVision, Supplier<RectZone> allowedZone) {
         this.zone = allowedZone;
         this.drive = drive;
         this.fuelVision = fuelVision;
@@ -57,7 +58,7 @@ public class DriveToFuel extends Command {
         Map<FuelVision.gridCoord, Set<FuelVision.fuelData>> map = fuelVision.getFuelMap();
 
         var best = map.entrySet().stream()
-                .filter(entry -> zone.contains(new Translation2d(entry.getKey().x()* FuelVisionConstants.GRID_SIZE.in(Meters), entry.getKey().y()*FuelVisionConstants.GRID_SIZE.in(Meters))))
+                .filter(entry -> zone.get().contains(new Translation2d(entry.getKey().x()* FuelVisionConstants.GRID_SIZE.in(Meters), entry.getKey().y()*FuelVisionConstants.GRID_SIZE.in(Meters))))
                 .max(Comparator.comparingDouble(entry -> {
             int fuel = entry.getValue().size();
             double dist = new Translation2d(entry.getKey().x()* FuelVisionConstants.GRID_SIZE.in(Meters), entry.getKey().y()*FuelVisionConstants.GRID_SIZE.in(Meters)).getDistance(drive.getPose().getTranslation());
