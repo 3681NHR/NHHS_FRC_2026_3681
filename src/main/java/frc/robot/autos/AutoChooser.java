@@ -116,7 +116,7 @@ public class AutoChooser {
     private final List<AutoProgram> AUTO_PROGRAMS = List.of(
         // new AutoProgram("example", AutoFactory::createExampleAuto),
             new AutoProgram("idle",  AutoFactory::createIdleAuto),
-            new AutoProgram("test",  AutoFactory::createExamplePPAuto),
+//            new AutoProgram("test",  AutoFactory::createExamplePPAuto),
             new AutoProgram("preload",  AutoFactory::createPreloadAuto),
             new AutoProgram("trench depot",  AutoFactory::createDepotAuto),
             new AutoProgram("AI doom and despair",  AutoFactory::createAIAuto),

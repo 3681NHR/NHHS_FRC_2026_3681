@@ -67,9 +67,7 @@ public class AutoFactory {
                         robotContainer.getTrackCommand(),
                         robotContainer.fire(),
                         robotContainer.intake(),
-                        robotContainer.getDrive().rotationLock(this::getAngleToNearestFuel,
-                                () -> (robotContainer.getFuelVision().getTrackedFuel().isEmpty() ? 0 : 1) *Math.cos(robotContainer.getDrive().getPose().getRotation().getRadians()),
-                                () -> (robotContainer.getFuelVision().getTrackedFuel().isEmpty() ? 0 : 1) *Math.sin(robotContainer.getDrive().getPose().getRotation().getRadians()))
+                        new DriveToFuel(robotContainer.getDrive(), robotContainer.getFuelVision(), new RectZone(5.7, 0.5, 10.8, 7.6))
                 ));
     }
     Pair<PathPlannerTrajectory, Command> createAI2Auto() {
