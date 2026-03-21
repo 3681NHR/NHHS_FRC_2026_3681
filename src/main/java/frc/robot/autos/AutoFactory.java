@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.RobotContainer;
 import frc.robot.commands.DriveToFuel;
 import frc.robot.constants.DriveConstants;
+import frc.utils.AllianceUtility;
 import frc.utils.ExtraMath;
 import frc.utils.RectZone;
 
@@ -74,14 +75,28 @@ public class AutoFactory {
                 ));
     }
     Pair<PathPlannerTrajectory, Command> createAI2Auto() {
+        try{
+        
+            PathPlannerPath path = PathPlannerPath.fromChoreoTrajectory("L_to_mid");
+
+            List<PathPlannerTrajectoryState> traj = new LinkedList<>(getTraj(path).getStates());
+
+            for(int i=0; i<20-traj.size(); i++){
+                traj.add(traj.get(traj.size()-1));
+            }
         return Pair.of(
-                null,
+                new PathPlannerTrajectory(traj),
+                Commands.sequence(
+                    robotContainer.getDrive().followPath(path),
                 Commands.parallel(
                         robotContainer.getTrackCommand(),
                         robotContainer.fire(),
                         robotContainer.intake(),
-                        new DriveToFuel(robotContainer.getDrive(), robotContainer.getFuelVision(), new RectZone(5.7, 0.5, 10.8, 7.6))
-                ));
+                        new DriveToFuel(robotContainer.getDrive(), robotContainer.getFuelVision(), () -> AllianceUtility.flipRectZone(new RectZone(5.7, 0.5, 8.3, 7.6)))
+                )));
+        } catch (Exception e){
+            throw new RuntimeException("Failed to create Test Auto", e);
+        }
     }
 
     Pair<PathPlannerTrajectory, Command> createPreloadAuto() {

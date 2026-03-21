@@ -50,7 +50,7 @@ public class FuelVisionIOPhotonSim extends FuelVisionIOPhoton{
         cameraProperties.setCalibError(0.1, 0.02);
         cameraSim = new PhotonCameraSim(cam, cameraProperties);
         visionSim.addCamera(cameraSim, config.robotToCam);
-    }
+        }
 
     @Override
     public void updateInputs(FuelVisionIOInputs inputs) {
