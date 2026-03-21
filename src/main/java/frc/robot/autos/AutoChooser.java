@@ -120,6 +120,7 @@ public class AutoChooser {
             new AutoProgram("preload",  AutoFactory::createPreloadAuto),
             new AutoProgram("trench depot",  AutoFactory::createDepotAuto),
             new AutoProgram("AI doom and despair",  AutoFactory::createAIAuto),
+            new AutoProgram("AI doom and despair but doomier",  AutoFactory::createAI2Auto),
             new AutoProgram("Left insanity",  AutoFactory::createLeftPassAuto)
     );
 
@@ -173,7 +174,7 @@ public class AutoChooser {
             Logger.recordOutput("Auto/Checklist/Controller ports", "Confirm controllers are connected to right ports");
             Logger.recordOutput("Auto/Checklist/DS secure", "Confirm DS is securely attached to shelf");
             // Logger.recordOutput("auto/list/", );
-             Logger.recordOutput("auto/list/Gamepieces loaded", "confirm 8 preload fuel");
+             Logger.recordOutput("Auto/list/Gamepieces loaded", "confirm 8 preload fuel");
         }
     }
 }

@@ -197,7 +197,7 @@ public class RobotContainer {
             driveSim = new SwerveDriveSimulation(driveTrainSimulationConfig, Constants.STARTING_POSE);
             SimulatedArena.getInstance().addDriveTrainSimulation(driveSim);
             //FIXME: this line is why your sim sucks
-            ((Arena2026Rebuilt) SimulatedArena.getInstance()).setEfficiencyMode(false);
+//            ((Arena2026Rebuilt) SimulatedArena.getInstance()).setEfficiencyMode(false);
         }
 
         // process driver controls(radial deadzone, curve, trigger slowdown, and
@@ -286,8 +286,8 @@ public class RobotContainer {
                     SOTMSolver.getInstance().setDrive(drive);
                     SOTMSolver.getInstance().calculate();
                 
-//                     fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG, driveSim::getSimulatedDriveTrainPose), drive::getPose);
-                    fuelVision = new FuelVision(new FuelVisionIO(){}, drive::getPose);
+                     fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG, driveSim::getSimulatedDriveTrainPose), drive::getPose);
+//                    fuelVision = new FuelVision(new FuelVisionIO(){}, drive::getPose);
                     intake = new Intake(new IntakeIOSim(driveSim));
                     turret = new Turret(new TurretIOSim(), drive);
                 }
@@ -481,6 +481,7 @@ public class RobotContainer {
 
     public void periodic() {
         rumbler.update(Constants.EVENT_LOOP_TIME);
+        ZoneManager.updateRobotPose(drive.getPose());
         PIDTuner.updateTunables();
         SOTMSolver.getInstance().setTarget(target);
         driverDisconnected.set(!driverController.isConnected());

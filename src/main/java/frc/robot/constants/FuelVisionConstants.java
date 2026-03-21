@@ -44,7 +44,7 @@ public class FuelVisionConstants {
     public static final Distance MIN_DETECTION_DIST = Meters.of(1.0);
 
     public static final Angle CAMERA_REAL_HFOV = Degrees.of(71.2);
-    public static final Distance GRID_SIZE = Meters.of(1);
+    public static final Distance GRID_SIZE = Inches.of(20);
 
     public static final Distance ROBOT_WIDTH = Inches.of(20);
 

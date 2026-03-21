@@ -27,6 +27,7 @@ public class FuelVision extends SubsystemBase {
     private final Map<gridCoord, Set<fuelData>> fuelMap = new HashMap<>();
 
     private List<Pair<Long, Pose2d>> driveHistory = new ArrayList<>(10);
+    ArrayList<Translation3d> cellsToRender = new ArrayList<>();
 
     public FuelVision(FuelVisionIO io, Supplier<Pose2d> pose){
         this.io = io;
@@ -197,6 +198,17 @@ public class FuelVision extends SubsystemBase {
             });
         }
 
+        fuelMap.forEach((coord, set) -> {
+            if(set == null || set.isEmpty()){
+                return;
+            }
+            for(int i=0; i< set.size(); i++){
+                cellsToRender.add(new Translation3d(coord.x*GRID_SIZE.in(Meters), coord.y*GRID_SIZE.in(Meters), 0.5*i));
+            }
+        });
+
+        Logger.recordOutput("Subsystems/Fuel vision/cell density map", cellsToRender.toArray(new Translation3d[0]));
+        cellsToRender.clear();
     }
 
     private void deduplicateFuelMap(){
@@ -290,8 +302,8 @@ public class FuelVision extends SubsystemBase {
     }
 
     private gridCoord getGridCoord(Translation2d fieldCoord){
-        int coordx = (int) (Math.floor(fieldCoord.getX()/GRID_SIZE.in(Meters)) * GRID_SIZE.in(Meters));
-        int coordy = (int) (Math.floor(fieldCoord.getY()/GRID_SIZE.in(Meters)) * GRID_SIZE.in(Meters));
+        int coordx = (int) (Math.floor(fieldCoord.getX()/GRID_SIZE.in(Meters)));
+        int coordy = (int) (Math.floor(fieldCoord.getY()/GRID_SIZE.in(Meters)));
         return new gridCoord(coordx, coordy);
     }
 
@@ -318,6 +330,10 @@ public class FuelVision extends SubsystemBase {
 
     public ArrayList<Translation2d> getTrackedFuel(){
         return fuelMap.values().stream().flatMap(Collection::stream).map(fuelData::pos).collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public Map<gridCoord, Set<fuelData>> getFuelMap(){
+        return fuelMap;
     }
 
     public record gridCoord(int x, int y){}

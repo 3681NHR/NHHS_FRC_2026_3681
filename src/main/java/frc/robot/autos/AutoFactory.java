@@ -18,8 +18,10 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.RobotContainer;
+import frc.robot.commands.DriveToFuel;
 import frc.robot.constants.DriveConstants;
 import frc.utils.ExtraMath;
+import frc.utils.RectZone;
 
 import static edu.wpi.first.units.Units.Radians;
 
@@ -68,6 +70,16 @@ public class AutoFactory {
                         robotContainer.getDrive().rotationLock(this::getAngleToNearestFuel,
                                 () -> (robotContainer.getFuelVision().getTrackedFuel().isEmpty() ? 0 : 1) *Math.cos(robotContainer.getDrive().getPose().getRotation().getRadians()),
                                 () -> (robotContainer.getFuelVision().getTrackedFuel().isEmpty() ? 0 : 1) *Math.sin(robotContainer.getDrive().getPose().getRotation().getRadians()))
+                ));
+    }
+    Pair<PathPlannerTrajectory, Command> createAI2Auto() {
+        return Pair.of(
+                null,
+                Commands.parallel(
+                        robotContainer.getTrackCommand(),
+                        robotContainer.fire(),
+                        robotContainer.intake(),
+                        new DriveToFuel(robotContainer.getDrive(), robotContainer.getFuelVision(), new RectZone(5.7, 0.5, 10.8, 7.6))
                 ));
     }
 
@@ -203,4 +215,5 @@ public class AutoFactory {
                     .min(Comparator.comparingDouble(e -> e.getDistance(robotPos)))
                     .orElse(robotPos);
     }
+
 }
