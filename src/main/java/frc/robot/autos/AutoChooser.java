@@ -120,6 +120,7 @@ public class AutoChooser {
             new AutoProgram("preload",  AutoFactory::createPreloadAuto),
             new AutoProgram("trench depot",  AutoFactory::createDepotAuto),
             new AutoProgram("Left insanity",  AutoFactory::createLeftPassAuto),
+            new AutoProgram("Right not very insanity",  AutoFactory::createRightPassAuto),
             new AutoProgram("AI right mid",  AutoFactory::createRightAIMidAuto),
             new AutoProgram("AI left mid",  AutoFactory::createLeftAIMidAuto),
             new AutoProgram("AI right zone",  AutoFactory::createRightAIZoneAuto),
