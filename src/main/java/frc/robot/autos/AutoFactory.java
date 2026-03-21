@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
@@ -152,6 +153,7 @@ public class AutoFactory {
             return Pair.of(
                     mergeTrajectories(new PathPlannerTrajectory(traj1), new PathPlannerTrajectory(traj2), new PathPlannerTrajectory(traj3)),
                     Commands.sequence(
+                            new InstantCommand(() -> org.littletonrobotics.junction.Logger.recordOutput("auto stage", 0)),
                             Commands.deadline(//pass
                                 robotContainer.getDrive().followPath(swipePath),
                                 robotContainer.getTrackCommand(),
@@ -163,7 +165,11 @@ public class AutoFactory {
                                         )
                                 )
                             ),
+                            new InstantCommand(() -> org.littletonrobotics.junction.Logger.recordOutput("auto stage", 1)),
+                            //lag here
                             robotContainer.getDrive().followPath(transitionPath),
+                            new InstantCommand(() -> org.littletonrobotics.junction.Logger.recordOutput("auto stage", 2)),
+                            // then here
                             Commands.parallel(//depot
                                     robotContainer.getDrive().followPath(depotPath),
                                     robotContainer.getTrackCommand(),
@@ -172,7 +178,8 @@ public class AutoFactory {
                                             robotContainer.intake(),
                                             robotContainer.fire()
                                     )
-                            )
+                            ),
+                            new InstantCommand(() -> org.littletonrobotics.junction.Logger.recordOutput("auto stage", 3))
                     ));
         } catch (Exception e){
             throw new RuntimeException("Failed to create Test Auto", e);
