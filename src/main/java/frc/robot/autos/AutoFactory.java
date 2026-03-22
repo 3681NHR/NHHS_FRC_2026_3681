@@ -141,7 +141,10 @@ public class AutoFactory {
                                     new DriveToFuel(robotContainer.getDrive(), robotContainer.getFuelVision(), () -> AllianceUtility.flipRectZone(new RectZone(0.669,4.8,3.5,7.42))
                             )),
                             robotContainer.getTrackCommand(),
-                            robotContainer.fire(),
+                            Commands.sequence(
+                                    Commands.waitSeconds(3),
+                                robotContainer.fire()
+                            ),
                             robotContainer.intake()
                             ));
         } catch (Exception e){
