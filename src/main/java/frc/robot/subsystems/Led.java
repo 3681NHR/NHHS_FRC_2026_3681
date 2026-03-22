@@ -34,7 +34,7 @@ public class Led extends SubsystemBase {
 
     BooleanSupplier manualSupplier;
 
-    private final AddressableLED led = new AddressableLED(0);
+    private final AddressableLED led = new AddressableLED(1);
     private final AddressableLEDBuffer buffer = new AddressableLEDBuffer(70+5);
     private final AddressableLEDBufferView sideBuffer = new AddressableLEDBufferView(buffer, 70, 70+4);
     private final AddressableLEDBufferView turretBuffer = new AddressableLEDBufferView(buffer, 0, 70);
