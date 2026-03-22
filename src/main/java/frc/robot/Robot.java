@@ -121,8 +121,8 @@ public class Robot extends LoggedRobot {
         TimerHandler.update();
 
         robotContainer.periodic();
-        SparkMax.periodic();
-        TalonFX.periodic();
+//        SparkMax.periodic();
+//        TalonFX.periodic();
         ShiftTracker.update();
     }
 
