@@ -1,11 +1,14 @@
 package frc.robot.constants;
 
-import static edu.wpi.first.units.Units.Inches;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Time;
 import frc.robot.constants.VisionConstants.CameraConfig;
+
+import static edu.wpi.first.units.Units.*;
 
 public class FuelVisionConstants {
 
@@ -26,12 +29,27 @@ public class FuelVisionConstants {
                 )
             )
         );
-    // Basic filtering thresholds
-    public static final double MAX_AMBIGUITY = 0.75;
 
     public static final Distance FUEL_RADIUS = Inches.of(3);
 
-    //area of fuel on screen where area=dist(idfk why this works)
-    public static final double FUEL_SIZE_BASELINE = 1.54;
+    //area of fuel on screen where area=dist(magic number for radial)
+    public static final double FUEL_SIZE_BASELINE = 1.54;//TODO: tune
 
+    public static final Time FUEL_PERSISTANCE_TIME = Seconds.of(3);
+    public static final Time FUEL_POV_CLEAR_GRACE_TIME = Milliseconds.of(200);
+    public static final Distance FUEL_OVERLAP_THRESH = Inches.of(4);
+
+    public static final Angle CAMERA_CLEAR_HFOV = Degrees.of(60);
+    public static final Distance MIN_CLEAR_DETECTION_DIST = Meters.of(1.0);
+    public static final Distance MAX_CLEAR_DETECTION_DIST = Meters.of(5);
+
+    public static final Distance MIN_DETECTION_DIST = Meters.of(0.5);
+    public static final Distance MAX_DETECTION_DIST = Meters.of(6);
+
+    public static final Angle CAMERA_REAL_HFOV = Degrees.of(71.2);
+    public static final Distance GRID_SIZE = Inches.of(20);
+
+    public static final Distance ROBOT_WIDTH = Inches.of(20);
+
+    public static final int MAX_FUEL = 500;
 }

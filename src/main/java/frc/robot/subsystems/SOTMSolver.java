@@ -20,6 +20,8 @@ public final class SOTMSolver extends SubsystemBase{
     private Translation2d target = new Translation2d();
     private Drive drive;
     private Angle turretAngle = Radians.of(0);
+    
+    private ShotParams[] LUT = LaunchLUT.LUTHub;
 
     private SOTMSolver(){
     };
@@ -49,7 +51,7 @@ public final class SOTMSolver extends SubsystemBase{
         double dist = curr.getDistance(target);
         double newDist = 0;
         Translation2d vec = new Translation2d();
-        params = LaunchLUT.get(Meters.of(dist), true, LaunchLUT.LUTHub);
+        params = LaunchLUT.get(Meters.of(dist), true, LUT);
         
         for(int i=0; i<5 && Math.abs(dist-newDist) > Units.inchesToMeters(10); i++){
             dist = newDist;
@@ -61,7 +63,7 @@ public final class SOTMSolver extends SubsystemBase{
             
             turretAngle = ExtraMath.getAngleToPos(target, vec);
             newDist = vec.getDistance(target);
-            params = LaunchLUT.get(Meters.of(newDist), true, LaunchLUT.LUTHub);
+            params = LaunchLUT.get(Meters.of(newDist), true, LUT);
         }
         
     }
@@ -75,7 +77,7 @@ public final class SOTMSolver extends SubsystemBase{
     public void calculate2(){
         Translation2d curr = drive.getPose().getTranslation();
 
-        params = LaunchLUT.get(Meters.of(curr.getDistance(target)), true, LaunchLUT.LUTHub);
+        params = LaunchLUT.get(Meters.of(curr.getDistance(target)), true, LUT);
         if(params.time().in(Seconds) <= 0){
             System.err.println("SOTM calculation canceled(time of flight was 0)");
             return;
@@ -108,12 +110,12 @@ public final class SOTMSolver extends SubsystemBase{
             // = dist'*time - dist*time' / time^2
             // = -dist*time' / time^2
             // -dist feels wrong
-            double dv = (-dist*LaunchLUT.getSlope(Meters.of(dist), LaunchLUT.LUTHub).time().in(Seconds))/Math.pow(params.time().in(Seconds), 2);
+            double dv = (-dist*LaunchLUT.getSlope(Meters.of(dist), LUT).time().in(Seconds))/Math.pow(params.time().in(Seconds), 2);
             
             //newtons method the goat
             dist -= (currentV-targetV)/dv;
 
-            params = LaunchLUT.get(Meters.of(dist), true, LaunchLUT.LUTHub);
+            params = LaunchLUT.get(Meters.of(dist), true, LUT);
             
             if(params.time().in(Seconds) <= 0){
                 System.err.println("SOTM calculation canceled(time of flight was 0)");
@@ -136,6 +138,9 @@ public final class SOTMSolver extends SubsystemBase{
         return turretAngle;
     }
 
+    public void setLUT(ShotParams[] newLUT){
+        LUT = newLUT;
+    }
     public Translation2d getTarget(){
         return target;
     }

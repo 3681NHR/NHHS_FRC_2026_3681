@@ -24,6 +24,7 @@ import frc.robot.subsystems.climber.ClimberIOSim;
 import frc.robot.subsystems.fuelVision.FuelVision;
 import frc.robot.subsystems.fuelVision.FuelVisionIO;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhoton;
+import frc.robot.subsystems.fuelVision.FuelVisionIOPhotonSim;
 import frc.robot.subsystems.hood.Hood;
 import frc.robot.subsystems.hood.HoodIO;
 import frc.robot.subsystems.hood.HoodIOReal;
@@ -33,6 +34,7 @@ import frc.robot.subsystems.indexer.IndexerIO;
 import frc.robot.subsystems.indexer.IndexerIOReal;
 import frc.robot.subsystems.indexer.IndexerIOSim;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOReal;
 import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.launcher.Launcher;
@@ -195,7 +197,7 @@ public class RobotContainer {
             driveSim = new SwerveDriveSimulation(driveTrainSimulationConfig, Constants.STARTING_POSE);
             SimulatedArena.getInstance().addDriveTrainSimulation(driveSim);
             //FIXME: this line is why your sim sucks
-            ((Arena2026Rebuilt) SimulatedArena.getInstance()).setEfficiencyMode(false);
+        //    ((Arena2026Rebuilt) SimulatedArena.getInstance()).setEfficiencyMode(false);
         }
 
         // process driver controls(radial deadzone, curve, trigger slowdown, and
@@ -283,11 +285,9 @@ public class RobotContainer {
                             driverSticks);
                     SOTMSolver.getInstance().setDrive(drive);
                     SOTMSolver.getInstance().calculate();
-
-                    // fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG,
-                    //         driveSim::getSimulatedDriveTrainPose), drive::getPose);
-                    fuelVision = new FuelVision(new FuelVisionIO() {
-                    }, drive::getPose);
+                
+                     fuelVision = new FuelVision(new FuelVisionIOPhotonSim(FuelVisionConstants.CAMERA_CONFIG, driveSim::getSimulatedDriveTrainPose), drive::getPose);
+//                    fuelVision = new FuelVision(new FuelVisionIO(){}, drive::getPose);
                     intake = new Intake(new IntakeIOSim(driveSim));
                     turret = new Turret(new TurretIOSim(), drive);
                 }
@@ -327,21 +327,16 @@ public class RobotContainer {
                 SOTMSolver.getInstance().setDrive(drive);
                 SOTMSolver.getInstance().calculate();
 
-                turret = new Turret(new TurretIO() {
-                }, drive);
-                launcher = new Launcher(new LauncherIO() {
-                });
-                climber = new Climber(new ClimberIO() {
-                });
-                hood = new Hood(new HoodIO() {
-                });
+                fuelVision = new FuelVision(new FuelVisionIO(){}, drive::getPose);
+                intake = new Intake(new IntakeIO(){});
+                turret = new Turret(new TurretIO(){}, drive);
 
-                kicker = new Kicker(new KickerIO() {
-                });
-                buttons = new Buttons(new ButtonIO() {
-                });
-                indexer = new Indexer(new IndexerIO() {
-                });
+                launcher = new Launcher(new LauncherIO(){});
+                hood = new Hood(new HoodIO(){});
+                climber = new Climber(new ClimberIO(){});
+                kicker = new Kicker(new KickerIO(){});
+                buttons = new Buttons(new ButtonIO(){});
+                indexer = new Indexer(new IndexerIO(){});
                 break;
         }
         led = new Led(launcher, hood, turret, drive, () -> manual);
@@ -461,11 +456,16 @@ public class RobotContainer {
 
         new Trigger(() -> driverController.getPOV() == DOWN).onTrue(climber.toggle());
 
-        new Trigger(() -> (inTrench() && autoTrench.getAsBoolean()) || driverController.getRawButton(X)).whileTrue(
+        new Trigger(() -> (inTrench() && autoTrench.getAsBoolean() && !DriverStation.isAutonomous()) || driverController.getRawButton(X)).whileTrue(
                 drive.TrenchAlignDrive()
                     .alongWith(hood.instantPositionControl(() -> HOOD_MIN_ANGLE).withInterruptBehavior(InterruptionBehavior.kCancelIncoming)
                     ).withName("trench mode")
         );
+        //trench mode in auto - wont cancel path following
+//        new Trigger(() -> (inTrench() && autoTrench.getAsBoolean() && DriverStation.isAutonomous())).whileTrue(
+//                hood.instantPositionControl(() -> HOOD_MIN_ANGLE).withInterruptBehavior(InterruptionBehavior.kCancelIncoming
+//                ).withName("trench mode(auto)")
+//        );
 //        .onFalse(
 //                new HiddenConditionalCommand(
 //                        getManShooterCommand(),
@@ -481,6 +481,7 @@ public class RobotContainer {
 
     public void periodic() {
         rumbler.update(Constants.EVENT_LOOP_TIME);
+        ZoneManager.updateRobotPose(drive.getPose());
         PIDTuner.updateTunables();
         SOTMSolver.getInstance().setTarget(target);
         driverDisconnected.set(!driverController.isConnected());
@@ -509,6 +510,8 @@ public class RobotContainer {
                                 turret.getAngle().in(Radians))),
         });
         Logger.recordOutput("target dist", Meters.of(target.getDistance(drive.getPose().getTranslation())));
+
+        SOTMSolver.getInstance().setLUT(hubTrack ? LaunchLUT.LUTHub : LaunchLUT.LUTPass);
     }
 
     public void simPeriodic() {
@@ -677,6 +680,7 @@ public class RobotContainer {
                 )
         );
     }
+    public FuelVision getFuelVision(){return fuelVision;}
 
     public Command startLutTimer() {
         return new InstantCommand(() -> {

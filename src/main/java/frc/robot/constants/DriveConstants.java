@@ -74,8 +74,8 @@ public class DriveConstants {
     public static final PIDGains.PID TRANS_PID_SIM = new PIDGains.PID(4, 0, 0.3);
     
     // rotation lock PIDs
-    public static final PIDGains.PID ANGLE_PID = new PIDGains.PID(6, 0.0, 0.4);
-    public static final PIDGains.PID ANGLE_PID_SIM = new PIDGains.PID(4, 0.0, 0.1);
+//    public static final PIDGains.PID ANGLE_PID = new PIDGains.PID(6, 0.0, 0.4);
+//    public static final PIDGains.PID ANGLE_PID_SIM = new PIDGains.PID(4, 0.0, 0.1);
     public static final AngularVelocity ANGLE_MAX_VELOCITY = MAX_ANGLE_SPEED_PP;
 
     // kinematics

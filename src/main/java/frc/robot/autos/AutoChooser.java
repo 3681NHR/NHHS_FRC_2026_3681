@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
@@ -114,9 +116,17 @@ public class AutoChooser {
     private final List<AutoProgram> AUTO_PROGRAMS = List.of(
         // new AutoProgram("example", AutoFactory::createExampleAuto),
             new AutoProgram("idle",  AutoFactory::createIdleAuto),
-            new AutoProgram("test",  AutoFactory::createExamplePPAuto),
+//            new AutoProgram("test",  AutoFactory::createExamplePPAuto),
             new AutoProgram("preload",  AutoFactory::createPreloadAuto),
-            new AutoProgram("trench depot",  AutoFactory::createDepotAuto)
+            new AutoProgram("trench depot",  AutoFactory::createDepotAuto),
+            new AutoProgram("trench depot + AI",  AutoFactory::createDepotAIAuto),
+            new AutoProgram("bump depot + AI",  AutoFactory::createBumpDepotAIAuto),
+            new AutoProgram("Left insanity",  AutoFactory::createLeftPassAuto),
+            new AutoProgram("Right not very insanity",  AutoFactory::createRightPassAuto),
+            new AutoProgram("AI right mid",  AutoFactory::createRightAIMidAuto),
+            new AutoProgram("AI left mid",  AutoFactory::createLeftAIMidAuto),
+            new AutoProgram("AI right zone",  AutoFactory::createRightAIZoneAuto),
+            new AutoProgram("AI left zone",  AutoFactory::createLeftAIZoneAuto)
     );
 
 
@@ -150,7 +160,7 @@ public class AutoChooser {
             double time = timeSelector.get() * chooser.get().getPathLength(factory);
 
             field.getObject("traj").setPoses(chooser.get().getPoses(factory));
-            field.setRobotPose(container.getDrive().getPose());
+            field.setRobotPose(container.getDrive().getPose().rotateAround(new Translation2d(8.274700164794922, 4.031994342803955 ), DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red ? Rotation2d.k180deg : Rotation2d.kZero));
             field.getObject("start").setPose(chooser.get().getStartingPose(factory));
             
             Logger.recordOutput("Auto/Selected time", ExtraMath.roundToPoint(time, 3));
@@ -169,7 +179,7 @@ public class AutoChooser {
             Logger.recordOutput("Auto/Checklist/Controller ports", "Confirm controllers are connected to right ports");
             Logger.recordOutput("Auto/Checklist/DS secure", "Confirm DS is securely attached to shelf");
             // Logger.recordOutput("auto/list/", );
-             Logger.recordOutput("auto/list/Gamepieces loaded", "confirm 8 preload fuel");
+             Logger.recordOutput("Auto/list/Gamepieces loaded", "confirm 8 preload fuel");
         }
     }
 }

@@ -12,10 +12,11 @@ public interface FuelVisionIO {
 
     @AutoLog
     class FuelVisionIOInputs{
-        public FuelObservation[] observations = {new FuelObservation(new RadialPos2d(Radians.of(0),Radians.of(0)), new ScreenSize2d(0,0), 0.0, 0.0, 0.0)};
+        public FuelObservation[] observations = {new FuelObservation(new RadialPos2d(0,0), new ScreenSize2d(0,0), 0.0, 0.0, 0.0)};
         public boolean connected = false;
+        public double timestamp = 0;
     }
 }
 record FuelObservation(RadialPos2d screenPos, ScreenSize2d screensize, double area, double confidance, double dist){}
-record RadialPos2d(Angle x, Angle y){}
+record RadialPos2d(double x, double y){}
 record ScreenSize2d(double x, double y){}
