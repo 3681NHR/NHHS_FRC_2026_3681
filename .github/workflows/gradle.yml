@@ -11,7 +11,7 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
-    runs-on: ubuntu-22.04
+    runs-on: blacksmith-4vcpu-ubuntu-2204
     # This grabs the WPILib docker container
     container: wpilib/roborio-cross-ubuntu:2025-22.04
     # Steps represent a sequence of tasks that will be executed as part of the job
