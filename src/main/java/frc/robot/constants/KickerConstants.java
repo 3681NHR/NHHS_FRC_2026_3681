@@ -20,6 +20,4 @@ public final class KickerConstants {
     public static final Voltage KICKER_UNLOAD_PARTIAL_VOLTAGE = Volts.of(-0);
     public static final Voltage KICKER_FEED_VOLTAGE = Volts.of(11);
 
-    public static final double POSITION_CONVERSION_FACTOR = (1.0/2.5);
-    public static final double VELOCITY_CONVERSION_FACTOR = POSITION_CONVERSION_FACTOR*60;
 }
