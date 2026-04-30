@@ -1,6 +1,7 @@
 package frc.robot.subsystems.kicker;
 
 import static frc.robot.constants.KickerConstants.*;
+import static frc.utils.PhoenixUtil.tryUntilOk;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -31,13 +32,15 @@ public class KickerIOReal implements KickerIO {
 
         motor = new TalonFX(KICKER_MOTOR_ID);
 
-        motor.getConfigurator().apply(new MotorOutputConfigs()
+        // Surface failures rather than silently mis-applying motor inversion,
+        // brake mode, or stator current limits.
+        tryUntilOk(5, () -> motor.getConfigurator().apply(new MotorOutputConfigs()
                 .withInverted(KICKER_MOTOR_INVERT ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive)
-                .withNeutralMode(NeutralModeValue.Brake));
+                .withNeutralMode(NeutralModeValue.Brake)));
 
-        motor.getConfigurator().apply(new CurrentLimitsConfigs()
+        tryUntilOk(5, () -> motor.getConfigurator().apply(new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(KICKER_MAX_CURRENT.in(Amps))
-                .withStatorCurrentLimitEnable(true));
+                .withStatorCurrentLimitEnable(true)));
     }
 
     @Override
