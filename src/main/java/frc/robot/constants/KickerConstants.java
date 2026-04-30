@@ -17,7 +17,7 @@ public final class KickerConstants {
     public static final Distance KICKER_UNLOAD_MAX_DISTANCE = Inches.of(3.5); // if the can range isnt detecting anything within this range, don't preload
 
     public static final Voltage KICKER_UNLOAD_VOLTAGE = Volts.of(-11);
-    public static final Voltage KICKER_UNLOAD_PARTIAL_VOLTAGE = Volts.of(-0);
+    public static final Voltage KICKER_UNLOAD_PARTIAL_VOLTAGE = Volts.zero();
     public static final Voltage KICKER_FEED_VOLTAGE = Volts.of(11);
 
 }
