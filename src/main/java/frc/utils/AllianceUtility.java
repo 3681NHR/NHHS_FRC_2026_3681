@@ -6,12 +6,14 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
+import java.util.stream.Stream;
+
 public class AllianceUtility {
     private static Alliance latestAlliance = Alliance.Blue;
 
     private static final double FIELD_LENGTH_METERS = 16.54;
     private static final double FIELD_WIDTH_METERS = 8.07;
-    private static final Pose2d FIELD_CENTER_POINT = new Pose2d(FIELD_LENGTH_METERS / 2.0, FIELD_WIDTH_METERS / 2.0, Rotation2d.kZero);
+    public static final Pose2d FIELD_CENTER_POINT = new Pose2d(FIELD_LENGTH_METERS / 2.0, FIELD_WIDTH_METERS / 2.0, Rotation2d.kZero);
 
     public static Alliance getAlliance() {
         return latestAlliance;
@@ -31,6 +33,14 @@ public class AllianceUtility {
             );
         }
         return original;
+    }
+    /**
+     * Returns the original Pose2ds but rotated 180 degrees around the field's center point (transitioning a coordinate
+     * from the BLUE alliance to the RED and vice versa) if the latest alliance is RED, otherwise it returns the original
+     * Pose2d.
+     */
+    public static Pose2d[] flipPose(Pose2d... original) {
+        return Stream.of(original).map(AllianceUtility::flipPose).toArray(Pose2d[]::new);
     }
 
     public static Translation3d flipPose(Translation3d original) {
