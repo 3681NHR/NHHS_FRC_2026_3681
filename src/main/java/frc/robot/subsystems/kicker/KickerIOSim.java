@@ -24,6 +24,7 @@ public class KickerIOSim implements KickerIO {
         input.distance = Inches.of(0);
         input.hasBall = input.distance.lte(KICKER_PRELOAD_STOP_DISTANCE);
         input.motorConnected = true;
+        input.sensorConnected = true;
     }
 
     @Override

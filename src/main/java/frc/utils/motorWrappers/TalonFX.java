@@ -106,8 +106,8 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
      */
     public static void initAlerts() {
         if (!motorsWithIncorrectFirmwareVersion.isEmpty()) {
-            getFirmwareAlert().setText("Firmware version mismatch on TalonFXs: " + motorsWithIncorrectFirmwareVersion);
-            getFirmwareAlert().set(true);
+//            getFirmwareAlert().setText("Firmware version mismatch on TalonFXs: " + motorsWithIncorrectFirmwareVersion);
+//            getFirmwareAlert().set(true);
         }
         if (!disconnectedMotors.isEmpty()) {
             getDisconnectedAlert().setText("TalonFXes are disconnected: " + disconnectedMotors);

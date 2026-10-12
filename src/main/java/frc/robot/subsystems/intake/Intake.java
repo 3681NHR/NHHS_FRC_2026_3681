@@ -28,7 +28,7 @@ public class Intake extends SubsystemBase {
         io.updateInputs(in);
         Logger.processInputs("IO/Intake", in);
         Logger.recordOutput("Subsystems/Intake/command", getCurrentCommand() == null ? "none" : getCurrentCommand().getName());
-    
+
         if(DriverStation.isDisabled()){
             io.setPivotGoal(in.pivotAngle);
         }
@@ -41,11 +41,16 @@ public class Intake extends SubsystemBase {
         }, this)
         .finallyDo(() -> {
             io.setRollerVoltage(Volts.of(0));
-            io.setPivotGoal(INTAKE_STOWED_ANGLE);
+//            io.setPivotGoal(INTAKE_STOWED_ANGLE);
         })
         .withName("intake");
     }
-    
+    public Command uptake() {
+        return Commands.runOnce(() -> {
+            io.setRollerVoltage(Volts.zero());
+            io.setPivotGoal(INTAKE_STOWED_ANGLE);
+        }, this).withName("up up up in the bot");
+    }
     public Command outtake(){
         return Commands.run(() -> {
             io.setPivotGoal(INTAKE_DEPLOYED_ANGLE);

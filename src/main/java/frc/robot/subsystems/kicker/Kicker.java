@@ -5,6 +5,7 @@ import static frc.robot.constants.KickerConstants.*;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.wpilibj.Alert;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
@@ -19,6 +20,9 @@ public class Kicker extends SubsystemBase {
 	KickerIOInputsAutoLogged in = new KickerIOInputsAutoLogged();
 	
 	private LoggedNetworkBoolean unloadEnabled = new LoggedNetworkBoolean("Overrides/Kicker unload", true);
+
+    private final Alert motorDisconnectAlert = new Alert("Kicker motor disconnected!", Alert.AlertType.kError);
+    private final Alert sensorDisconnectAlert = new Alert("Kicker CANRange disconnected!", Alert.AlertType.kError);
 	
 	public Kicker(KickerIO io) {
 		this.io = io;
@@ -29,6 +33,9 @@ public class Kicker extends SubsystemBase {
 		io.updateInputs(in);
 		Logger.processInputs("IO/Kicker", in);
 		Logger.recordOutput("Subsystems/Kicker/state", (getCurrentCommand() == null ? "none" : getCurrentCommand().getName()));
+
+        motorDisconnectAlert.set(!in.motorConnected);
+        sensorDisconnectAlert.set(!in.sensorConnected);
 	}
 	
 	public Command hold() {

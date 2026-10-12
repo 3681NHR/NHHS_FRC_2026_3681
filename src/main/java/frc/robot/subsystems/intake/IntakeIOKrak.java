@@ -36,7 +36,7 @@ public class IntakeIOKrak implements IntakeIO {
     private final StatusSignal<AngularVelocity> rollerMotorSpeed = rollerMotor.getVelocity();
 
     private final VoltageOut rollerMotorVoltageControl = new VoltageOut(0);
-    private final Alert rollerMotorDisconnect = new Alert("Intake roller Spark disconnected!", AlertType.kError);
+    private final Alert rollerMotorDisconnect = new Alert("Intake roller disconnected!", AlertType.kError);
 
     //  Pivot
     private final SparkMax pivotMotor = new SparkMax(INTAKE_PIVOT_MOTOR_ID, MotorType.kBrushless);
@@ -67,7 +67,7 @@ public class IntakeIOKrak implements IntakeIO {
         TalonFXConfiguration rollerCfg = new TalonFXConfiguration()
                 .withMotorOutput(new MotorOutputConfigs()
                         .withNeutralMode(NeutralModeValue.Coast)
-                        .withInverted(INTAKE_PIVOT_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive))
+                        .withInverted(INTAKE_ROLLER_INVERTED ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive))
                 .withCurrentLimits(new CurrentLimitsConfigs()
                         .withSupplyCurrentLimit(INTAKE_ROLLER_CURRENT_LIM));
             rollerMotor.getConfigurator().apply(rollerCfg);
@@ -92,6 +92,7 @@ public class IntakeIOKrak implements IntakeIO {
         input.rollerTemp = rollerMotorTemp.getValue();
         
         input.rollerConnected = rollerMotor.isConnected();
+        rollerMotorDisconnect.set(rollerMotor.isConnected());
 
         //  Pivot closed-loop 
         if (!pivotOpenLoop) {
@@ -114,6 +115,7 @@ public class IntakeIOKrak implements IntakeIO {
         input.pivotMotorConnected = pivotMotor.getLastError() != REVLibError.kCANDisconnected;
         input.pivotEncoderConnected = pivotEncoder.isConnected();
         input.pivotOpenLoop = pivotOpenLoop;
+
         pivotMotorDisconnect.set(!input.pivotMotorConnected);
         pivotEncoderDisconnect.set(!input.pivotEncoderConnected);
 

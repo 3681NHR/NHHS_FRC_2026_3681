@@ -176,6 +176,8 @@ public class RobotContainer {
 
     private final AutoGenerator generator;
 
+    private LoggedNetworkBoolean mentorMode = new LoggedNetworkBoolean("Overrides/Mentor mode(slow)", false);
+
     public RobotContainer() {
         frc.robot.autos.Path.container = this;
         generator = new AutoGenerator(this);
@@ -217,25 +219,25 @@ public class RobotContainer {
                         Joystick.deadzone(OperatorConstants.LEFT_DEADBAND,
                                         driverController.getRawAxis(LEFT_STICK_X), driverController.getRawAxis(LEFT_STICK_Y))
                                 .getX(),
-                        -1.0,
+                        mentorMode.getAsBoolean() ? -0.25 : -1.0,
                         OperatorConstants.TRANSLATION_CURVE, 0.0),
                 () -> ExtraMath.processInput(
                         Joystick.deadzone(OperatorConstants.LEFT_DEADBAND,
                                         driverController.getRawAxis(LEFT_STICK_X), driverController.getRawAxis(LEFT_STICK_Y))
                                 .getY(),
-                        -1.0,
+                        mentorMode.getAsBoolean() ? -0.25 : -1.0,
                         OperatorConstants.TRANSLATION_CURVE, 0.0),
                 () -> ExtraMath.processInput(
                         Joystick.deadzone(OperatorConstants.RIGHT_DEADBAND,
                                         driverController.getRawAxis(RIGHT_STICK_X), driverController.getRawAxis(RIGHT_STICK_Y))
                                 .getX(),
-                        -0.75,
+                        mentorMode.getAsBoolean() ? -0.25 : -0.75,
                         OperatorConstants.ROTATION_CURVE, 0.0),
                 () -> ExtraMath.processInput(
                         Joystick.deadzone(OperatorConstants.RIGHT_DEADBAND,
                                         driverController.getRawAxis(RIGHT_STICK_X), driverController.getRawAxis(RIGHT_STICK_Y))
                                 .getY(),
-                        -1.0,
+                        mentorMode.getAsBoolean() ? -0.25 : -1.0,
                         OperatorConstants.ROTATION_CURVE, 0.0));
 
         switch (MODE) {
@@ -492,25 +494,24 @@ public class RobotContainer {
         @Binding("Unjam indexer")
         Trigger reverseKickerIndexer = new Trigger(() -> driverController.getRawButton(RB));
         reverseKickerIndexer.whileTrue(Commands.parallel(kicker.reverse(), indexer.reverse()));
-// FIXME: disabled outtake due to physical constraints
-//        @Binding("Outtake")
-//        Trigger outtake = new Trigger(() -> driverController.getRawButton(Y));
-//        outtake.whileTrue(Commands.parallel(intake.outtake(), indexer.reverse()));
+
+        @Binding("Uptake")
+        Trigger uptake = new Trigger(() -> driverController.getRawButton(LB));
+        uptake.whileTrue(intake.uptake());
 
         // FIXME: put climber on robot
         //        @Binding("Toggle Climber")
         //        Trigger toggleClimber = new Trigger(() -> driverController.getPOV() == DOWN);
         //        toggleClimber.onTrue(climber.toggle());
-// FIXME: do we actually need this code gng
 //        @Binding("Trench Align")
-//        Trigger trenchAlign = new Trigger(() -> (inTrench() && autoTrench.getAsBoolean()
-//                && !DriverStation.isAutonomous()) || driverController.getRawButton(X));
-//        trenchAlign.whileTrue(
-//                drive.TrenchAlignDrive()
-//                    .alongWith(hood.instantPositionControl(() -> HOOD_MIN_ANGLE)
-//                            .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
-//                    .withName("trench mode")
-//        );
+        Trigger trenchAlign = new Trigger(() -> (inTrench() && autoTrench.getAsBoolean()
+                && !DriverStation.isAutonomous()));
+        trenchAlign.whileTrue(
+                drive.TrenchAlignDrive()
+                    .alongWith(hood.instantPositionControl(() -> HOOD_MIN_ANGLE)
+                            .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
+                    .withName("trench mode")
+        );
         //trench mode in auto - won't cancel path following
 //        new Trigger(() -> (inTrench() && autoTrench.getAsBoolean() && DriverStation.isAutonomous())).whileTrue(
 //                hood.instantPositionControl(() -> HOOD_MIN_ANGLE).withInterruptBehavior(InterruptionBehavior.kCancelIncoming
@@ -535,7 +536,7 @@ public class RobotContainer {
         PIDTuner.updateTunables();
         SOTMSolver.getInstance().setTarget(target);
         driverDisconnected.set(!driverController.isConnected());
-        operatorDisconnected.set(!operatorController.isConnected());
+//        operatorDisconnected.set(!operatorController.isConnected());
 
         Translation2d hub = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red ? RED_HUB
                 : BLUE_HUB;

@@ -24,8 +24,6 @@ public class KickerIOReal implements KickerIO {
 
     private final VoltageOut voltageRequest = new VoltageOut(0);
 
-    private Alert motorDisconnectAlert = new Alert("Kicker motor disconnected!", AlertType.kError);
-    private Alert sensorDisconnectAlert = new Alert("Kicker CANRange disconnected!", AlertType.kError);
 
     public KickerIOReal() {
         sensor = new CANrange(KICKER_SENSOR_ID);
@@ -57,8 +55,6 @@ public class KickerIOReal implements KickerIO {
         input.motorConnected = motor.isConnected();
         input.sensorConnected = sensor.isConnected();
 
-        motorDisconnectAlert.set(!input.motorConnected);
-        sensorDisconnectAlert.set(!input.sensorConnected);
     }
 
     @Override

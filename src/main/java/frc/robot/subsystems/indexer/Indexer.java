@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.constants.IndexerConstants.INDEXER_FEED_VOLTAGE;
+import static frc.robot.constants.IndexerConstants.INDEXER_REVERSE_VOLTAGE;
 
 public class Indexer extends SubsystemBase {
 	
@@ -34,8 +35,8 @@ public class Indexer extends SubsystemBase {
 	}
 	public Command reverse() {
 		return Commands.run(() -> {
-			io.setVout(INDEXER_FEED_VOLTAGE.unaryMinus());
-		}, this).withName("Feed");
+			io.setVout(INDEXER_REVERSE_VOLTAGE);
+		}, this).withName("Reverse");
 	}
     public Command stop() {
         return Commands.run(() -> {

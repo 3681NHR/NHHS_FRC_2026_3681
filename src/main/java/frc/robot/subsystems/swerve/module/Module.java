@@ -32,10 +32,10 @@ public class Module {
         this.io = io;
         this.index = index;
         driveDisconnectedAlert = new Alert(
-                "Disconnected drive motor on module " + Integer.toString(index) + ".",
+                "Disconnected drive motor on module " + Integer.toString(index + 1) + ".",
                 AlertType.kError);
         turnDisconnectedAlert = new Alert(
-                "Disconnected turn motor on module " + Integer.toString(index) + ".", AlertType.kError);
+                "Disconnected turn motor on module " + Integer.toString(index + 1) + ".", AlertType.kError);
     }
 
     public void periodic() {

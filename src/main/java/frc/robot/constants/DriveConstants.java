@@ -132,9 +132,9 @@ public class DriveConstants {
         public static final int BR_TURN_ID = 24;
 
         // Drive motor configuration
-        public static final boolean DRIVE_INVERT = false;
-        public static final Current DRIVE_MAX_CURRENT = Amps.of(50);
-        public static final Current DRIVE_SLIP_CURRENT = Amps.of(50);
+        public static final boolean DRIVE_INVERT = true;
+        public static final Current DRIVE_MAX_CURRENT = Amps.of(80);
+        public static final Current DRIVE_SLIP_CURRENT = Amps.of(80);
         public static final double DRIVE_REDUCTION = 6.75;
         public static final Distance WHEEL_RAD = Inches.of(2.05);
         public static final DCMotor DRIVE_GEARBOX = DCMotor.getNEO(1);
@@ -147,7 +147,7 @@ public class DriveConstants {
 
         // Turn motor configuration
         public static final boolean TURN_INVERT = true;
-        public static final Current TURN_CURRENT_LIM = Amps.of(20);
+        public static final Current TURN_CURRENT_LIM = Amps.of(40);
         public static final double TURN_REDUCTION = 21.428;
         public static final DCMotor TURN_GEARBOX = DCMotor.getNEO(1);
 
