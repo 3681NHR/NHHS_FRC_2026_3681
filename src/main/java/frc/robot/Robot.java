@@ -96,7 +96,6 @@ public class Robot extends LoggedRobot {
         WebServer.start(Constants.ELASTIC_LAYOUT_PORT, Filesystem.getDeployDirectory().getAbsolutePath());
         // motor wrappers
         SparkMax.initAlerts();
-        TalonFX.initAlerts();
 
         CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
     }
