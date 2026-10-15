@@ -23,11 +23,11 @@ public class IntakeConstants {
     public static final boolean INTAKE_PIVOT_INVERTED = false;
     public static final Current INTAKE_PIVOT_CURRENT_LIM = Amps.of(40);
 
-    public static final Voltage INTAKE_RUN_VOLTAGE = Volts.of(10); // TODO: tune
+    public static final Voltage INTAKE_RUN_VOLTAGE = Volts.of(7); // TODO: tune
     public static final Voltage INTAKE_EJECT_VOLTAGE = Volts.of(-10); // TODO: tune
 
     //setpoints
-    public static final Angle INTAKE_STOWED_ANGLE = Degrees.of(125);   // TODO: tune
+    public static final Angle INTAKE_STOWED_ANGLE = Degrees.of(130);   // TODO: tune
     public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(0);   // TODO: tune
 
     //hard stops for sim

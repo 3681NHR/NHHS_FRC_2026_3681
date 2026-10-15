@@ -133,8 +133,8 @@ public class DriveConstants {
 
         // Drive motor configuration
         public static final boolean DRIVE_INVERT = true;
-        public static final Current DRIVE_MAX_CURRENT = Amps.of(80);
-        public static final Current DRIVE_SLIP_CURRENT = Amps.of(80);
+        public static final Current DRIVE_MAX_CURRENT = Amps.of(40);
+        public static final Current DRIVE_SLIP_CURRENT = Amps.of(30);//TODO tune
         public static final double DRIVE_REDUCTION = 6.75;
         public static final Distance WHEEL_RAD = Inches.of(2.05);
         public static final DCMotor DRIVE_GEARBOX = DCMotor.getNEO(1);

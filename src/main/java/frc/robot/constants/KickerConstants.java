@@ -18,6 +18,6 @@ public final class KickerConstants {
 
     public static final Voltage KICKER_UNLOAD_VOLTAGE = Volts.of(-11);
     public static final Voltage KICKER_UNLOAD_PARTIAL_VOLTAGE = Volts.zero();
-    public static final Voltage KICKER_FEED_VOLTAGE = Volts.of(11);
+    public static final Voltage KICKER_FEED_VOLTAGE = Volts.of(12);
 
 }
