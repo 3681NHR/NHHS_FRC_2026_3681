@@ -56,7 +56,7 @@ public class VisionConstants {
             )
         ),
         new CameraConfig(
-            "right",
+            "limelight",
             "right",
             1.0,
             1.0,
