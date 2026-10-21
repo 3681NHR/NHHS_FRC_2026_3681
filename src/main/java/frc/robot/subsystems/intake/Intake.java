@@ -35,11 +35,30 @@ public class Intake extends SubsystemBase {
     }
 
     public Command agitate(){
-        return Commands.repeatingSequence(Commands.run(() -> {
-            io.setPivotGoal(INTAKE_PIVOT_AGITATE);
-//            io.setRollerVoltage(INTAKE_RUN_VOLTAGE);
-        }, this),
-                        Commands.run(() -> io.setPivotGoal(INTAKE_DEPLOYED_ANGLE)))
+        return Commands.repeatingSequence(
+                Commands.runOnce(() -> io.setPivotGoal(INTAKE_PIVOT_AGITATE), this),
+                Commands.waitUntil(() -> in.pivotAtSetpoint),
+                Commands.runOnce(() -> io.setPivotGoal(INTAKE_DEPLOYED_ANGLE), this),
+                Commands.waitUntil(() -> in.pivotAtSetpoint)
+        )
+        .finallyDo(() -> {
+            io.setRollerVoltage(Volts.of(0)); // todo: run rollers question mark
+        })
+        .withName("agitate");
+    }
+
+    public Command agitate(int repetitions){
+        Command cycle = Commands.sequence(
+                Commands.runOnce(() -> io.setPivotGoal(INTAKE_PIVOT_AGITATE), this),
+                Commands.waitUntil(() -> in.pivotAtSetpoint),
+                Commands.runOnce(() -> io.setPivotGoal(INTAKE_DEPLOYED_ANGLE), this),
+                Commands.waitUntil(() -> in.pivotAtSetpoint)
+        );
+        Command cmd = Commands.none();
+        for (int i = 0; i < repetitions; i++) {
+            cmd = cmd.andThen(cycle);
+        }
+        return cmd
         .finallyDo(() -> {
             io.setRollerVoltage(Volts.of(0)); // todo: run rollers question mark
         })

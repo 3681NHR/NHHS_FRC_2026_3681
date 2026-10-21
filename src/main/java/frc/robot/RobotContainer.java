@@ -730,7 +730,8 @@ public class RobotContainer {
                         Commands.run(() -> {}),
                         //block scoring if hub is disabled, still allows passing
                         () -> this.isReady() && (!hubTrack || canScore())
-                )
+                ),
+                Commands.waitSeconds(IntakeConstants.INTAKE_AGITATE_DELAY.in(Seconds)).andThen(intake.agitate())
         );
     }
     public FuelVision getFuelVision(){return fuelVision;}
