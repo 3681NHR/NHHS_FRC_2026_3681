@@ -14,7 +14,6 @@ public interface CameraIO {
         public int[] tagIds = new int[0];
         public TargetObservation latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d(),
                 -1);
-        public TargetObservation[] targets = new TargetObservation[0];
 
         public Transform3d robotToCamera = new Transform3d();
         public String name = "";
@@ -30,7 +29,14 @@ public interface CameraIO {
             Pose3d pose,
             double ambiguity,
             int tagCount,
-            double averageTagDistance) {
+            double averageTagDistance,
+            PoseObservationType type) {
+    }
+
+    public static enum PoseObservationType {
+        MEGATAG_1,
+        MEGATAG_2,
+        PHOTONVISION
     }
 
     public default void updateInputs(CameraIOInputs inputs) {

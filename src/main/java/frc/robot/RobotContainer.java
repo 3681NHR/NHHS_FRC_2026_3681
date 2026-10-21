@@ -246,7 +246,7 @@ public class RobotContainer {
                 vision = new Vision(
                         apriltagLayout,
                         new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
-                        new CameraIOLL(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1], drive),
+                        new CameraIOLL(VisionConstants.CAMERA_CONFIGS[1], drive::getRotation),
                         new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2]));
                 drive = new Drive(
                         new GyroIOPigeon2(),

@@ -81,7 +81,8 @@ public class CameraIOPhotonSim extends CameraIOPhoton {
                             new Pose3d(poseSupplier.get().getX(), poseSupplier.get().getY(), 0, new Rotation3d(0, 0, poseSupplier.get().getRotation().getRadians())),
                             -1,
                            1,
-                            1)};
+                            1,
+                            PoseObservationType.PHOTONVISION)};
 
             inputs.connected = camera.isConnected();
 
