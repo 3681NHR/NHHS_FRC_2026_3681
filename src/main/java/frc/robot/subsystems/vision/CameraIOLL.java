@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.*;
+import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.constants.VisionConstants;
@@ -39,9 +40,12 @@ public class CameraIOLL implements CameraIO {
     private final DoubleSubscriber tySubscriber;
     private final DoubleArraySubscriber megatag1Subscriber;
     private final DoubleArraySubscriber megatag2Subscriber;
+    private final DoubleArraySubscriber hwSubscriber;
+
+    private final Alert tempAlert = new Alert("", Alert.AlertType.kWarning);
 
     private String name;
-    private Transform3d robotToCamera;
+    private final Transform3d robotToCamera;
     /**
      * Creates a new VisionIOLimelight.
      *
@@ -49,8 +53,9 @@ public class CameraIOLL implements CameraIO {
      */
     public CameraIOLL(VisionConstants.CameraConfig config, Supplier<Rotation2d> rotationSupplier) {
         name = config.name;
+        tempAlert.setText("camera: "+name+" overheat! performance will be reduced.");
         robotToCamera = config.robotToCam;
-        camIdleMode = new LoggedNetworkBoolean("overrides/"+name+": idle when disabled", true);
+        camIdleMode = new LoggedNetworkBoolean("Overrides/camera:"+name+"/idle when disabled", true);
 
         var table = NetworkTableInstance.getDefault().getTable(config.name);
         this.rotationSupplier = rotationSupplier;
@@ -61,6 +66,7 @@ public class CameraIOLL implements CameraIO {
         latencySubscriber = table.getDoubleTopic("tl").subscribe(0.0);
         txSubscriber = table.getDoubleTopic("tx").subscribe(0.0);
         tySubscriber = table.getDoubleTopic("ty").subscribe(0.0);
+        hwSubscriber = table.getDoubleArrayTopic("hw").subscribe(new double[] {});
         megatag1Subscriber = table.getDoubleArrayTopic("botpose_wpiblue").subscribe(new double[] {});
         megatag2Subscriber =
                 table.getDoubleArrayTopic("botpose_orb_wpiblue").subscribe(new double[] {});
@@ -68,6 +74,8 @@ public class CameraIOLL implements CameraIO {
 
     @Override
     public void updateInputs(CameraIOInputs inputs) {
+        inputs.name = name;
+        inputs.robotToCamera = robotToCamera;
         if(DriverStation.isDisabled() && camIdleMode.get()){
             imuModePublisher.accept(1);
             throttlePublisher.accept(150);//skipped frames per processed frames, reduce temps
@@ -75,6 +83,8 @@ public class CameraIOLL implements CameraIO {
             imuModePublisher.accept(4);
             throttlePublisher.accept(0);
         }
+        tempAlert.set(hwSubscriber.get()[0] >= 79);
+
         // Update connection status based on whether an update has been seen in the last
         // 250ms
         inputs.connected =

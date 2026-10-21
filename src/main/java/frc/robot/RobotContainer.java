@@ -176,6 +176,8 @@ public class RobotContainer {
 
     private LoggedNetworkBoolean mentorMode = new LoggedNetworkBoolean("Overrides/Mentor mode(slow)", false);
 
+    private Rotation2d robotRotation = new Rotation2d();
+
     public RobotContainer() {
         frc.robot.autos.Path.container = this;
         generator = new AutoGenerator(this);
@@ -246,7 +248,7 @@ public class RobotContainer {
                 vision = new Vision(
                         apriltagLayout,
                         new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
-                        new CameraIOLL(VisionConstants.CAMERA_CONFIGS[1], drive::getRotation),
+                        new CameraIOLL(VisionConstants.CAMERA_CONFIGS[1], () -> robotRotation),
                         new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2]));
                 drive = new Drive(
                         new GyroIOPigeon2(),
@@ -530,6 +532,7 @@ public class RobotContainer {
 
 
     public void periodic() {
+        robotRotation = drive.getRotation();
         rumbler.update(Constants.EVENT_LOOP_TIME);
         ZoneManager.updateRobotPose(drive.getPose());
         PIDTuner.updateTunables();
