@@ -3,6 +3,7 @@ package frc.robot.constants;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Voltage;
 import frc.utils.controlWrappers.PIDGains;
 
@@ -42,4 +43,7 @@ public class IntakeConstants {
 
     //ascope offset
     public static final Translation3d INTAKE_OFFSET = new Translation3d(0.292100,0,0.191);
+
+    // time
+    public static Time INTAKE_AGITATE_DELAY = Seconds.of(5);
 }
