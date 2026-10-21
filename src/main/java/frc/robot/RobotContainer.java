@@ -8,7 +8,6 @@ import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.StateSpaceUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
@@ -105,7 +104,6 @@ import frc.robot.subsystems.kicker.KickerIO;
 import frc.robot.subsystems.kicker.KickerIOReal;
 import frc.robot.subsystems.kicker.KickerIOSim;
 import frc.robot.constants.Constants.RobotMode;
-import org.opencv.core.Mat;
 
 public class RobotContainer {
 
@@ -264,7 +262,7 @@ public class RobotContainer {
                 fuelVision = new FuelVision(new FuelVisionIOPhoton(FuelVisionConstants.CAMERA_CONFIG), drive::getPose);
 
                 turret = new Turret(new TurretIOReal(), drive);
-                intake = new Intake(new IntakeIOKrak());
+                intake = new Intake(new IntakeIODoubleKrak());
                 launcher = new Launcher(new LauncherIOReal());
                 hood = new Hood(new HoodIOReal());
                 climber = new Climber(new ClimberIO() {
