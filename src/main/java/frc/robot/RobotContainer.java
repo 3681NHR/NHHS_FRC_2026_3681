@@ -2,6 +2,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.hal.simulation.RoboRioDataJNI;
 import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.StateSpaceUtil;
@@ -189,6 +190,8 @@ public class RobotContainer {
 
         // we use our own warnings for joysticks
         DriverStation.silenceJoystickConnectionWarning(true);
+        //we can do this
+        RoboRioDataJNI.setBrownoutVoltage(6.3);
 
         if (RobotBase.isSimulation()) {
             // maplesim setup
@@ -243,7 +246,7 @@ public class RobotContainer {
                 vision = new Vision(
                         apriltagLayout,
                         new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
-                        new CameraIOLL(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1]),
+                        new CameraIOLL(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1], drive),
                         new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2]));
                 drive = new Drive(
                         new GyroIOPigeon2(),
