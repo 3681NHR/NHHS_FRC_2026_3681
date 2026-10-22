@@ -45,6 +45,7 @@ public class CameraIOLL implements CameraIO {
     private final Alert tempAlert = new Alert("", Alert.AlertType.kWarning);
 
     private String name;
+    private String NTname;
     private final Transform3d robotToCamera;
     /**
      * Creates a new VisionIOLimelight.
@@ -52,8 +53,9 @@ public class CameraIOLL implements CameraIO {
      * @param rotationSupplier Supplier for the current estimated rotation, used for MegaTag 2.
      */
     public CameraIOLL(VisionConstants.CameraConfig config, Supplier<Rotation2d> rotationSupplier) {
-        name = config.name;
-        tempAlert.setText("camera: "+name+" overheat! performance will be reduced.");
+        name = config.dashboardName;
+        NTname = config.name;
+        tempAlert.setText("camera: "+NTname+" overheat! performance will be reduced.");
         robotToCamera = config.robotToCam;
         camIdleMode = new LoggedNetworkBoolean("Overrides/camera:"+name+"/idle when disabled", true);
 

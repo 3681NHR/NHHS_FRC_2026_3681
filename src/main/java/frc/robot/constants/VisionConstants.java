@@ -57,7 +57,7 @@ public class VisionConstants {
         ),
         new CameraConfig(
             "limelight",
-            "right",
+            "right(LL4)",
             1.0,
             1.0,
             new Transform3d(

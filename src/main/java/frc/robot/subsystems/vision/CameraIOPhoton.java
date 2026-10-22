@@ -21,11 +21,14 @@ public class CameraIOPhoton implements CameraIO {
 
     final Transform3d robotToCamera;
 
+    private final String dname;
+
     /**
      * Creates a new CameraIOPhoton.
      */
     public CameraIOPhoton(AprilTagFieldLayout layout, CameraConfig config) {
         camera = new PhotonCamera(config.name);
+        dname = config.dashboardName;
         this.robotToCamera = config.robotToCam;
 
         this.poseEstimator = new PhotonPoseEstimator(layout, robotToCamera);
@@ -61,7 +64,7 @@ public class CameraIOPhoton implements CameraIO {
         inputs.connected = camera.isConnected();
         inputs.poseObservations = observations.toArray(new PoseObservation[0]);
 
-        inputs.name = camera.getName();
+        inputs.name = dname;
         inputs.robotToCamera = robotToCamera;
 
         observations.clear();
