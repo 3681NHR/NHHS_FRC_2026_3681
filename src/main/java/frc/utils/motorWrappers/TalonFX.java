@@ -38,12 +38,11 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
      */
     public TalonFX(int deviceId) {
         this(deviceId, new CANBus());
-
-        this.withName("TalonFX ID:" + deviceId);
     }
 
     public TalonFX(int deviceId, CANBus canbus) {
         super(deviceId, canbus);
+        this.withName("TalonFX ID:" + deviceId);
         talonFXs.add(this);
     }
 
@@ -101,7 +100,7 @@ public class TalonFX extends com.ctre.phoenix6.hardware.TalonFX {
                 getFault_OverSupplyV().getValue()
                 || getFault_UnstableSupplyV().getValue()
                 || getFault_Undervoltage().getValue()
-                || getStickyFault_BridgeBrownout().getValue()
+                || getFault_BridgeBrownout().getValue()
         );
 
         licenseFaultAlert.set(
