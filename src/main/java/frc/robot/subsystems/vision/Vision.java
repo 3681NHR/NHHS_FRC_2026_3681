@@ -214,25 +214,4 @@ public class Vision extends SubsystemBase {
         return latestEstimateFinal;
     }
 
-    public Optional<Double> getYaw(int tagID) {
-        Optional<Double> yaw = Optional.empty();
-        if (tagID < 0) {
-            for (int i = 0; i < inputs.length; i++) {
-                yaw = Optional.of(inputs[i].latestTargetObservation.tx().getRadians()
-                        + inputs[i].robotToCamera.getRotation().getZ());
-            }
-        } else {
-            for (int i = 0; i < inputs.length; i++) {
-                for (TargetObservation t : inputs[i].targets) {
-                    if (t != null) {
-                        if (t.ID() == tagID) {
-                            yaw = Optional.of(t.tx().getRadians() + inputs[i].robotToCamera.getRotation().getZ());
-                        }
-                    }
-                }
-            }
-        }
-        return yaw;
-    }
-
 }

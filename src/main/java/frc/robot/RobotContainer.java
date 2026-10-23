@@ -2,6 +2,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.hal.simulation.RoboRioDataJNI;
 import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.StateSpaceUtil;
@@ -56,10 +57,7 @@ import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOReal;
 import frc.robot.subsystems.turret.TurretIOSim;
-import frc.robot.subsystems.vision.CameraIO;
-import frc.robot.subsystems.vision.CameraIOPhoton;
-import frc.robot.subsystems.vision.CameraIOPhotonSim;
-import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.*;
 import frc.utils.*;
 import frc.utils.Joystick;
 import frc.utils.Joystick.DuelJoystickAxis;
@@ -178,6 +176,8 @@ public class RobotContainer {
 
     private LoggedNetworkBoolean mentorMode = new LoggedNetworkBoolean("Overrides/Mentor mode(slow)", false);
 
+    private Rotation2d robotRotation = new Rotation2d();
+
     public RobotContainer() {
         frc.robot.autos.Path.container = this;
         generator = new AutoGenerator(this);
@@ -192,6 +192,8 @@ public class RobotContainer {
 
         // we use our own warnings for joysticks
         DriverStation.silenceJoystickConnectionWarning(true);
+        //we can do this
+        RoboRioDataJNI.setBrownoutVoltage(6.3);
 
         if (RobotBase.isSimulation()) {
             // maplesim setup
@@ -246,9 +248,8 @@ public class RobotContainer {
                 vision = new Vision(
                         apriltagLayout,
                         new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[0]),
-                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[1]),
-                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2]),
-                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[3]));
+                        new CameraIOLL(VisionConstants.CAMERA_CONFIGS[1], () -> robotRotation),
+                        new CameraIOPhoton(apriltagLayout, VisionConstants.CAMERA_CONFIGS[2]));
                 drive = new Drive(
                         new GyroIOPigeon2(),
                         new ModuleIOCrackingSpark(0),
@@ -531,6 +532,7 @@ public class RobotContainer {
 
 
     public void periodic() {
+        robotRotation = drive.getRotation();
         rumbler.update(Constants.EVENT_LOOP_TIME);
         ZoneManager.updateRobotPose(drive.getPose());
         PIDTuner.updateTunables();
