@@ -14,7 +14,6 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.wpilibj2.command.*;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import frc.robot.autos.AutoGenerator;
 import frc.robot.oldautos.AutoChooser;
 import frc.robot.commands.SwerveWheelCharacterization;
@@ -731,7 +730,8 @@ public class RobotContainer {
                         //block scoring if hub is disabled, still allows passing
                         () -> this.isReady() && (!hubTrack || canScore())
                 ),
-                Commands.waitSeconds(IntakeConstants.INTAKE_AGITATE_DELAY.in(Seconds)).andThen(intake.agitate())
+                
+                        Commands.waitSeconds(IntakeConstants.INTAKE_AGITATE_DELAY.in(Seconds)).andThen(intake.agitate().asProxy())
         );
     }
     public FuelVision getFuelVision(){return fuelVision;}

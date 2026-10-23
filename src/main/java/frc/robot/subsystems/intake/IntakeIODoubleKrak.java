@@ -19,10 +19,12 @@ import frc.utils.motorWrappers.TalonFX;
 
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.constants.IntakeConstants.*;
+import com.ctre.phoenix6.BaseStatusSignal;
 
 public class IntakeIODoubleKrak implements IntakeIO {
 
     private final TalonFX rollerMotor = new TalonFX(INTAKE_ROLLER_MOTOR_ID);
+                
     private final StatusSignal<Voltage> rollerMotorVoltage = rollerMotor.getMotorVoltage();
     private final StatusSignal<Temperature> rollerMotorTemp = rollerMotor.getDeviceTemp();
     private final StatusSignal<Current> rollerMotorCurrent = rollerMotor.getSupplyCurrent();
@@ -49,6 +51,7 @@ public class IntakeIODoubleKrak implements IntakeIO {
     private Angle pivotGoal = INTAKE_STOWED_ANGLE;
 
     public IntakeIODoubleKrak() {
+        
         INTAKE_PIVOT_PID_GAINS.withCallback(() -> pivotPID.setGains(INTAKE_PIVOT_PID_GAINS));
         INTAKE_PIVOT_FF_GAINS.withCallback(() -> {
             pivotFF.setKs(INTAKE_PIVOT_FF_GAINS.kS);
@@ -81,6 +84,9 @@ public class IntakeIODoubleKrak implements IntakeIO {
 
     @Override
     public void updateInputs(IntakeIOInputs input) {
+        BaseStatusSignal.refreshAll(
+                rollerMotorSpeed, rollerMotorVoltage, rollerMotorCurrent, rollerMotorTemp,
+                pivotMotorVoltage, pivotMotorCurrent, pivotMotorTemp);
         input.rollerVelocity = rollerMotorSpeed.getValue();
 
         input.rollerVoltageOut = rollerMotorVoltage.getValue();
@@ -101,7 +107,7 @@ public class IntakeIODoubleKrak implements IntakeIO {
         input.pivotGoal = pivotGoal;
         input.pivotSetpointPos = Units.Radians.of(pivotPID.getSetpoint().position);
         input.pivotSetpointVel = Units.RadiansPerSecond.of(pivotPID.getSetpoint().velocity);
-        input.pivotAtSetpoint = pivotPID.atSetpoint();
+        input.pivotAtSetpoint = pivotPID.atGoal();
 
         input.pivotVoltageOut = pivotMotorVoltage.getValue();
         input.pivotCurrentOut = pivotMotorCurrent.getValue();
