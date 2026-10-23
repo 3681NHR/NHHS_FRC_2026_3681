@@ -54,11 +54,13 @@ public class Intake extends SubsystemBase {
                 Commands.runOnce(() -> io.setPivotGoal(INTAKE_DEPLOYED_ANGLE), this),
                 Commands.waitUntil(() -> in.pivotAtSetpoint)
         );
-        Command cmd = Commands.none();
+        Command cmd1 = Commands.none();
         for (int i = 0; i < repetitions; i++) {
+            Command cmd = Commands.none();
             cmd = cmd.andThen(cycle);
+            cmd1 = cmd;
         }
-        return cmd
+        return cmd1
         .finallyDo(() -> {
             io.setRollerVoltage(Volts.of(0)); // todo: run rollers question mark
         })
