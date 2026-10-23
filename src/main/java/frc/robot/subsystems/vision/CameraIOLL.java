@@ -85,12 +85,14 @@ public class CameraIOLL implements CameraIO {
             imuModePublisher.accept(4);
             throttlePublisher.accept(0);
         }
-        tempAlert.set(hwSubscriber.get()[0] >= 79);
+        if(hwSubscriber.get().length > 1){
+            tempAlert.set(hwSubscriber.get()[0] >= 79);
+        }
 
         // Update connection status based on whether an update has been seen in the last
         // 250ms
         inputs.connected =
-                ((RobotController.getTime() - latencySubscriber.getLastChange()) / 1000) < 250;
+                ((RobotController.getTime() - latencySubscriber.getLastChange()) / 1000.0) < 250;
 
         // Update target observation
         inputs.latestTargetObservation =
