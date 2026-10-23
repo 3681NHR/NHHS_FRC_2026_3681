@@ -20,8 +20,6 @@ public class Kicker extends SubsystemBase {
 	KickerIOInputsAutoLogged in = new KickerIOInputsAutoLogged();
 	
 	private LoggedNetworkBoolean unloadEnabled = new LoggedNetworkBoolean("Overrides/Kicker unload", true);
-
-    private final Alert motorDisconnectAlert = new Alert("Kicker motor disconnected!", Alert.AlertType.kError);
     private final Alert sensorDisconnectAlert = new Alert("Kicker CANRange disconnected!", Alert.AlertType.kError);
 	
 	public Kicker(KickerIO io) {
@@ -34,7 +32,6 @@ public class Kicker extends SubsystemBase {
 		Logger.processInputs("IO/Kicker", in);
 		Logger.recordOutput("Subsystems/Kicker/state", (getCurrentCommand() == null ? "none" : getCurrentCommand().getName()));
 
-        motorDisconnectAlert.set(!in.motorConnected);
         sensorDisconnectAlert.set(!in.sensorConnected);
 	}
 	

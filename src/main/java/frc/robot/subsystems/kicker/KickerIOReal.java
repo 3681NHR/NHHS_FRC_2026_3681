@@ -28,7 +28,7 @@ public class KickerIOReal implements KickerIO {
     public KickerIOReal() {
         sensor = new CANrange(KICKER_SENSOR_ID);
 
-        motor = new TalonFX(KICKER_MOTOR_ID);
+        motor = new TalonFX(KICKER_MOTOR_ID).withName("kicker kraken");
 
         // Surface failures rather than silently mis-applying motor inversion,
         // brake mode, or stator current limits.

@@ -23,17 +23,12 @@ public class Module {
     private final ModuleIO io;
     private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
     private final int index;
-
-    private final Alert driveDisconnectedAlert;
     private final Alert turnDisconnectedAlert;
     private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
 
     public Module(ModuleIO io, int index) {
         this.io = io;
         this.index = index;
-        driveDisconnectedAlert = new Alert(
-                "Disconnected drive motor on module " + Integer.toString(index + 1) + ".",
-                AlertType.kError);
         turnDisconnectedAlert = new Alert(
                 "Disconnected turn motor on module " + Integer.toString(index + 1) + ".", AlertType.kError);
     }
@@ -52,7 +47,6 @@ public class Module {
         }
 
         // Update alerts
-        driveDisconnectedAlert.set(!inputs.driveConnected);
         turnDisconnectedAlert.set(!inputs.turnConnected);
     }
     /** Returns the module positions received this cycle. */

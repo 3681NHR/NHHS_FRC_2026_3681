@@ -17,14 +17,12 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 
 public class LauncherIOReal implements LauncherIO {
 
-    TalonFX motor = new TalonFX(LAUNCHER_MOTOR_ID);
+    TalonFX motor = new TalonFX(LAUNCHER_MOTOR_ID).withName("launcher kraken");
 
     VoltageOut openLoopRequest = new VoltageOut(0);
     VelocityVoltage closedLoopRequest = new VelocityVoltage(0);
     
     boolean openLoop = false;
-
-    Alert disconnect = new Alert("Launcher motor disconnected!", AlertType.kError);
     
     public LauncherIOReal(){
         motor.getConfigurator()
@@ -41,8 +39,6 @@ public class LauncherIOReal implements LauncherIO {
 
     @Override
     public void updateInputs(LauncherIOInputs input){
-
-        disconnect.set(!motor.isConnected());
         
         input.angle = motor.getPosition().getValue();
         input.speed = motor.getVelocity().getValue();

@@ -29,7 +29,7 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 
 public class TurretIOReal implements TurretIO {
 
-    private final TalonFX motor = new TalonFX(TURRET_MOTOR_ID);
+    private final TalonFX motor = new TalonFX(TURRET_MOTOR_ID).withName("turret kraken");
     private final CANcoder e1 = new CANcoder(TURRET_ENCODER_1_ID);
     private final CANcoder e2 = new CANcoder(TURRET_ENCODER_2_ID);
 
@@ -39,8 +39,6 @@ public class TurretIOReal implements TurretIO {
     private Angle goal = Radians.of(0);
 
     private  Angle tolerance = TURRET_SETPOINT_TOLERANCE;
-
-    private final Alert motorDisconnect = new Alert("Turret motor is disconnected!", AlertType.kError);
     private final Alert e1Disconnect = new Alert("Turret encoder 1 is disconnected!", AlertType.kError);
     private final Alert e2Disconnect = new Alert("Turret encoder 2 is disconnected!", AlertType.kError);
 
@@ -119,7 +117,6 @@ public class TurretIOReal implements TurretIO {
                     Math.copySign(TURRET_FF_GAINS.kS, goal.minus(motor.getPosition().getValue()).baseUnitMagnitude()))
                     );
         }
-        motorDisconnect.set(!motor.isConnected());
         e1Disconnect.set(!e1.isConnected());
         e2Disconnect.set(!e2.isConnected());
 
