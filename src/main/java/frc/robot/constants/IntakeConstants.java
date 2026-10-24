@@ -27,7 +27,6 @@ public class IntakeConstants {
 
     //setpoints
     public static final Angle INTAKE_PIVOT_AGITATE_ANGLE = Rotations.of(0.125);
-    public static final Angle INTAKE_PIVOT_AGITATE = Rotations.of(0.125);
     public static final Angle INTAKE_STOWED_ANGLE = Degrees.of(130);   // TODO: tune
     public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(0); // TODO: tune
 
@@ -39,8 +38,9 @@ public class IntakeConstants {
 
     public static final PIDGains.GravityFF INTAKE_PIVOT_ID_GAINS =new PIDGains.GravityFF(0.0, 0.3, 0.7, 0.001);
 
-    public static final PIDGains.GravityFF INTAKE_PIVOT_FF_GAINS =new PIDGains.GravityFF(0.0, 0.3, 0.7, 0.0).makeTunable("Tuning/Intake/Pivot/FF");
-    public static final PIDGains.ProfiledPID INTAKE_PIVOT_PID_GAINS = new PIDGains.ProfiledPID(0.3, 0.00067, 0.2, 7.0, 15.0).makeTunable("Tuning/Intake/Pivot/PID");
+    public static final PIDGains.GravityFF INTAKE_PIVOT_FF_GAINS =new PIDGains.GravityFF(0.2, 0.3, 7, 0.0).makeTunable("Tuning/Intake/Pivot/FF");
+    public static final PIDGains.ProfiledPID INTAKE_PIVOT_PID_GAINS = new PIDGains.ProfiledPID(80, 1, 0, 3.0, 1.50).makeTunable("Tuning/Intake/Pivot/PID");
+    public static final Angle INTAKE_PIVOT_KG_OFFSET = Degrees.of(-3);
 
     //ascope offset
     public static final Translation3d INTAKE_OFFSET = new Translation3d(0.292100,0,0.191);

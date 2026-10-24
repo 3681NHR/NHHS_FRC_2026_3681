@@ -90,7 +90,8 @@ public class IntakeIODoubleKrak implements IntakeIO {
                 .withKV(INTAKE_PIVOT_FF_GAINS.kV)
                 .withKA(INTAKE_PIVOT_FF_GAINS.kA)
                 .withKG(INTAKE_PIVOT_FF_GAINS.kG)
-                .withGravityType(GravityTypeValue.Arm_Cosine);
+                .withGravityType(GravityTypeValue.Arm_Cosine)
+                .withGravityArmPositionOffset(INTAKE_PIVOT_KG_OFFSET);
         MotionMagicConfigs mm = new MotionMagicConfigs()
                 .withMotionMagicCruiseVelocity(INTAKE_PIVOT_PID_GAINS.maxSpeed)
                 .withMotionMagicAcceleration(INTAKE_PIVOT_PID_GAINS.maxAccel);
@@ -100,9 +101,9 @@ public class IntakeIODoubleKrak implements IntakeIO {
 
     @Override
     public void updateInputs(IntakeIOInputs input) {
-        BaseStatusSignal.refreshAll(
-                rollerMotorSpeed, rollerMotorVoltage, rollerMotorCurrent, rollerMotorTemp,
-                pivotMotorVoltage, pivotMotorCurrent, pivotMotorTemp);
+//        BaseStatusSignal.refreshAll(
+//                rollerMotorSpeed, rollerMotorVoltage, rollerMotorCurrent, rollerMotorTemp,
+//                pivotMotorVoltage, pivotMotorCurrent, pivotMotorTemp);
         input.rollerVelocity = rollerMotorSpeed.getValue();
 
         input.rollerVoltageOut = rollerMotorVoltage.getValue();
