@@ -21,14 +21,14 @@ public class CameraIOPhoton implements CameraIO {
 
     final Transform3d robotToCamera;
 
+    private final String dname;
+
     /**
      * Creates a new CameraIOPhoton.
-     *
-     * @param name             The configured name of the camera.
-     * @param rotationSupplier The 3D position of the camera relative to the robot.
      */
     public CameraIOPhoton(AprilTagFieldLayout layout, CameraConfig config) {
         camera = new PhotonCamera(config.name);
+        dname = config.dashboardName;
         this.robotToCamera = config.robotToCam;
 
         this.poseEstimator = new PhotonPoseEstimator(layout, robotToCamera);
@@ -47,19 +47,15 @@ public class CameraIOPhoton implements CameraIO {
                 observations.add(new PoseObservation(
                         estimate.get().timestampSeconds,
                         estimate.get().estimatedPose,
-                        result.multitagResult.isPresent() ? result.multitagResult.get().estimatedPose.ambiguity : -1,
+                        result.multitagResult.map(multiTargetPNPResult -> multiTargetPNPResult.estimatedPose.ambiguity).orElse(-1.0),
                         estimate.get().targetsUsed.size(),
-                        getAvgDistance(result)));
+                        getAvgDistance(result),
+                        PoseObservationType.PHOTONVISION));
                 inputs.tagIds = estimate.get().targetsUsed.stream().mapToInt(t -> t.fiducialId).toArray();
                 inputs.latestTargetObservation = new TargetObservation(new Rotation2d(result.getBestTarget().getYaw()),
                         new Rotation2d(result.getBestTarget().getPitch()), result.getBestTarget().fiducialId);
 
-                inputs.targets = result.targets.stream().map(t -> new TargetObservation(
-                        new Rotation2d(t.getYaw()),
-                        new Rotation2d(t.getPitch()),
-                        t.fiducialId)).toArray(TargetObservation[]::new);
             } else {
-                inputs.targets = new TargetObservation[0];
                 inputs.tagIds = new int[0];
 
             }
@@ -68,7 +64,7 @@ public class CameraIOPhoton implements CameraIO {
         inputs.connected = camera.isConnected();
         inputs.poseObservations = observations.toArray(new PoseObservation[0]);
 
-        inputs.name = camera.getName();
+        inputs.name = dname;
         inputs.robotToCamera = robotToCamera;
 
         observations.clear();

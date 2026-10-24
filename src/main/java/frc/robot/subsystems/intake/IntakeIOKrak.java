@@ -29,14 +29,13 @@ import static frc.robot.constants.IntakeConstants.*;
 public class IntakeIOKrak implements IntakeIO {
 
     //  Roller
-    private final TalonFX rollerMotor = new TalonFX(INTAKE_ROLLER_MOTOR_ID);
+    private final TalonFX rollerMotor = new TalonFX(INTAKE_ROLLER_MOTOR_ID).withName("intake roller kraken");
     private final StatusSignal<Voltage> rollerMotorVoltage = rollerMotor.getMotorVoltage();
     private final StatusSignal<Temperature> rollerMotorTemp = rollerMotor.getDeviceTemp();
     private final StatusSignal<Current> rollerMotorCurrent = rollerMotor.getSupplyCurrent();
     private final StatusSignal<AngularVelocity> rollerMotorSpeed = rollerMotor.getVelocity();
 
     private final VoltageOut rollerMotorVoltageControl = new VoltageOut(0);
-    private final Alert rollerMotorDisconnect = new Alert("Intake roller disconnected!", AlertType.kError);
 
     //  Pivot
     private final SparkMax pivotMotor = new SparkMax(INTAKE_PIVOT_MOTOR_ID, MotorType.kBrushless);
@@ -45,7 +44,7 @@ public class IntakeIOKrak implements IntakeIO {
     private final ProfiledPID pivotPID = new ProfiledPID(INTAKE_PIVOT_PID_GAINS);
     private ArmFF pivotFF = new ArmFF(INTAKE_PIVOT_FF_GAINS);
 
-    private final Alert pivotMotorDisconnect = new Alert("Intake pivot Spark disconnected!", AlertType.kError);
+    private final Alert pivotMotorDisconnect = new Alert("Intake pivot motor disconnected!", AlertType.kError);
     private final Alert pivotEncoderDisconnect = new Alert("Intake pivot encoder disconnected!", AlertType.kError);
 
     private boolean pivotOpenLoop = false;
@@ -92,7 +91,6 @@ public class IntakeIOKrak implements IntakeIO {
         input.rollerTemp = rollerMotorTemp.getValue();
         
         input.rollerConnected = rollerMotor.isConnected();
-        rollerMotorDisconnect.set(rollerMotor.isConnected());
 
         //  Pivot closed-loop 
         if (!pivotOpenLoop) {

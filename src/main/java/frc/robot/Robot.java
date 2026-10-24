@@ -85,9 +85,8 @@ public class Robot extends LoggedRobot {
         }
 
         // Start AdvantageKit logger
-        // initalize robot container
-        // LoggedPowerDistribution.getInstance(1, ModuleType.kRev);
         Logger.start();
+        // initalize robot container
         robotContainer = new RobotContainer();
 
         // start timerhandler
@@ -96,7 +95,6 @@ public class Robot extends LoggedRobot {
         WebServer.start(Constants.ELASTIC_LAYOUT_PORT, Filesystem.getDeployDirectory().getAbsolutePath());
         // motor wrappers
         SparkMax.initAlerts();
-        TalonFX.initAlerts();
 
         CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
     }

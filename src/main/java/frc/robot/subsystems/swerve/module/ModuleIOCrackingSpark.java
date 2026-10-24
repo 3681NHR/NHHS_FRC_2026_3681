@@ -104,7 +104,7 @@ public class ModuleIOCrackingSpark implements ModuleIO {
                     case 2 -> Module.BL_DRIVE_ID;
                     case 3 -> Module.BR_DRIVE_ID;
                     default -> 0;
-                });
+                }).withName("swerve module "+ (io+1) +" drive kraken");
         turnSpark = new SparkMax(
                 switch (io) {
                     case 0 -> Module.FL_TURN_ID;

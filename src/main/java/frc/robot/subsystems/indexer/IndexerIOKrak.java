@@ -27,13 +27,12 @@ import static frc.utils.SparkUtil.tryUntilOk;
 
 public class IndexerIOKrak implements IndexerIO {
 
-    private final TalonFX motor = new TalonFX(INDEXER_MOTOR_ID);
+    private final TalonFX motor = new TalonFX(INDEXER_MOTOR_ID).withName("indexer kraken");
     private final StatusSignal<AngularVelocity> speed = motor.getVelocity();
     private final StatusSignal<Voltage>         voltageOut = motor.getMotorVoltage();
     private final StatusSignal<Current>         currentOut = motor.getSupplyCurrent();
     private final StatusSignal<Temperature>     temp = motor.getDeviceTemp();
     private final VoltageOut voltageControl = new VoltageOut(0);
-    private final Alert motorDisconnectAlert = new Alert("Indexer motor disconnected!", AlertType.kError);
 
     public IndexerIOKrak() {
 
@@ -56,8 +55,6 @@ public class IndexerIOKrak implements IndexerIO {
         input.motorTemp = temp.getValue();
 
         input.motorConnected = motor.isConnected();
-
-        motorDisconnectAlert.set(!input.motorConnected);
     }
 
     @Override
