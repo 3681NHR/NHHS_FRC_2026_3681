@@ -1,14 +1,13 @@
 package frc.robot.constants;
 
-import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Volts;
-
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Voltage;
 import frc.utils.controlWrappers.PIDGains;
+
+import static edu.wpi.first.units.Units.*;
 
 public class IntakeConstants {
 
@@ -27,8 +26,10 @@ public class IntakeConstants {
     public static final Voltage INTAKE_EJECT_VOLTAGE = Volts.of(-10); // TODO: tune
 
     //setpoints
+    public static final Angle INTAKE_PIVOT_AGITATE_ANGLE = Rotations.of(0.125);
+    public static final Angle INTAKE_PIVOT_AGITATE = Rotations.of(0.125);
     public static final Angle INTAKE_STOWED_ANGLE = Degrees.of(130);   // TODO: tune
-    public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(0);   // TODO: tune
+    public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(0); // TODO: tune
 
     //hard stops for sim
     public static final Angle INTAKE_PIVOT_MIN_ANGLE = Degrees.of(-5); 
@@ -43,4 +44,7 @@ public class IntakeConstants {
 
     //ascope offset
     public static final Translation3d INTAKE_OFFSET = new Translation3d(0.292100,0,0.191);
+
+    // time
+    public static Time INTAKE_AGITATE_DELAY = Seconds.of(5);
 }

@@ -18,7 +18,7 @@ public class Intake extends SubsystemBase {
 
     private final IntakeIO io;
     private final IntakeIOInputsAutoLogged in = new IntakeIOInputsAutoLogged();
-
+    private boolean isIntaking = false;
     public Intake(IntakeIO io) {
         this.io = io;
     }
@@ -34,13 +34,27 @@ public class Intake extends SubsystemBase {
         }
     }
 
+    public Command agitate(){
+        return Commands.repeatingSequence(
+                Commands.waitUntil(() -> !isIntaking),
+                Commands.runOnce(() -> io.setPivotGoal(INTAKE_PIVOT_AGITATE_ANGLE), this),
+                Commands.waitUntil(() -> in.pivotAtSetpoint),
+                Commands.runOnce(() -> io.setPivotGoal(INTAKE_DEPLOYED_ANGLE), this),
+                Commands.waitUntil(() -> in.pivotAtSetpoint)
+        )
+        .withName("agitate");
+    }
+
+
     public Command intake(){
         return Commands.run(() -> {
+            isIntaking = true;
             io.setPivotGoal(INTAKE_DEPLOYED_ANGLE);
             io.setRollerVoltage(INTAKE_RUN_VOLTAGE);
         }, this)
         .finallyDo(() -> {
             io.setRollerVoltage(Volts.of(0));
+            isIntaking = false;
 //            io.setPivotGoal(INTAKE_STOWED_ANGLE);
         })
         .withName("intake");
@@ -51,17 +65,8 @@ public class Intake extends SubsystemBase {
             io.setPivotGoal(INTAKE_STOWED_ANGLE);
         }, this).withName("up up up in the bot");
     }
-    public Command outtake(){
-        return Commands.run(() -> {
-            io.setPivotGoal(INTAKE_DEPLOYED_ANGLE);
-            io.setRollerVoltage(INTAKE_EJECT_VOLTAGE);
-        }, this)
-        .finallyDo(() -> {
-            io.setRollerVoltage(Volts.of(0));
-            io.setPivotGoal(INTAKE_STOWED_ANGLE);
-        })
-        .withName("outtake");
-    }
+
+
     
     public Command manualControl(Supplier<Angle> pivot, Supplier<Voltage> roller){
         
