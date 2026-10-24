@@ -26,6 +26,7 @@ public class IntakeConstants {
     public static final Voltage INTAKE_EJECT_VOLTAGE = Volts.of(-10); // TODO: tune
 
     //setpoints
+    public static final Angle INTAKE_PIVOT_AGITATE = Rotations.of(0.125);
     public static final Angle INTAKE_STOWED_ANGLE = Degrees.of(130);   // TODO: tune
     public static final Angle INTAKE_DEPLOYED_ANGLE = Degrees.of(0); // TODO: tune
     public static final Angle INTAKE_PIVOT_AGITATE = Rotations.of(0.125);
