@@ -23,9 +23,6 @@ import frc.robot.subsystems.Led;
 import frc.robot.subsystems.SOTMSolver;
 import frc.robot.subsystems.SimFuelManager;
 import frc.robot.subsystems.LaunchLUT;
-import frc.robot.subsystems.climber.Climber;
-import frc.robot.subsystems.climber.ClimberIO;
-import frc.robot.subsystems.climber.ClimberIOSim;
 import frc.robot.subsystems.fuelVision.FuelVision;
 import frc.robot.subsystems.fuelVision.FuelVisionIO;
 import frc.robot.subsystems.fuelVision.FuelVisionIOPhoton;
@@ -125,7 +122,6 @@ public class RobotContainer {
     private FuelVision fuelVision;
     private Turret turret;
     private Launcher launcher;
-    private Climber climber;
     private Hood hood;
     private Intake intake;
     private Kicker kicker;
@@ -264,8 +260,6 @@ public class RobotContainer {
                 intake = new Intake(new IntakeIODoubleKrak());
                 launcher = new Launcher(new LauncherIOReal());
                 hood = new Hood(new HoodIOReal());
-                climber = new Climber(new ClimberIO() {
-                });//FIXME
                 kicker = new Kicker(new KickerIOReal());
                 buttons = new Buttons(new ButtonIODIO(0));
                 indexer = new Indexer(new IndexerIOKrak());
@@ -303,7 +297,6 @@ public class RobotContainer {
                 }
                 launcher = new Launcher(new LauncherIOSim());
                 hood = new Hood(new HoodIOSim());
-                climber = new Climber(new ClimberIOSim());
                 kicker = new Kicker(new KickerIOSim());
                 buttons = new Buttons(new ButtonIOSim(() -> false));
                 indexer = new Indexer(new IndexerIOSim());
@@ -343,7 +336,6 @@ public class RobotContainer {
 
                 launcher = new Launcher(new LauncherIO(){});
                 hood = new Hood(new HoodIO(){});
-                climber = new Climber(new ClimberIO(){});
                 kicker = new Kicker(new KickerIO(){});
                 buttons = new Buttons(new ButtonIO(){});
                 indexer = new Indexer(new IndexerIO(){});
@@ -392,7 +384,6 @@ public class RobotContainer {
         kicker.setDefaultCommand(kicker.hold().ignoringDisable(true));
         drive.setDefaultCommand(drive.teleopDrive().ignoringDisable(true));
         hood.setDefaultCommand(hood.instantPositionControl(() -> HOOD_MIN_ANGLE).ignoringDisable(true));
-        climber.setDefaultCommand(climber.voltageControl(Volts::zero).ignoringDisable(true));
         indexer.setDefaultCommand(indexer.stop().ignoringDisable(true));
     }
 
@@ -550,7 +541,6 @@ public class RobotContainer {
         autoChooser.update();
 
         Logger.recordOutput("AScope/Components", new Pose3d[]{
-                new Pose3d(0, 0, climber.getPosition().in(Meters), new Rotation3d()),
                 new Pose3d(INTAKE_OFFSET, new Rotation3d(Radians.zero(), intake.getAngle(), Degrees.of(180))),
                 new Pose3d(TURRET_OFFSET, new Rotation3d(0, 0, turret.getAngle().in(Radians))),
                 new Pose3d(TURRET_OFFSET
