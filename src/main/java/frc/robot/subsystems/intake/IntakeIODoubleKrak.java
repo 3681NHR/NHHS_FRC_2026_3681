@@ -101,9 +101,9 @@ public class IntakeIODoubleKrak implements IntakeIO {
 
     @Override
     public void updateInputs(IntakeIOInputs input) {
-//        BaseStatusSignal.refreshAll(
-//                rollerMotorSpeed, rollerMotorVoltage, rollerMotorCurrent, rollerMotorTemp,
-//                pivotMotorVoltage, pivotMotorCurrent, pivotMotorTemp);
+        BaseStatusSignal.refreshAll(
+                rollerMotorSpeed, rollerMotorVoltage, rollerMotorCurrent, rollerMotorTemp,
+                pivotMotorVoltage, pivotMotorCurrent, pivotMotorTemp);
         input.rollerVelocity = rollerMotorSpeed.getValue();
 
         input.rollerVoltageOut = rollerMotorVoltage.getValue();

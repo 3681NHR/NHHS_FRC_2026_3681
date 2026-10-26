@@ -181,14 +181,14 @@ public enum Path {
             () -> followChoreoPath("K")
     ),
     L_MID_TO_L_BUMP_AND_FIRE(
-            "Fire at left bump(5 sec)",new Path[]{},//initialized in static block
+            "Fire at left bump(forever)",new Path[]{},//initialized in static block
             addDelayToEnd(getChoreoTraj("K"), 5),
-            "path k(with pause)",
+            "path k",
             () -> Commands.deadline(
                     followChoreoPath("K").andThen(Commands.parallel(
                             shoot(),
                             agitate()
-                    ).withTimeout(5)),
+                    )),
                     track()
             )
     ),
@@ -200,7 +200,7 @@ public enum Path {
             () -> followChoreoPath("L")
     ),
     R_MID_TO_R_BUMP_AND_FIRE(
-            "fire at right bump(5 sec)",
+            "fire at right bump(forever)",
             new Path[]{},//initialized in static block//initialized in static block
             getChoreoTraj("L"),
             "path l(with pause)",
@@ -208,7 +208,7 @@ public enum Path {
                     followChoreoPath("L").andThen(Commands.parallel(
                             shoot(),
                             agitate()
-                    ).withTimeout(5)),
+                    )),
                     track()
             )
     ),
@@ -332,9 +332,9 @@ public enum Path {
         R_TRENCH_TO_MID_PICKUP.options = R_TRENCH_TO_MID_PASS.options;
         L_MID_TO_L_TRENCH.options = START_L_TRENCH.options;
         R_MID_TO_R_TRENCH.options = START_R_TRENCH.options;
-        L_MID_TO_L_BUMP_AND_FIRE.options = START_L_BUMP.options;
+        L_MID_TO_L_BUMP_AND_FIRE.options = new Path[]{};
         L_MID_TO_L_BUMP.options = START_L_BUMP.options;
-        R_MID_TO_R_BUMP_AND_FIRE.options = START_R_BUMP.options;
+        R_MID_TO_R_BUMP_AND_FIRE.options = new Path[]{};
         R_MID_TO_R_BUMP.options = START_R_BUMP.options;
 
     }

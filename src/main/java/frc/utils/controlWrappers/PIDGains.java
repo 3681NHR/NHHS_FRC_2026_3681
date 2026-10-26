@@ -67,7 +67,7 @@ public class PIDGains {
 
         @Override
         public void update(){
-            if(apply != null && !DriverStation.isFMSAttached()){
+            if(apply != null){
                 if(apply.get()){
                     kP = setkP.get();                    
                     kI = setkI.get();                        
@@ -128,7 +128,7 @@ public class PIDGains {
 
         @Override
         public void update(){
-            if(apply != null && !DriverStation.isFMSAttached()){
+            if(apply != null){
                 if(apply.get()){
                     kP = setkP.get();                    
                     kI = setkI.get();                        
@@ -179,7 +179,7 @@ public class PIDGains {
 
         @Override
         public void update(){
-            if(apply != null && !DriverStation.isFMSAttached()){
+            if(apply != null){
                 if(apply.get()){
                     kS = setkS.get();                    
                     kV = setkV.get();                        
@@ -242,7 +242,7 @@ public class PIDGains {
 
         @Override
         public void update(){
-            if(apply != null && !DriverStation.isFMSAttached()){
+            if(apply != null){
                 if(apply.get()){
                     kS = setkS.get();                    
                     kV = setkV.get();                        

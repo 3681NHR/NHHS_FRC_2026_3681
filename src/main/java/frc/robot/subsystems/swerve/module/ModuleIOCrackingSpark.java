@@ -51,6 +51,7 @@ import frc.robot.constants.DriveConstants.Module;
 import frc.utils.PhoenixOdometryThread;
 import frc.utils.controlWrappers.ProfiledPID;
 import frc.utils.controlWrappers.SimpleFF;
+import org.littletonrobotics.junction.Logger;
 
 /**
  * Module IO implementation for Spark Flex drive motor controller, Spark Max
@@ -96,7 +97,10 @@ public class ModuleIOCrackingSpark implements ModuleIO {
     private Voltage driveOpenLoopVout = Volts.of(0);
     private Voltage turnOpenLoopVout = Volts.of(0);
 
+    private int io = 0;
+
 	public ModuleIOCrackingSpark(int io) {
+        this.io = io;
         driveTalon = new TalonFX(
                 switch (io) {
                     case 0 -> Module.FL_DRIVE_ID;
@@ -223,6 +227,9 @@ public class ModuleIOCrackingSpark implements ModuleIO {
 
     @Override
     public void updateInputs(ModuleIOInputs inputs) {
+
+        Logger.recordOutput("pain" + io, driveTalon.getFault_StatorCurrLimit(true).getValue());
+
         Angle turnPosition = Radians.of(turnEncoder.getPosition());
         turnVelocity = RPM.of(turnEncoder.getVelocity());
 
