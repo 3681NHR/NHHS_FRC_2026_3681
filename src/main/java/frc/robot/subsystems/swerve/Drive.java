@@ -52,6 +52,7 @@ import frc.robot.subsystems.swerve.module.ModuleIO;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionEstimate;
 import frc.utils.LoggedField2d;
+import frc.utils.LoggedTracer;
 import frc.utils.PhoenixOdometryThread;
 import frc.utils.SparkOdometryThread;
 import frc.utils.Joystick.DuelJoystickAxis;
@@ -207,6 +208,7 @@ public class Drive extends SubsystemBase {
         gyroIO.updateInputs(gyroInputs);
         Logger.processInputs("IO/Drive/Gyro", gyroInputs);
 
+        LoggedTracer.reset();
         boolean disabled = DriverStation.isDisabled();
         for (var module : modules) {
             module.periodic();
@@ -227,6 +229,7 @@ public class Drive extends SubsystemBase {
                 getCurrentCommand() != null ? getCurrentCommand().getName() : "none");
 
 
+        LoggedTracer.reset();
         // Update odometry
         double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
         int sampleCount = sampleTimestamps.length;
@@ -259,18 +262,23 @@ public class Drive extends SubsystemBase {
             poseEstimator.updateWithTime(sampleTimestamps[i], new Rotation2d(rawGyroRotation.in(Radians)), modulePositions);
         }
 
+        LoggedTracer.record("odom");
         // Update gyro alert
         gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.MODE != RobotMode.SIM);
 
+        LoggedTracer.record("alert");
         //update swerve widget
         YAGSLWidget.measuredStatesObj = getModuleStates();
         YAGSLWidget.measuredChassisSpeedsObj = getChassisSpeeds();
         YAGSLWidget.robotRotationObj = getRotation();
         YAGSLWidget.updateData();
 
+        LoggedTracer.record("yagsl widget");
+
         field.setRobotPose(getPose());
 
         SmartDashboard.putData("field", field);
+        LoggedTracer.record("other drive stuff");
     }
 
     public void setFOD(boolean fod) {

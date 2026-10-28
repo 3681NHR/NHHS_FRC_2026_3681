@@ -590,7 +590,7 @@ public class RobotContainer {
 
     public void enableAuto() {
 
-        if (RobotBase.isSimulation()) {
+        if (RobotBase.isSimulation() && MODE == RobotMode.SIM) {
             SimulatedArena.getInstance().resetFieldForAuto();
             //preload 8
             SimFuelManager.getInstance().intake.setGamePiecesCount(8);

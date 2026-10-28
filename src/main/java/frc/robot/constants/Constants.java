@@ -21,7 +21,7 @@ public final class Constants {
         REPLAY
     }
 
-    public static RobotMode SIM_MODE = RobotMode.SIM;// set to REPLAY to replay log files
+    public static RobotMode SIM_MODE = RobotMode.REPLAY;// set to REPLAY to replay log files
     public static RobotMode MODE = RobotBase.isReal() ? RobotMode.REAL : SIM_MODE;
 
     public static final Time AUTO_TIME = Seconds.of(20);
